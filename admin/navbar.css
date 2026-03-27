@@ -1,0 +1,324 @@
+/* Menghapus duplikasi dan memperbaiki struktur */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+/* Tombol Hamburger */
+#hamburger {
+    position: relative;
+    top: 0;
+    z-index: 1001;
+    cursor: pointer;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+}
+
+#hamburger span {
+    display: block;
+    width: 2rem;
+    height: 0.25rem;
+    background-color: #333;
+    margin: 0.3rem 0;
+    transition: all 0.3s ease;
+}
+
+/* Navbar */
+.bg-orange-navbar {
+    background-color: #FF6F00; /* Oranye */
+    color: white;
+    display: flex;
+    justify-content: space-between; /* Mengatur agar hamburger dan teks berada di sisi yang berbeda */
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.bg-orange-navbar .navbar-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.bg-orange-navbar a {
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+}
+
+.bg-orange-navbar a:hover {
+    background-color: #FF8C00;
+}
+
+/* Sidebar */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px;
+    background-color: #333;
+    color: white;
+    z-index: 9999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+#sidebar.open {
+    transform: translateX(0);
+}
+
+@media (min-width: 768px) {
+    #sidebar {
+        transform: translateX(0); /* Sidebar visible on desktop */
+    }
+
+    #hamburger {
+        display: none; /* Sembunyikan hamburger di desktop */
+    }
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.pagination li {
+    margin: 0 5px;
+}
+
+.pagination li a {
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.pagination li.active a {
+    background-color: #007bff;
+    color: white;
+}
+
+.pagination li a:hover {
+    background-color: #ddd;
+}
+
+/* Badge */
+.jenis-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+
+.jenis-inventaris {
+    background-color: #48bb78; /* Hijau */
+    color: #ffffff; /* Putih */
+}
+
+.jenis-lop {
+    background-color: #f56565; /* Merah */
+    color: #ffffff; /* Putih */
+}
+
+.jenis-unknown {
+    background-color: #a0aec0; /* Abu-abu */
+    color: #ffffff; /* Putih */
+}
+
+/* Status Badge */
+.status-badge {
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    display: inline-block;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.status-temporary {
+    background-color: #fefcbf; /* Kuning muda */
+    color: #4a5568;
+}
+
+.status-repair {
+    background-color: #facc15; /* Kuning */
+    color: #fff;
+}
+
+.status-rusak {
+    background-color: #FFA500; /* Oranye Jeruk */
+    color: #fff;
+}
+
+/* Tabel */
+.table-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    max-width: 1000px;
+    font-size: 12px;
+    margin: auto;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 6px;
+    text-align: center;
+    border: 1px solid #ddd;
+    word-wrap: break-word;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+img {
+    max-width: 50px;
+    height: auto;
+}
+
+/* Fixed Elements */
+.fixed-element {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 999;
+    transform: scale(1);
+}
+
+/* Sidebar Close Button */
+#close-sidebar {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+/* Filter Dropdown */
+#filterDropdown {
+    display: none;
+    position: absolute;
+    z-index: 10;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#filterDropdown.show {
+    display: block;
+}
+
+/* Responsif untuk sidebar */
+@media (max-width: 768px) {
+    #sidebar {
+        width: 100%;
+    }
+
+    /* Navbar hamburger di mobile */
+    #hamburger {
+        display: block; /* Pastikan hamburger tampil di mobile */
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+}
+
+/* Profile info */
+.fa-user-circle {
+    font-size: 2rem; /* Sesuaikan ukuran sesuai kebutuhan */
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: #2d3748; /* Warna latar belakang sidebar */
+    border-bottom: 1px solid #4a5568; /* Batas bawah untuk pemisahan */
+}
+
+.profile-info img {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    margin-right: 1rem;
+}
+
+.profile-info .name {
+    color: #fff;
+}
+
+/* Hambuger untuk mobile */
+.hamburger {
+    display: none;
+    cursor: pointer;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    width: 40px;
+}
+
+.bar {
+    width: 100%;
+    height: 4px;
+    background-color: #fff;
+    margin: 2px 0;
+    transition: 0.4s;
+}
+
+/* Responsif untuk tampilan mobile */
+@media (max-width: 768px) {
+    .hamburger {
+        display: flex;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+}

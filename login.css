@@ -1,0 +1,91 @@
+ /* Loader animasi */
+ .loader {
+    border-width: 4px;
+    border-style: solid;
+    border-color: transparent;
+    border-top-color: #3b82f6; /* Warna biru */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+            /* Tambahkan padding untuk layar kecil */
+        body {
+            padding: 1rem;
+        }
+
+        /* Media query untuk layar besar */
+@media (min-width: 768px) {
+    .logo {
+        width: 200px; /* Perbesar logo di layar besar */
+    }
+
+    .form-container {
+        max-width: 400px; /* Batasi lebar form di layar besar */
+    }
+}
+    .logo {
+        width: 150px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+
+    
+    .logo {
+        width: 150px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        position: relative;
+        animation: shine 2s infinite linear;
+    }
+
+    @keyframes shine {
+        0% {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            transform: scale(1);
+        }
+        50% {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+        100% {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            transform: scale(1);
+        }
+    }
+
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper input {
+        padding-right: 2.5rem; /* Add padding to make room for the icon */
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 0.75rem;
+        top: 70%; /* Center the icon vertically */
+        transform: translateY(-50%); /* Adjust this value to center the icon */
+        cursor: pointer;
+        color: #6b7280; /* Tailwind color for gray-500 */
+    }
+
+    .toggle-password svg {
+        width: 1.25rem; /* Adjust size if necessary */
+        height: 1.25rem; /* Adjust size if necessary */
+    }
+    

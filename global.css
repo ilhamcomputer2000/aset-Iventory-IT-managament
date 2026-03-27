@@ -1,0 +1,1051 @@
+ /* PERBAIKAN: Custom Styling untuk Select2 (match Tailwind) */
+/* PERBAIKAN: Custom Styling untuk Select2 (match Tailwind, tambah force search) */
+        .select2-container--default .select2-selection--single {
+            height: 42px !important; /* Match py-2 px-3 */
+            border: 1px solid #d1d5db !important; /* border-gray-300 */
+            border-radius: 0.5rem !important; /* rounded-lg */
+            background-color: rgba(255, 255, 255, 0.9) !important; /* bg-white/90 */
+            backdrop-filter: blur(4px) !important;
+            font-size: 0.875rem !important; /* text-sm */
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #374151 !important; /* text-gray-700 */
+            padding-left: 0.75rem !important; /* px-3 */
+            padding-top: 0.5rem !important; /* py-2 */
+            line-height: 1.25 !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: #9ca3af !important; /* placeholder-gray-500 */
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: #3b82f6 !important; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important; /* focus:ring-2 ring-blue-500/10 */
+            outline: none !important;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #d1d5db !important; /* border-gray-300 */
+            border-radius: 0.5rem !important; /* rounded-lg */
+            background-color: rgba(255, 255, 255, 0.95) !important; /* bg-white/95 */
+            backdrop-filter: blur(4px) !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; /* shadow-lg */
+            z-index: 9999 !important; /* Tinggi z-index untuk hindari tutup sidebar */
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #dbeafe !important; /* bg-blue-100 */
+            color: #1e40af !important; /* text-blue-800 */
+        }
+
+        .select2-container--default .select2-results__option {
+            padding: 0.5rem 0.75rem !important; /* py-2 px-3 */
+            font-size: 0.875rem !important; /* text-sm */
+        }
+
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.5rem !important;
+            padding: 0.5rem 0.75rem !important;
+            background-color: white !important;
+            font-size: 0.875rem !important; /* text-sm */
+        }
+
+        /* PERBAIKAN: Force search box tampil di semua dropdown (bahkan jika opsi sedikit) */
+        .select2-container .select2-search--inline {
+            display: block !important;
+            width: 100% !important;
+            margin: 5px 0 !important;
+        }
+
+        .select2-container--default .select2-search--inline .select2-search__field {
+            background: white !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.5rem !important;
+            padding: 0.5rem !important;
+            width: 100% !important;
+        }
+
+        /* Max height untuk dropdown panjang (seperti Kategori) */
+        .select2-container--default .select2-results {
+            max-height: 160px !important; /* max-h-40 ≈ 160px */
+            overflow-y: auto !important;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .select2-container--default .select2-selection--single {
+                height: 38px !important;
+                font-size: 0.875rem !important;
+            }
+        }
+
+        /* Hide hamburger in desktop (sidebar locked open) */
+        #hamburger-btn {
+            display: none;
+        }
+        @media (min-width: 1024px) {
+            #hamburger-btn {
+                display: flex !important;  /* Pastikan flex seperti style inline */
+            }
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        .animate-scale-in {
+            animation: scaleIn 0.4s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .status-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-item:hover {
+            transform: translateX(4px);
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Grid styles */
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Responsive grid adjustments */
+        @media (max-width: 768px) {
+            .asset-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .asset-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        /* Table row hover */
+        .table-row {
+            transition: all 0.3s ease;
+        }
+
+        .table-row:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.9); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1); 
+            }
+        }
+
+        /* Status badge hover effects */
+        .status-badge {
+            transition: all 0.3s ease;
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+        .status-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Sidebar Compact Sizing - Responsive untuk hindari zoom/overflow */
+        #sidebar {
+            /* Default untuk mobile: Ukuran asli (sudah pas) */
+        }
+
+        @media (min-width: 1024px) {
+            /* Desktop: Kurangi ukuran agar mirip mobile (tidak zoom besar) */
+            #sidebar .w-16 { width: 3.5rem; height: 3.5rem; }  /* Logo dari 64px → 56px */
+            #sidebar .w-12 { width: 2.75rem; height: 2.75rem; }  /* Profile dari 48px → 44px */
+            #sidebar .text-2xl { font-size: 1.125rem; line-height: 1.75rem; }  /* Logo icon dari 24px → 18px */
+            #sidebar .text-lg { font-size: 1rem; line-height: 1.5rem; }  /* Header & profile icon/teks dari 18px → 16px */
+            #sidebar .text-xl { font-size: 1.125rem; line-height: 1.75rem; }  /* Menu icon dari 20px → 18px */
+            #sidebar h2 { font-size: 1rem; line-height: 1.5rem; }  /* Header title dari text-lg → text-base */
+            #sidebar .p-6 { padding: 1rem; }  /* Padding header/profile dari 24px → 16px */
+            #sidebar .pt-8 { padding-top: 1.25rem; }  /* Top padding header dari 32px → 20px */
+            #sidebar .py-4 { padding-top: 0.75rem; padding-bottom: 0.75rem; }  /* Menu vertikal dari 16px → 12px */
+            #sidebar .px-6 { padding-left: 1.25rem; padding-right: 1.25rem; }  /* Menu horizontal dari 24px → 20px */
+            #sidebar .p-4 { padding: 0.75rem; }  /* Profile inner padding dari 16px → 12px */
+            #sidebar .p-2 { padding: 0.5rem; }  /* Icon menu padding dari 8px → 4px (compact) */
+            #sidebar .mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }  /* Menu margin dari 8px → 4px */
+            #sidebar .mb-2 { margin-bottom: 0.5rem; }  /* Menu bottom margin dari 8px → 4px */
+            #sidebar .mb-4 { margin-bottom: 1rem; }  /* Space antar section dari 16px → 16px (tetap) */
+        }
+
+        /* Adjust footer gradient untuk hindari tutup content di desktop */
+        @media (min-width: 1024px) {
+            #sidebar > .absolute.bottom-0 {  /* Target footer decoration */
+                height: 1.5rem;  /* Dari h-20 (80px) → 24px, lebih tipis */
+            }
+        }
+
+
+    /* Loading Animation - Gradient Biru-Oren Cerah dengan Shimmer (Lebih Menarik & Dinamis) */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Base gradient: Biru cerah ke oren cerah dengan multi-stop untuk depth */
+    background: linear-gradient(135deg, #4692f9 0%, #5a9df9 25%, #ffa700 50%, #ffb347 75%, #ff9500 100%);
+    background-size: 400% 400%;  /* Ukuran besar untuk animasi shimmer (bergerak) */
+    animation: shimmerGradient 4s ease-in-out infinite;  /* Animasi bergerak pelan (shimmer effect) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease-out;  /* Fade out halus */
+}
+
+/* Animasi Shimmer: Gradient bergerak seperti cahaya memantul */
+@keyframes shimmerGradient {
+    0% { 
+        background-position: 0% 50%;  /* Mulai dari kiri */
+    }
+    50% { 
+        background-position: 100% 50%;  /* Bergerak ke kanan (kilau) */
+    }
+    100% { 
+        background-position: 0% 50%;  /* Kembali ke kiri (loop smooth) */
+    }
+}
+
+.loading-content {
+    text-align: center;
+    color: #1e293b;  /* Teks navy gelap untuk kontras tajam di gradient cerah bergerak */
+}
+
+.loading-logo {
+    width: 100px;  /* Ukuran seperti sebelumnya */
+    height: 100px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.9);  /* Background putih untuk kontras dengan shimmer */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);  /* Shadow lembut */
+    animation: logoRotate 2s ease-in-out;  /* Animasi rotasi logo tetap */
+    border: 2px solid rgba(255, 255, 255, 0.4);  /* Border untuk highlight di shimmer */
+}
+
+.logo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: inherit;
+}
+
+.loading-bars {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 2rem 0;
+}
+
+.loading-bar {
+    width: 12px;
+    height: 12px;
+    background: #1e293b;  /* Navy gelap untuk kontras dengan gradient bergerak */
+    border-radius: 50%;
+    animation: loadingPulse 1.5s ease-in-out infinite;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);  /* Shadow ringan */
+}
+
+.loading-bar:nth-child(2) { animation-delay: 0.2s; }
+.loading-bar:nth-child(3) { animation-delay: 0.4s; }
+
+.loading-progress {
+    width: 200px;
+    height: 4px;
+    background: rgba(30, 41, 59, 0.2);  /* Background navy semi-transparan */
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 0 auto;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);  /* Inner shadow untuk depth */
+}
+
+.loading-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #4692f9, #ffa700);  /* Gradient biru-orens cerah untuk progress (match base) */
+    background-size: 200% 100%;  /* Ukuran untuk shimmer mini di progress */
+    animation: progressShimmer 2s ease-out forwards, progressLoad 2s ease-out forwards;  /* Shimmer + isi progress */
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(70, 146, 249, 0.4);  /* Glow biru cerah */
+}
+
+/* Shimmer untuk progress bar (opsional, mini version) */
+@keyframes progressShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Keyframes tetap sama untuk elemen lain (jangan ubah) */
+@keyframes logoRotate {
+    0% { 
+        transform: scale(0) rotate(-180deg); 
+        opacity: 0; 
+    }
+    100% { 
+        transform: scale(1) rotate(0deg); 
+        opacity: 1; 
+    }
+}
+
+@keyframes loadingPulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.5); opacity: 1; }
+}
+
+@keyframes progressLoad {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+
+/* Dropdown Menu Settings - Pure Left-Click Toggle, Stack Normal (Fix: Logout Visible, Scroll Sidebar) */
+.sidebar {
+    overflow-y: auto !important;  /* FIX: Scroll internal sidebar saat dropdown push Logout (tidak hilang) */
+    height: 100vh !important;  /* Ganti h-screen ke 100vh untuk full height + scroll */
+}
+
+.sidebar-dropdown {
+    position: relative !important;  /* Parent relative untuk flow normal */
+    overflow: visible !important;  /* Visible agar submenu tidak clipped */
+    margin-bottom: 1rem !important;  /* FIX: Spasi ekstra bawah parent (agar Logout punya ruang, tidak nempel) */
+}
+
+.submenu {
+    position: relative !important;  /* FIX: Relative untuk stack di bawah Settings, push Logout ke bawah - no overlap/hilang */
+    left: 0;
+    top: auto;  /* No top absolute */
+    width: 100% !important;  /* Full width parent */
+    background: rgba(71, 85, 105, 0.8) !important;  /* Slate-700/80 match sidebar */
+    backdrop-blur: blur(4px) !important;  /* Blur subtle */
+    border-radius: 0 0 0.75rem 0.75rem !important;  /* Rounded bawah saja (match stack) */
+    margin-top: 0 !important;  /* No margin top, langsung di bawah parent */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;  /* Shadow ringan untuk indent effect */
+    z-index: 10 !important;  /* Rendah, karena stack normal */
+    overflow: hidden !important;  /* Hidden saat collapse */
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out !important;  /* Smooth slide + fade */
+    opacity: 0 !important;  /* Hidden awal */
+    display: block !important;  /* Force block */
+    list-style: none !important;  /* No bullet */
+    padding: 0 !important;  /* No padding default */
+    margin: 0 !important;  /* No margin default */
+    /* FIX: Indent submenu item (agar terlihat nested, tidak full width seperti parent) */
+    padding-left: 2rem !important;  /* Indent 2rem ke kanan untuk rapi */
+}
+
+/* Open state: Slide down & fade in (stack push Logout, sidebar scroll) */
+.submenu.open {
+    max-height: 200px !important;  /* Tinggi max kecil agar tidak panjang & tutup Logout */
+    opacity: 1 !important;
+    overflow-y: auto !important;  /* Scroll jika item banyak */
+    padding: 0.5rem 0 !important;  /* Padding internal saat open */
+    background: rgba(71, 85, 105, 0.9) !important;  /* Sedikit lebih opaque saat open */
+}
+
+/* Arrow rotate: Dari down ke up saat open (hanya on click) */
+#settings-arrow {
+    transition: transform 0.3s ease-in-out !important;
+}
+
+.submenu.open + #settings-arrow,
+.sidebar-dropdown .open + #settings-arrow {  /* Selector spesifik untuk arrow */
+    transform: rotate(180deg) !important;  /* Rotate 180° untuk ↑ */
+}
+
+/* Hover submenu item (tetap open saat hover) */
+.submenu li:hover {
+    background: rgba(51, 65, 85, 0.6) !important;  /* Slate-600/60 subtle, lebih visible di indent */
+    border-radius: 0.5rem !important;  /* Rounded item untuk rapi */
+}
+
+/* FIX: Keep open saat mouse di submenu */
+.submenu:hover,
+.submenu.open:hover {
+    opacity: 1 !important;
+    max-height: 200px !important;  /* Force tetap open */
+}
+
+/* Responsive: Mobile - Sama seperti desktop (stack normal, sidebar scroll) */
+@media (max-width: 1023px) {  
+    .submenu {
+        padding-left: 1.5rem !important;  /* Indent lebih kecil di mobile */
+        border-radius: 0 0 0.5rem 0.5rem !important;  /* Rounded lebih kecil */
+    }
+    
+    .submenu.open {
+        max-height: 300px !important;  /* Lebih tinggi di mobile jika perlu scroll */
+    }
+    
+    /* FIX: Sidebar scroll lebih smooth di mobile */
+    #sidebar {
+        -webkit-overflow-scrolling: touch !important;  /* Smooth scroll iOS */
+    }
+}
+
+/* Pastikan Logout visible & clickable (no overlap, spasi atas) */
+.sidebar-item[href="../logout.php"] {
+    margin-top: 0.5rem !important;  /* Spasi ekstra di atas Logout */
+    z-index: 20 !important;  /* Tinggi agar tidak tertutup shadow submenu */
+    pointer-events: auto !important;  /* Pastikan clickable */
+}
+
+
+
+/* FIX Arrow Rotate: Target parent saat submenu open */
+.settings-parent .fa-chevron-down {
+    transition: transform 0.3s ease-in-out !important;
+}
+
+/* Saat dropdown open, rotate arrow di parent */
+#settings-dropdown.open ~ .settings-parent .fa-chevron-down,
+.settings-parent:has(#settings-dropdown.open) .fa-chevron-down {
+    transform: rotate(180deg) !important;  /* Modern CSS :has() untuk support browser baru, fallback di JS */
+}
+
+/* FIX: Pastikan submenu tidak clipped di sidebar */
+.sidebar-dropdown {
+    overflow: visible !important;  /* Allow submenu to expand */
+}
+
+.submenu-item {
+    pointer-events: auto !important;  /* Pastikan li clickable */
+}
+
+ @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Inter', system-ui, sans-serif; }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+        .asset-card {
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        .asset-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+
+        /* PERBAIKAN: Custom Styling untuk Select2 (match Tailwind) */
+/* PERBAIKAN: Custom Styling untuk Select2 (match Tailwind, tambah force search) */
+        .select2-container--default .select2-selection--single {
+            height: 42px !important; /* Match py-2 px-3 */
+            border: 1px solid #d1d5db !important; /* border-gray-300 */
+            border-radius: 0.5rem !important; /* rounded-lg */
+            background-color: rgba(255, 255, 255, 0.9) !important; /* bg-white/90 */
+            backdrop-filter: blur(4px) !important;
+            font-size: 0.875rem !important; /* text-sm */
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #374151 !important; /* text-gray-700 */
+            padding-left: 0.75rem !important; /* px-3 */
+            padding-top: 0.5rem !important; /* py-2 */
+            line-height: 1.25 !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: #9ca3af !important; /* placeholder-gray-500 */
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: #3b82f6 !important; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important; /* focus:ring-2 ring-blue-500/10 */
+            outline: none !important;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #d1d5db !important; /* border-gray-300 */
+            border-radius: 0.5rem !important; /* rounded-lg */
+            background-color: rgba(255, 255, 255, 0.95) !important; /* bg-white/95 */
+            backdrop-filter: blur(4px) !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; /* shadow-lg */
+            z-index: 9999 !important; /* Tinggi z-index untuk hindari tutup sidebar */
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #dbeafe !important; /* bg-blue-100 */
+            color: #1e40af !important; /* text-blue-800 */
+        }
+
+        .select2-container--default .select2-results__option {
+            padding: 0.5rem 0.75rem !important; /* py-2 px-3 */
+            font-size: 0.875rem !important; /* text-sm */
+        }
+
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.5rem !important;
+            padding: 0.5rem 0.75rem !important;
+            background-color: white !important;
+            font-size: 0.875rem !important; /* text-sm */
+        }
+
+        /* PERBAIKAN: Force search box tampil di semua dropdown (bahkan jika opsi sedikit) */
+        .select2-container .select2-search--inline {
+            display: block !important;
+            width: 100% !important;
+            margin: 5px 0 !important;
+        }
+
+        .select2-container--default .select2-search--inline .select2-search__field {
+            background: white !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.5rem !important;
+            padding: 0.5rem !important;
+            width: 100% !important;
+        }
+
+        /* Max height untuk dropdown panjang (seperti Kategori) */
+        .select2-container--default .select2-results {
+            max-height: 160px !important; /* max-h-40 ≈ 160px */
+            overflow-y: auto !important;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .select2-container--default .select2-selection--single {
+                height: 38px !important;
+                font-size: 0.875rem !important;
+            }
+        }
+
+        /* Hide hamburger in desktop (sidebar locked open) */
+        #hamburger-btn {
+            display: none;
+        }
+        @media (min-width: 1024px) {
+            #hamburger-btn {
+                display: flex !important;  /* Pastikan flex seperti style inline */
+            }
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        .animate-scale-in {
+            animation: scaleIn 0.4s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .status-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-item:hover {
+            transform: translateX(4px);
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Grid styles */
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Responsive grid adjustments */
+        @media (max-width: 768px) {
+            .asset-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .asset-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        /* Table row hover */
+        .table-row {
+            transition: all 0.3s ease;
+        }
+
+        .table-row:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.9); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1); 
+            }
+        }
+
+        /* Status badge hover effects */
+        .status-badge {
+            transition: all 0.3s ease;
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+        .status-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Sidebar Compact Sizing - Responsive untuk hindari zoom/overflow */
+        #sidebar {
+            /* Default untuk mobile: Ukuran asli (sudah pas) */
+        }
+
+        @media (min-width: 1024px) {
+            /* Desktop: Kurangi ukuran agar mirip mobile (tidak zoom besar) */
+            #sidebar .w-16 { width: 3.5rem; height: 3.5rem; }  /* Logo dari 64px → 56px */
+            #sidebar .w-12 { width: 2.75rem; height: 2.75rem; }  /* Profile dari 48px → 44px */
+            #sidebar .text-2xl { font-size: 1.125rem; line-height: 1.75rem; }  /* Logo icon dari 24px → 18px */
+            #sidebar .text-lg { font-size: 1rem; line-height: 1.5rem; }  /* Header & profile icon/teks dari 18px → 16px */
+            #sidebar .text-xl { font-size: 1.125rem; line-height: 1.75rem; }  /* Menu icon dari 20px → 18px */
+            #sidebar h2 { font-size: 1rem; line-height: 1.5rem; }  /* Header title dari text-lg → text-base */
+            #sidebar .p-6 { padding: 1rem; }  /* Padding header/profile dari 24px → 16px */
+            #sidebar .pt-8 { padding-top: 1.25rem; }  /* Top padding header dari 32px → 20px */
+            #sidebar .py-4 { padding-top: 0.75rem; padding-bottom: 0.75rem; }  /* Menu vertikal dari 16px → 12px */
+            #sidebar .px-6 { padding-left: 1.25rem; padding-right: 1.25rem; }  /* Menu horizontal dari 24px → 20px */
+            #sidebar .p-4 { padding: 0.75rem; }  /* Profile inner padding dari 16px → 12px */
+            #sidebar .p-2 { padding: 0.5rem; }  /* Icon menu padding dari 8px → 4px (compact) */
+            #sidebar .mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }  /* Menu margin dari 8px → 4px */
+            #sidebar .mb-2 { margin-bottom: 0.5rem; }  /* Menu bottom margin dari 8px → 4px */
+            #sidebar .mb-4 { margin-bottom: 1rem; }  /* Space antar section dari 16px → 16px (tetap) */
+        }
+
+        /* Adjust footer gradient untuk hindari tutup content di desktop */
+        @media (min-width: 1024px) {
+            #sidebar > .absolute.bottom-0 {  /* Target footer decoration */
+                height: 1.5rem;  /* Dari h-20 (80px) → 24px, lebih tipis */
+            }
+        }
+
+
+    /* Loading Animation - Gradient Biru-Oren Cerah dengan Shimmer (Lebih Menarik & Dinamis) */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Base gradient: Biru cerah ke oren cerah dengan multi-stop untuk depth */
+    background: linear-gradient(135deg, #4692f9 0%, #5a9df9 25%, #ffa700 50%, #ffb347 75%, #ff9500 100%);
+    background-size: 400% 400%;  /* Ukuran besar untuk animasi shimmer (bergerak) */
+    animation: shimmerGradient 4s ease-in-out infinite;  /* Animasi bergerak pelan (shimmer effect) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease-out;  /* Fade out halus */
+}
+
+/* Animasi Shimmer: Gradient bergerak seperti cahaya memantul */
+@keyframes shimmerGradient {
+    0% { 
+        background-position: 0% 50%;  /* Mulai dari kiri */
+    }
+    50% { 
+        background-position: 100% 50%;  /* Bergerak ke kanan (kilau) */
+    }
+    100% { 
+        background-position: 0% 50%;  /* Kembali ke kiri (loop smooth) */
+    }
+}
+
+.loading-content {
+    text-align: center;
+    color: #1e293b;  /* Teks navy gelap untuk kontras tajam di gradient cerah bergerak */
+}
+
+.loading-logo {
+    width: 100px;  /* Ukuran seperti sebelumnya */
+    height: 100px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.9);  /* Background putih untuk kontras dengan shimmer */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);  /* Shadow lembut */
+    animation: logoRotate 2s ease-in-out;  /* Animasi rotasi logo tetap */
+    border: 2px solid rgba(255, 255, 255, 0.4);  /* Border untuk highlight di shimmer */
+}
+
+.logo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: inherit;
+}
+
+.loading-bars {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 2rem 0;
+}
+
+.loading-bar {
+    width: 12px;
+    height: 12px;
+    background: #1e293b;  /* Navy gelap untuk kontras dengan gradient bergerak */
+    border-radius: 50%;
+    animation: loadingPulse 1.5s ease-in-out infinite;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);  /* Shadow ringan */
+}
+
+.loading-bar:nth-child(2) { animation-delay: 0.2s; }
+.loading-bar:nth-child(3) { animation-delay: 0.4s; }
+
+.loading-progress {
+    width: 200px;
+    height: 4px;
+    background: rgba(30, 41, 59, 0.2);  /* Background navy semi-transparan */
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 0 auto;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);  /* Inner shadow untuk depth */
+}
+
+.loading-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #4692f9, #ffa700);  /* Gradient biru-orens cerah untuk progress (match base) */
+    background-size: 200% 100%;  /* Ukuran untuk shimmer mini di progress */
+    animation: progressShimmer 2s ease-out forwards, progressLoad 2s ease-out forwards;  /* Shimmer + isi progress */
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(70, 146, 249, 0.4);  /* Glow biru cerah */
+}
+
+/* Shimmer untuk progress bar (opsional, mini version) */
+@keyframes progressShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Keyframes tetap sama untuk elemen lain (jangan ubah) */
+@keyframes logoRotate {
+    0% { 
+        transform: scale(0) rotate(-180deg); 
+        opacity: 0; 
+    }
+    100% { 
+        transform: scale(1) rotate(0deg); 
+        opacity: 1; 
+    }
+}
+
+@keyframes loadingPulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.5); opacity: 1; }
+}
+
+@keyframes progressLoad {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+
+/* Dropdown Menu Settings - Pure Left-Click Toggle, Stack Normal (Fix: Logout Visible, Scroll Sidebar) */
+.sidebar {
+    overflow-y: auto !important;  /* FIX: Scroll internal sidebar saat dropdown push Logout (tidak hilang) */
+    height: 100vh !important;  /* Ganti h-screen ke 100vh untuk full height + scroll */
+}
+
+.sidebar-dropdown {
+    position: relative !important;  /* Parent relative untuk flow normal */
+    overflow: visible !important;  /* Visible agar submenu tidak clipped */
+    margin-bottom: 1rem !important;  /* FIX: Spasi ekstra bawah parent (agar Logout punya ruang, tidak nempel) */
+}
+
+.submenu {
+    position: relative !important;  /* FIX: Relative untuk stack di bawah Settings, push Logout ke bawah - no overlap/hilang */
+    left: 0;
+    top: auto;  /* No top absolute */
+    width: 100% !important;  /* Full width parent */
+    background: rgba(71, 85, 105, 0.8) !important;  /* Slate-700/80 match sidebar */
+    backdrop-blur: blur(4px) !important;  /* Blur subtle */
+    border-radius: 0 0 0.75rem 0.75rem !important;  /* Rounded bawah saja (match stack) */
+    margin-top: 0 !important;  /* No margin top, langsung di bawah parent */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;  /* Shadow ringan untuk indent effect */
+    z-index: 10 !important;  /* Rendah, karena stack normal */
+    overflow: hidden !important;  /* Hidden saat collapse */
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out !important;  /* Smooth slide + fade */
+    opacity: 0 !important;  /* Hidden awal */
+    display: block !important;  /* Force block */
+    list-style: none !important;  /* No bullet */
+    padding: 0 !important;  /* No padding default */
+    margin: 0 !important;  /* No margin default */
+    /* FIX: Indent submenu item (agar terlihat nested, tidak full width seperti parent) */
+    padding-left: 2rem !important;  /* Indent 2rem ke kanan untuk rapi */
+}
+
+/* Open state: Slide down & fade in (stack push Logout, sidebar scroll) */
+.submenu.open {
+    max-height: 200px !important;  /* Tinggi max kecil agar tidak panjang & tutup Logout */
+    opacity: 1 !important;
+    overflow-y: auto !important;  /* Scroll jika item banyak */
+    padding: 0.5rem 0 !important;  /* Padding internal saat open */
+    background: rgba(71, 85, 105, 0.9) !important;  /* Sedikit lebih opaque saat open */
+}
+
+/* Arrow rotate: Dari down ke up saat open (hanya on click) */
+#settings-arrow {
+    transition: transform 0.3s ease-in-out !important;
+}
+
+.submenu.open + #settings-arrow,
+.sidebar-dropdown .open + #settings-arrow {  /* Selector spesifik untuk arrow */
+    transform: rotate(180deg) !important;  /* Rotate 180° untuk ↑ */
+}
+
+/* Hover submenu item (tetap open saat hover) */
+.submenu li:hover {
+    background: rgba(51, 65, 85, 0.6) !important;  /* Slate-600/60 subtle, lebih visible di indent */
+    border-radius: 0.5rem !important;  /* Rounded item untuk rapi */
+}
+
+/* FIX: Keep open saat mouse di submenu */
+.submenu:hover,
+.submenu.open:hover {
+    opacity: 1 !important;
+    max-height: 200px !important;  /* Force tetap open */
+}
+
+/* Responsive: Mobile - Sama seperti desktop (stack normal, sidebar scroll) */
+@media (max-width: 1023px) {  
+    .submenu {
+        padding-left: 1.5rem !important;  /* Indent lebih kecil di mobile */
+        border-radius: 0 0 0.5rem 0.5rem !important;  /* Rounded lebih kecil */
+    }
+    
+    .submenu.open {
+        max-height: 300px !important;  /* Lebih tinggi di mobile jika perlu scroll */
+    }
+    
+    /* FIX: Sidebar scroll lebih smooth di mobile */
+    #sidebar {
+        -webkit-overflow-scrolling: touch !important;  /* Smooth scroll iOS */
+    }
+}
+
+/* Pastikan Logout visible & clickable (no overlap, spasi atas) */
+.sidebar-item[href="../logout.php"] {
+    margin-top: 0.5rem !important;  /* Spasi ekstra di atas Logout */
+    z-index: 20 !important;  /* Tinggi agar tidak tertutup shadow submenu */
+    pointer-events: auto !important;  /* Pastikan clickable */
+}
+
+
+
+/* FIX Arrow Rotate: Target parent saat submenu open */
+.settings-parent .fa-chevron-down {
+    transition: transform 0.3s ease-in-out !important;
+}
+
+/* Saat dropdown open, rotate arrow di parent */
+#settings-dropdown.open ~ .settings-parent .fa-chevron-down,
+.settings-parent:has(#settings-dropdown.open) .fa-chevron-down {
+    transform: rotate(180deg) !important;  /* Modern CSS :has() untuk support browser baru, fallback di JS */
+}
+
+/* FIX: Pastikan submenu tidak clipped di sidebar */
+.sidebar-dropdown {
+    overflow: visible !important;  /* Allow submenu to expand */
+}
+
+.submenu-item {
+    pointer-events: auto !important;  /* Pastikan li clickable */
+}
+
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 49; /* HARUS LEBIH RENDAH dari tombol close (z-50) dan sidebar (z-50) */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+.mobile-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
