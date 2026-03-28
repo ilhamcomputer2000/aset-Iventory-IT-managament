@@ -14,3 +14,26 @@
 [2026-03-13 10:34:32] ::1 /crud/admin/create.php | success branch - before activity log
 [2026-03-27 17:21:24] ::1 /crud/admin/create | BOOT php=8.2.12 sapi=apache2handler
 [2026-03-27 23:21:24] ::1 /crud/admin/create | DB include ok
+[2026-03-27 18:16:51] ::1 /crud/admin/create | BOOT php=8.2.12 sapi=apache2handler
+[2026-03-27 18:17:19] ::1 /crud/admin/create | BOOT php=8.2.12 sapi=apache2handler
+[2026-03-28 00:17:19] ::1 /crud/admin/create | DB include ok
+[2026-03-27 18:21:34] ::1 /crud/admin/create | BOOT php=8.2.12 sapi=apache2handler
+[2026-03-28 00:21:34] ::1 /crud/admin/create | DB include ok
+[2026-03-27 18:25:43] ::1 /crud/admin/create.php | BOOT php=8.2.12 sapi=apache2handler
+[2026-03-28 00:25:43] ::1 /crud/admin/create.php | DB include ok
+[2026-03-28 00:25:43] ::1 /crud/admin/create.php | POST start content_length=502544 post=24 files=5
+[2026-03-28 00:25:43] ::1 /crud/admin/create.php | uploads writable OK
+[2026-03-28 00:25:43] ::1 /crud/admin/create.php | Photo upload ok: barang=Foto_evidence_Photo_Barang_Asset_ITCKT_28032026_002543_69c6bd9722a9c.jpg depan=foto depan/Foto_evidence_Photo_Depan_Asset_ITCKT_28032026_002543_69c6bd972309a.jpg belakang=foto belakang/Foto_evidence_Photo_Belakang_Asset_ITCKT_28032026_002543_69c6bd972368d.jpg sn=foto sn/Foto_evidence_Photo_SN_Asset_ITCKT_28032026_002543_69c6bd9723c6b.jpg invoice=foto invoice/Foto_evidence_Photo_Invoice_Asset_ITCKT_28032026_002543_69c6bd97241c7.pdf
+[2026-03-28 00:25:43] ::1 /crud/admin/create.php | before INSERT peserta
+[2026-03-28 00:25:43] ::1 /crud/admin/create.php | INSERT failed errno=1048 error=Column 'Harga_Barang' cannot be null attempt=1
+[2026-03-28 00:25:43] ::1 /crud/admin/create.php | Retry Harga_Barang with 0 due to strict-mode error: Column 'Harga_Barang' cannot be null
+[2026-03-28 00:25:43] ::1 /crud/admin/create.php | INSERT ok id=607 attempts=2
+[2026-03-28 00:25:43] ::1 /crud/admin/create.php | success branch - before activity log
+[2026-03-28 03:00:22] ::1 /crud/admin/create | BOOT php=8.2.12 sapi=apache2handler
+[2026-03-28 09:00:22] ::1 /crud/admin/create | DB include ok
+[2026-03-28 03:08:57] ::1 /crud/admin/create | BOOT php=8.2.12 sapi=apache2handler
+[2026-03-28 09:08:57] ::1 /crud/admin/create | DB include ok
+[2026-03-28 03:10:39] ::1 /crud/admin/create | BOOT php=8.2.12 sapi=apache2handler
+[2026-03-28 09:10:39] ::1 /crud/admin/create | DB include ok
+[2026-03-28 03:12:12] ::1 /crud/admin/create | BOOT php=8.2.12 sapi=apache2handler
+[2026-03-28 09:12:12] ::1 /crud/admin/create | DB include ok

@@ -1268,7 +1268,7 @@ if (!$old_data) {
                 $includeNamaVendor = ($hasCol('Nama_Toko_Pembelian') && trim((string)$Nama_Toko_Pembelian) !== '');
                 // Kategori biasanya dropdown wajib; tetap update jika ada input.
                 $includeKategoriPembelian = ($hasCol('Kategori_Pembelian') && trim((string)$Kategori_Pembelian) !== '');
-                // Link: kalau kategori bukan Online kita memang mengosongkan link → harus tetap diupdate agar nilai lama terhapus.
+                // Link: kalau kategori bukan Online kita memang mengosongkan link â†’ harus tetap diupdate agar nilai lama terhapus.
                 $shouldClearLink = (strcasecmp(trim((string)$Kategori_Pembelian), 'Online') !== 0);
                 $includeLinkPembelian = ($hasCol('Link_Pembelian') && ($shouldClearLink || trim((string)$Link_Pembelian) !== ''));
 
@@ -1398,8 +1398,8 @@ if (!$old_data) {
                                 continue;
                             }
 
-                            // Jika DB benar-benar terupdate ke path baru → hapus file lama.
-                            // Jika tidak (kolom tidak ada / tidak terupdate) → hapus file baru agar tidak jadi sampah.
+                            // Jika DB benar-benar terupdate ke path baru â†’ hapus file lama.
+                            // Jika tidak (kolom tidak ada / tidak terupdate) â†’ hapus file baru agar tidak jadi sampah.
                             if ($didUpdateColumn((string)$col, $newPath)) {
                                 if ($oldPath !== '' && $oldPath !== $newPath) {
                                     $safeDeleteUploadFile($oldPath);
@@ -1409,7 +1409,7 @@ if (!$old_data) {
                             }
                         }
                     } else {
-                        // Update gagal → hapus file baru yang sudah terlanjur terupload
+                        // Update gagal â†’ hapus file baru yang sudah terlanjur terupload
                         foreach ($uploadedFiles as $paths) {
                             $newPath = (string)($paths['new'] ?? '');
                             if ($newPath !== '') {
@@ -1638,13 +1638,20 @@ if (!$old_data) {
                     </h3>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <!-- Spesifikasi -->
-                        <div class="form-group">
-                            <label for="Spesifikasi" class="block text-gray-700 mb-2">
-                                <i class="fas fa-clipboard-list mr-2 text-blue-500"></i>Spesifikasi
-                            </label>
-                            <textarea name="Spesifikasi" class="textarea-modern w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200" rows="6" placeholder="Masukkan spesifikasi detail..." required><?php echo $Spesifikasi; ?></textarea>
-                        </div>
+                        <!-- Hidden input untuk menyimpan kombinasi spesifikasi -->
+                        <input type="hidden" name="Spesifikasi" id="SpesifikasiCombined" value="<?php echo htmlspecialchars($Spesifikasi); ?>" />
+
+                    <!-- Petunjuk pilih kategori -->
+                    <div id="specCategoryHint" class="text-center py-8 text-gray-400">
+                        <i class="fas fa-hand-pointer text-4xl mb-3 block"></i>
+                        <p>Silakan pilih <strong>Nama Barang</strong> terlebih dahulu<br>untuk menampilkan field spesifikasi yang sesuai.</p>
+                    </div>
+
+                    <div id="specFieldsContainer" class="hidden">
+                    <div class="grid grid-cols-1 gap-4 sm:gap-5">
+                        <?php include __DIR__ . '/spec_options.php'; ?>
+                    </div><!-- /grid -->
+                    </div><!-- /specFieldsContainer -->
 
                         <!-- Kelengkapan Barang -->
                         <div class="form-group">
@@ -2496,7 +2503,7 @@ if (!$old_data) {
         function renderGeoText(targetEl) {
             if (!targetEl) return;
             if (geoLast && geoLast.lat) {
-                const coordsLine = `Lat: ${geoLast.lat.toFixed(6)}, Lng: ${geoLast.lng.toFixed(6)} (±${Math.round(geoLast.acc)}m)`;
+                const coordsLine = `Lat: ${geoLast.lat.toFixed(6)}, Lng: ${geoLast.lng.toFixed(6)} (Â±${Math.round(geoLast.acc)}m)`;
                 const addrLine = geoLast.addr
                     ? `Alamat: ${geoLast.addr}`
                     : (geoLast.addrPending ? 'Alamat: mencari...' : 'Alamat: belum tersedia');
@@ -2686,7 +2693,7 @@ if (!$old_data) {
                 ? `Alamat: ${geoLast.addr}`
                 : 'Alamat: belum tersedia';
             const coordsLine = (geoLast && geoLast.lat)
-                ? `Lat:${geoLast.lat.toFixed(6)} Lng:${geoLast.lng.toFixed(6)} Acc:±${Math.round(geoLast.acc)}m | ${nowText}`
+                ? `Lat:${geoLast.lat.toFixed(6)} Lng:${geoLast.lng.toFixed(6)} Acc:Â±${Math.round(geoLast.acc)}m | ${nowText}`
                 : `Lokasi: tidak tersedia | ${nowText}`;
 
             ctx.font = '14px sans-serif';
@@ -2723,7 +2730,7 @@ if (!$old_data) {
 function initPhotoUpload(photoFieldId) {
     const fileInput = document.getElementById(photoFieldId);
     // Parse ID tanpa "Photo_" untuk preview ID
-    // Photo_Barang → Barang, Photo_Depan → Depan, etc
+    // Photo_Barang â†’ Barang, Photo_Depan â†’ Depan, etc
     const basePhotoName = photoFieldId.replace('Photo_', '');
     const photoPreviewId = 'photoPreview_' + basePhotoName;
     
@@ -2749,7 +2756,7 @@ function initPhotoUpload(photoFieldId) {
         return;
     }
 
-    console.log('✅ Found upload container and preview div for:', photoFieldId);
+    console.log('âœ… Found upload container and preview div for:', photoFieldId);
 
     // Handle file selection (click)
     fileInput.addEventListener('change', async function(e) {
@@ -3089,6 +3096,135 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             minimumInputLength: 0
         });
+
+        // ============ SPESIFIKASI CATEGORY-BASED DROPDOWNS ============
+        var specCategoryMap = {
+            'LAPTOP': 'laptop_pc', 'PC': 'laptop_pc', 'KOMPUTER': 'laptop_pc',
+            'MONITOR': 'monitor',
+            'PRINTER': 'printer',
+            'HP': 'smartphone',
+            'ROUTER': 'networking', 'SWITCH': 'networking', 'DVR': 'networking',
+            'CAMERA CCTV': 'cctv',
+            'HARDDISK': 'komponen', 'HARDISK': 'komponen',
+            'SSD NVME GEN 3': 'komponen', 'SSD NVME GEN 4': 'komponen', 'SSD': 'komponen',
+            'RAM LAPTOP': 'komponen', 'RAM': 'komponen',
+            'MAINBOARD': 'komponen', 'BATERAI LAPTOP': 'komponen',
+            'CASING KOMPUTER': 'komponen', 'KEYBOARD': 'komponen', 'KEYBOARD LAPTOP': 'komponen'
+        };
+
+        function getSpecCategory(namaBarang) {
+            if (!namaBarang) return null;
+            var upper = namaBarang.toUpperCase().trim();
+            if (specCategoryMap[upper]) return specCategoryMap[upper];
+            if (upper.indexOf('LAPTOP') > -1 || upper.indexOf('NOTEBOOK') > -1) return 'laptop_pc';
+            if (upper.indexOf('PC') > -1 || upper.indexOf('KOMPUTER') > -1 || upper.indexOf('COMPUTER') > -1) return 'laptop_pc';
+            if (upper.indexOf('MONITOR') > -1 || upper.indexOf('DISPLAY') > -1) return 'monitor';
+            if (upper.indexOf('PRINTER') > -1 || upper.indexOf('PRINT') > -1) return 'printer';
+            if (upper.indexOf('HP') > -1 || upper.indexOf('PHONE') > -1 || upper.indexOf('HANDPHONE') > -1 || upper.indexOf('TABLET') > -1) return 'smartphone';
+            if (upper.indexOf('ROUTER') > -1 || upper.indexOf('SWITCH') > -1 || upper.indexOf('DVR') > -1 || upper.indexOf('NVR') > -1) return 'networking';
+            if (upper.indexOf('CCTV') > -1 || upper.indexOf('CAMERA') > -1) return 'cctv';
+            if (upper.indexOf('SSD') > -1 || upper.indexOf('HDD') > -1 || upper.indexOf('HARDDISK') > -1 || upper.indexOf('HARDISK') > -1 || upper.indexOf('RAM') > -1 || upper.indexOf('MAINBOARD') > -1 || upper.indexOf('BATERAI') > -1 || upper.indexOf('CASING') > -1 || upper.indexOf('KEYBOARD') > -1) return 'komponen';
+            return 'lainnya';
+        }
+
+        function initSpecSelect2InGroup(category) {
+            var $group = $('.spec-group[data-category="' + category + '"]');
+            $group.find('.spec-select2-field').each(function() {
+                var $el = $(this);
+                if ($el.hasClass('select2-hidden-accessible')) return;
+                $el.select2({
+                    theme: 'default',
+                    tags: true,
+                    placeholder: $el.data('placeholder') || 'Pilih atau ketik...',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $('body'),
+                    createTag: function(params) {
+                        var term = $.trim(params.term);
+                        if (term === '') return null;
+                        return { id: term, text: term, newTag: true };
+                    },
+                    templateResult: function(data) {
+                        if (data.newTag) {
+                            return $('<span><i class="fas fa-plus-circle text-orange-500 mr-2"></i>Tambah: "' + data.text + '"</span>');
+                        }
+                        return data.text;
+                    },
+                    language: {
+                        noResults: function() { return 'Tidak ditemukan. Ketik untuk menambah baru.'; },
+                        searching: function() { return 'Mencari...'; }
+                    }
+                });
+            });
+        }
+
+        function prePopulateSpecFields(spesifikasiStr) {
+            if (!spesifikasiStr) return;
+            var parts = spesifikasiStr.split(' | ');
+            var specMap = {};
+            parts.forEach(function(part) {
+                var colonIdx = part.indexOf(':');
+                if (colonIdx > -1) {
+                    var label = part.substring(0, colonIdx).trim();
+                    var value = part.substring(colonIdx + 1).trim();
+                    specMap[label] = value;
+                }
+            });
+            // Find visible spec fields and set their values
+            $('.spec-group:visible .spec-select2-field').each(function() {
+                var $el = $(this);
+                var label = $el.data('spec-label');
+                if (label && specMap[label]) {
+                    var val = specMap[label];
+                    if ($el.find('option[value="' + val.replace(/"/g, '\\"') + '"]').length === 0) {
+                        $el.append(new Option(val, val, true, true));
+                    } else {
+                        $el.val(val);
+                    }
+                    $el.trigger('change');
+                }
+            });
+        }
+
+        function switchSpecCategory(category) {
+            $('.spec-group').hide();
+            $('.spec-group').not('[data-category="' + category + '"]').find('.spec-select2-field').each(function() {
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    $(this).val('').trigger('change');
+                }
+            });
+            if (category !== 'lainnya') { $('#spec_freetext').val(''); }
+            if (category) {
+                $('#specCategoryHint').hide();
+                $('#specFieldsContainer').removeClass('hidden');
+                $('.spec-group[data-category="' + category + '"]').show();
+                initSpecSelect2InGroup(category);
+            } else {
+                $('#specCategoryHint').show();
+                $('#specFieldsContainer').addClass('hidden');
+            }
+        }
+
+        $('#Nama_Barang').on('change', function() {
+            var namaBarang = $(this).val();
+            var category = getSpecCategory(namaBarang);
+            switchSpecCategory(category);
+        });
+
+        // On page load: detect category from existing Nama_Barang and pre-populate
+        var initialNamaBarang = $('#Nama_Barang').val();
+        if (initialNamaBarang) {
+            var initCat = getSpecCategory(initialNamaBarang);
+            switchSpecCategory(initCat);
+            // Pre-populate from existing Spesifikasi string
+            var existingSpec = <?php echo json_encode($Spesifikasi); ?>;
+            if (existingSpec && initCat !== 'lainnya') {
+                prePopulateSpecFields(existingSpec);
+            } else if (existingSpec && initCat === 'lainnya') {
+                $('#spec_freetext').val(existingSpec);
+            }
+        }
+        // ============ END SPESIFIKASI CATEGORY-BASED DROPDOWNS ============
     }
 });
 
@@ -3285,7 +3421,7 @@ function saveCustomOption() {
                         '<div class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">' +
                         '<div class="font-semibold mb-1">Riwayat tersimpan tapi gagal dibaca (JSON invalid).</div>' +
                         '<div class="mb-1">Error: ' + $('<div>').text(riwayatParseError).html() + '</div>' +
-                        (rawPreview ? ('<div class="text-gray-700">Preview: ' + $('<div>').text(rawPreview).html() + (existingRiwayatRaw.length > 220 ? '…' : '') + '</div>') : '') +
+                        (rawPreview ? ('<div class="text-gray-700">Preview: ' + $('<div>').text(rawPreview).html() + (existingRiwayatRaw.length > 220 ? 'â€¦' : '') + '</div>') : '') +
                         '</div>'
                     );
                     return;
@@ -3593,6 +3729,25 @@ function saveCustomOption() {
 
                 // Pastikan hidden textarea sudah update
                 $('#Riwayat_Barang').val(riwayatJson);
+
+                // ============ COMBINE SPESIFIKASI FIELDS ============
+                var specParts = [];
+                var freetext = $('#spec_freetext').val();
+                if (freetext && freetext.trim() !== '') {
+                    $('#SpesifikasiCombined').val(freetext.trim());
+                } else {
+                    $('.spec-group:visible .spec-select2-field').each(function() {
+                        var val = $(this).val();
+                        var label = $(this).data('spec-label');
+                        if (val && val.trim() !== '' && label) {
+                            specParts.push(label + ': ' + val.trim());
+                        }
+                    });
+                    $('#SpesifikasiCombined').val(specParts.join(' | '));
+                }
+                console.log('Form Submit - Combined Spesifikasi:', $('#SpesifikasiCombined').val());
+                // ============ END COMBINE SPESIFIKASI ============
+
                 console.log('Form Submit - Final Riwayat_Barang:', $('#Riwayat_Barang').val());
 
                 // Confirm sebelum update

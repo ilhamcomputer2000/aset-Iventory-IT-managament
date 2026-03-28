@@ -1454,14 +1454,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         Spesifikasi & Detail
                     </h3>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <!-- Spesifikasi -->
-                        <div class="form-group">
-                            <label for="Spesifikasi" class="block text-gray-700 mb-2">
-                                <i class="fas fa-clipboard-list mr-2 text-blue-500"></i>Spesifikasi
-                            </label>
-                            <textarea name="Spesifikasi" class="textarea-modern w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200" rows="6" placeholder="Masukkan spesifikasi detail..." required><?php echo $Spesifikasi; ?></textarea>
-                        </div>
+                    <!-- Hidden input untuk menyimpan kombinasi spesifikasi -->
+                    <input type="hidden" name="Spesifikasi" id="SpesifikasiCombined" value="<?php echo htmlspecialchars($Spesifikasi); ?>" />
+
+                    <!-- Petunjuk pilih kategori -->
+                    <div id="specCategoryHint" class="text-center py-8 text-gray-400">
+                        <i class="fas fa-hand-pointer text-4xl mb-3 block"></i>
+                        <p>Silakan pilih <strong>Nama Barang</strong> terlebih dahulu<br>untuk menampilkan field spesifikasi yang sesuai.</p>
+                    </div>
+
+                    <div id="specFieldsContainer" class="hidden">
+                    <div class="grid grid-cols-1 gap-4 sm:gap-5">
+
+                        <!-- ============================================ -->
+                        <!-- KATEGORI: LAPTOP / PC / KOMPUTER -->
+                        <!-- ============================================ -->
+                        <?php include __DIR__ . '/spec_options.php'; ?>
+
+                    </div><!-- /grid -->
+                    </div><!-- /specFieldsContainer -->
 
                         <!-- Kelengkapan Barang -->
                         <div class="form-group">
@@ -2894,6 +2905,109 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+
+        // ============ SPESIFIKASI CATEGORY-BASED DROPDOWNS ============
+        var specCategoryMap = {
+            'LAPTOP': 'laptop_pc', 'PC': 'laptop_pc', 'KOMPUTER': 'laptop_pc',
+            'MONITOR': 'monitor',
+            'PRINTER': 'printer',
+            'HP': 'smartphone',
+            'ROUTER': 'networking', 'SWITCH': 'networking', 'DVR': 'networking',
+            'CAMERA CCTV': 'cctv',
+            'HARDDISK': 'komponen', 'HARDISK': 'komponen',
+            'SSD NVME GEN 3': 'komponen', 'SSD NVME GEN 4': 'komponen', 'SSD': 'komponen',
+            'RAM LAPTOP': 'komponen', 'RAM': 'komponen',
+            'MAINBOARD': 'komponen', 'BATERAI LAPTOP': 'komponen',
+            'CASING KOMPUTER': 'komponen', 'KEYBOARD': 'komponen', 'KEYBOARD LAPTOP': 'komponen'
+        };
+
+        function getSpecCategory(namaBarang) {
+            if (!namaBarang) return null;
+            var upper = namaBarang.toUpperCase().trim();
+            if (specCategoryMap[upper]) return specCategoryMap[upper];
+            // Fuzzy match
+            if (upper.indexOf('LAPTOP') > -1 || upper.indexOf('NOTEBOOK') > -1) return 'laptop_pc';
+            if (upper.indexOf('PC') > -1 || upper.indexOf('KOMPUTER') > -1 || upper.indexOf('COMPUTER') > -1) return 'laptop_pc';
+            if (upper.indexOf('MONITOR') > -1 || upper.indexOf('DISPLAY') > -1) return 'monitor';
+            if (upper.indexOf('PRINTER') > -1 || upper.indexOf('PRINT') > -1) return 'printer';
+            if (upper.indexOf('HP') > -1 || upper.indexOf('PHONE') > -1 || upper.indexOf('HANDPHONE') > -1 || upper.indexOf('TABLET') > -1) return 'smartphone';
+            if (upper.indexOf('ROUTER') > -1 || upper.indexOf('SWITCH') > -1 || upper.indexOf('DVR') > -1 || upper.indexOf('NVR') > -1) return 'networking';
+            if (upper.indexOf('CCTV') > -1 || upper.indexOf('CAMERA') > -1) return 'cctv';
+            if (upper.indexOf('SSD') > -1 || upper.indexOf('HDD') > -1 || upper.indexOf('HARDDISK') > -1 || upper.indexOf('HARDISK') > -1 || upper.indexOf('RAM') > -1 || upper.indexOf('MAINBOARD') > -1 || upper.indexOf('BATERAI') > -1 || upper.indexOf('CASING') > -1 || upper.indexOf('KEYBOARD') > -1) return 'komponen';
+            return 'lainnya';
+        }
+
+        function initSpecSelect2InGroup(category) {
+            var $group = $('.spec-group[data-category="' + category + '"]');
+            $group.find('.spec-select2-field').each(function() {
+                var $el = $(this);
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    // Already initialized
+                    return;
+                }
+                $el.select2({
+                    theme: 'default',
+                    tags: true,
+                    placeholder: $el.data('placeholder') || 'Pilih atau ketik...',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $('body'),
+                    createTag: function(params) {
+                        var term = $.trim(params.term);
+                        if (term === '') return null;
+                        return { id: term, text: term, newTag: true };
+                    },
+                    templateResult: function(data) {
+                        if (data.newTag) {
+                            return $('<span><i class="fas fa-plus-circle text-orange-500 mr-2"></i>Tambah: "' + data.text + '"</span>');
+                        }
+                        return data.text;
+                    },
+                    language: {
+                        noResults: function() { return 'Tidak ditemukan. Ketik untuk menambah baru.'; },
+                        searching: function() { return 'Mencari...'; }
+                    }
+                });
+            });
+        }
+
+        function switchSpecCategory(category) {
+            // Hide all groups
+            $('.spec-group').hide();
+            // Clear all spec values in hidden groups
+            $('.spec-group').not('[data-category="' + category + '"]').find('.spec-select2-field').each(function() {
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    $(this).val('').trigger('change');
+                }
+            });
+            // Clear freetext for lainnya
+            if (category !== 'lainnya') { $('#spec_freetext').val(''); }
+
+            if (category) {
+                $('#specCategoryHint').hide();
+                $('#specFieldsContainer').removeClass('hidden');
+                $('.spec-group[data-category="' + category + '"]').show();
+                initSpecSelect2InGroup(category);
+            } else {
+                $('#specCategoryHint').show();
+                $('#specFieldsContainer').addClass('hidden');
+            }
+        }
+
+        // Listen to Nama_Barang changes
+        $('#Nama_Barang').on('change', function() {
+            var namaBarang = $(this).val();
+            var category = getSpecCategory(namaBarang);
+            switchSpecCategory(category);
+        });
+
+        // Trigger on page load if Nama_Barang already has value
+        var initialNamaBarang = $('#Nama_Barang').val();
+        if (initialNamaBarang) {
+            var initCat = getSpecCategory(initialNamaBarang);
+            switchSpecCategory(initCat);
+        }
+        // ============ END SPESIFIKASI CATEGORY-BASED DROPDOWNS ============
     }
                     
 // Trigger initial animations using vanilla JS
@@ -3401,6 +3515,26 @@ window.addEventListener('load', function() {
                     });
                     return false;
                 }
+
+                // ============ COMBINE SPESIFIKASI FIELDS ============
+                var specParts = [];
+                // Check for freetext (lainnya) category first
+                var freetext = $('#spec_freetext').val();
+                if (freetext && freetext.trim() !== '') {
+                    $('#SpesifikasiCombined').val(freetext.trim());
+                } else {
+                    // Collect only visible spec fields with data-spec-label
+                    $('.spec-group:visible .spec-select2-field').each(function() {
+                        var val = $(this).val();
+                        var label = $(this).data('spec-label');
+                        if (val && val.trim() !== '' && label) {
+                            specParts.push(label + ': ' + val.trim());
+                        }
+                    });
+                    $('#SpesifikasiCombined').val(specParts.join(' | '));
+                }
+                console.log('Form Submit - Combined Spesifikasi:', $('#SpesifikasiCombined').val());
+                // ============ END COMBINE SPESIFIKASI ============
 
                 // Update hidden textarea sebelum submit (pastikan ada data terbaru)
                 $('#Riwayat_Barang').val(JSON.stringify(riwayatList));

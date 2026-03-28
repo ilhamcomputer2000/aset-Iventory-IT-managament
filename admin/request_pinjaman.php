@@ -44,6 +44,48 @@ $kon->query("CREATE TABLE IF NOT EXISTS `notifications` (
 $kon->query("ALTER TABLE `request_pinjaman` MODIFY COLUMN `status` VARCHAR(20) DEFAULT 'PENDING'");
 // ========== End auto-create ==========
 
+// Helper: append entry to Riwayat_Barang JSON column in peserta table
+function appendRiwayatJson($kon, $id_aset, $entry) {
+    $stmtGet = $kon->prepare('SELECT Riwayat_Barang FROM peserta WHERE id_peserta = ? LIMIT 1');
+    $stmtGet->bind_param('i', $id_aset);
+    $stmtGet->execute();
+    $resGet = $stmtGet->get_result();
+    $rowGet = $resGet ? $resGet->fetch_assoc() : null;
+    $stmtGet->close();
+
+    $riwayatList = [];
+    if ($rowGet && !empty($rowGet['Riwayat_Barang'])) {
+        $raw = html_entity_decode($rowGet['Riwayat_Barang'], ENT_QUOTES, 'UTF-8');
+        $decoded = json_decode($raw, true);
+        if (is_array($decoded)) $riwayatList = $decoded;
+    }
+
+    if ($entry !== null) {
+        if (isset($entry['_return_mode']) && $entry['_return_mode'] === true) {
+            // RETURN: update last entry's tgl_pengembalian + append catatan
+            unset($entry['_return_mode']);
+            if (count($riwayatList) > 0) {
+                $lastIdx = count($riwayatList) - 1;
+                $riwayatList[$lastIdx]['tgl_pengembalian'] = $entry['tgl_pengembalian'] ?? date('Y-m-d');
+                if (!empty($entry['catatan'])) {
+                    $existing = trim($riwayatList[$lastIdx]['catatan'] ?? '');
+                    $riwayatList[$lastIdx]['catatan'] = $existing !== '' ? $existing . ' | Return: ' . $entry['catatan'] : $entry['catatan'];
+                }
+            } else {
+                $riwayatList[] = $entry;
+            }
+        } else {
+            $riwayatList[] = $entry;
+        }
+    }
+
+    $json = json_encode($riwayatList, JSON_UNESCAPED_UNICODE);
+    $stmtUpd = $kon->prepare('UPDATE peserta SET Riwayat_Barang = ? WHERE id_peserta = ?');
+    $stmtUpd->bind_param('si', $json, $id_aset);
+    $stmtUpd->execute();
+    $stmtUpd->close();
+}
+
 // Handling Approve and Reject POST requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   try {
@@ -89,6 +131,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmtHistory = $kon->prepare("INSERT INTO Riwayat_Barang (Id_Barang, Status, Diperbarui_Oleh, Tanggal_Diperbarui, Catatan, Nama_User, Divisi_Jabatan, id_krywn, Tgl_serah, Lokasi_User) VALUES (?, 'IN USE', ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmtHistory->bind_param("issssssss", $id_aset, $admin_name, $tanggal_sekarang, $catatan, $nama_user, $jabatan_user, $id_karyawan, $tanggal_sekarang, $lokasi_user);
                 $stmtHistory->execute();
+
+                // Also update Riwayat_Barang JSON column in peserta
+                appendRiwayatJson($kon, $id_aset, [
+                    'nama' => $nama_user,
+                    'jabatan' => $jabatan_user,
+                    'empleId' => $id_karyawan,
+                    'lokasi' => $lokasi_user,
+                    'tgl_serah_terima' => $tanggal_sekarang,
+                    'tgl_pengembalian' => '',
+                    'catatan' => $catatan,
+                    'aksi' => 'TRANSFER',
+                    'created_by' => $admin_name,
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
 
                 // Notification: notify user about approval
                 try {
@@ -207,6 +263,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $stmtHistory->bind_param("isss", $id_aset, $admin_name, $tanggal_sekarang, $catatan);
             $stmtHistory->execute();
 
+            // Also update Riwayat_Barang JSON column in peserta (return mode)
+            appendRiwayatJson($kon, $id_aset, [
+                '_return_mode' => true,
+                'tgl_pengembalian' => $tanggal_sekarang,
+                'catatan' => $catatan,
+                'aksi' => 'RETURN',
+                'created_by' => $admin_name,
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+
             // Update request status
             $stmtReturn = $kon->prepare("UPDATE request_pinjaman SET status = 'RETURNED' WHERE id = ?");
             $stmtReturn->bind_param("i", $request_id);
@@ -292,6 +358,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmtHistory = $kon->prepare("INSERT INTO Riwayat_Barang (Id_Barang, Status, Diperbarui_Oleh, Tanggal_Diperbarui, Catatan, Nama_User, Divisi_Jabatan, id_krywn, Tgl_serah, Lokasi_User) VALUES (?, 'IN USE', ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmtHistory->bind_param("issssssss", $id_aset, $admin_name, $tanggal_sekarang, $catatan, $newUserData['Nama_Lengkap'], $newUserData['Jabatan_Level'], $transfer_to, $tanggal_sekarang, $newUserData['Region']);
                 $stmtHistory->execute();
+
+                // Also update Riwayat_Barang JSON column in peserta
+                appendRiwayatJson($kon, $id_aset, [
+                    'nama' => $newUserData['Nama_Lengkap'],
+                    'jabatan' => $newUserData['Jabatan_Level'],
+                    'empleId' => $transfer_to,
+                    'lokasi' => $newUserData['Region'],
+                    'tgl_serah_terima' => $tanggal_sekarang,
+                    'tgl_pengembalian' => '',
+                    'catatan' => $catatan,
+                    'aksi' => 'TRANSFER',
+                    'created_by' => $admin_name,
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
 
                 // Update original request status
                 $stmtTransfer = $kon->prepare("UPDATE request_pinjaman SET status = 'TRANSFERRED' WHERE id = ?");
