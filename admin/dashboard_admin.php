@@ -67,8 +67,9 @@ $Jabatan_Level = trim((string)($_SESSION['Jabatan_Level'] ?? ''));
 $Hari_Nice = date('l');
 
 // Koneksi ke database
-$conn = new mysqli("localhost", "root", "", "crud");
-// $conn = new mysqli("localhost:3306", "cktnosa2_admin", "uGXj8#eiI=P%", "cktnosa2_crud"); 
+// $conn = new mysqli("localhost", "root", "", "crud");
+$conn = new mysqli("localhost:3306", "cktnosa2_admin", "uGXj8#eiI=P%", "cktnosa2_crud");
+
 // Cek koneksi
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);

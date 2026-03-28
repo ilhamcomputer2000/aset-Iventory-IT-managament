@@ -44,6 +44,8 @@ $isDashboard = ($activePage === 'dashboard');
 $isAssets = ($activePage === 'assets');
 $isLacak = ($activePage === 'lacak_asset');
 $isTicket = ($activePage === 'ticket');
+$isLog = ($activePage === 'log');
+$isSettingsSubPage = $isLog;
 
 // Build proper base URL for links (works regardless of URL rewriting)
 $_sidebarBaseDir = dirname($_SERVER['SCRIPT_NAME']);
@@ -60,6 +62,7 @@ $_sidebarLinks = [
     'assets' => $_sidebarBaseDir . '/view.php',
     'lacak' => $_sidebarBaseDir . '/lacak_asset.php',
     'ticket' => $_sidebarBaseDir . '/ticket.php',
+    'log' => $_sidebarBaseDir . '/log.php',
     'logout' => app_abs_path('logout.php'),
 ];
 ?>
@@ -128,19 +131,25 @@ $_sidebarLinks = [
 
         <!-- Settings Dropdown -->
         <div class="relative">
-            <button id="settings-toggle" class="w-full flex items-center space-x-3 py-2.5 px-3 rounded-lg mb-1 transition-all duration-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-                <i class="fas fa-cog text-base w-5 text-center text-gray-400"></i>
-                <span class="text-sm font-medium flex-1 text-left">Settings</span>
-                <i id="settings-arrow" class="fas fa-chevron-down text-xs text-gray-400 transition-transform duration-300"></i>
+            <button id="settings-toggle" class="w-full flex items-center space-x-3 py-2.5 px-3 rounded-lg mb-1 transition-all duration-200 <?php echo $isSettingsSubPage ? 'bg-orange-50 text-orange-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'; ?>">
+                <i class="fas fa-cog text-base w-5 text-center <?php echo $isSettingsSubPage ? 'text-orange-500' : 'text-gray-400'; ?>"></i>
+                <span class="text-sm <?php echo $isSettingsSubPage ? 'font-semibold' : 'font-medium'; ?> flex-1 text-left">Settings</span>
+                <i id="settings-arrow" class="fas fa-chevron-down text-xs <?php echo $isSettingsSubPage ? 'text-orange-400' : 'text-gray-400'; ?> transition-transform duration-300<?php echo $isSettingsSubPage ? ' rotate-180' : ''; ?>"></i>
             </button>
             
             <!-- Submenu -->
-            <ul id="settings-submenu" class="overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0; opacity: 0;">
+            <ul id="settings-submenu" class="overflow-hidden transition-all duration-300 ease-in-out" style="<?php echo $isSettingsSubPage ? 'max-height: 300px; opacity: 1;' : 'max-height: 0; opacity: 0;'; ?>">
                 <li>
                     <button id="btn-open-change-password" type="button" class="w-full flex items-center space-x-3 py-2 px-3 pl-11 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 rounded-lg">
                         <i class="fas fa-key text-xs"></i>
                         <span>Ganti Password</span>
                     </button>
+                </li>
+                <li>
+                    <a href="<?php echo htmlspecialchars($_sidebarLinks['log']); ?>" class="w-full flex items-center space-x-3 py-2 px-3 pl-11 text-sm transition-all duration-200 rounded-lg <?php echo $isLog ? 'bg-orange-50 text-orange-700 font-semibold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'; ?>">
+                        <i class="fas fa-history text-xs <?php echo $isLog ? 'text-orange-500' : ''; ?>"></i>
+                        <span>Aktivitas Saya</span>
+                    </a>
                 </li>
             </ul>
         </div>
@@ -247,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!sidebar || !hamburgerBtn) return;
 
     let mobileSidebarOpen = false;
-    let settingsOpen = false;
+    let settingsOpen = <?php echo $isSettingsSubPage ? 'true' : 'false'; ?>;
     const STORAGE_KEY = 'sidebarCollapsed';
 
     // --- Desktop sidebar state from localStorage ---
@@ -340,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             settingsOpen = !settingsOpen;
             if (settingsOpen) {
-                settingsSubmenu.style.maxHeight = '200px';
+                settingsSubmenu.style.maxHeight = '300px';
                 settingsSubmenu.style.opacity = '1';
                 settingsArrow.style.transform = 'rotate(180deg)';
             } else {

@@ -45,9 +45,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['role']     = $user['role'];
             $_SESSION['Nama_Lengkap'] = !empty($user['Nama_Lengkap']) ? $user['Nama_Lengkap'] : $user['username'];
             $_SESSION['Jabatan_Level'] = isset($user['Jabatan_Level']) ? (string)$user['Jabatan_Level'] : '';
-            
-            // DEBUG SEMENTARA: Log session (lihat di browser console atau error.log; hapus setelah test)
-            error_log("LOGIN DEBUG: Username = " . $user['username'] . " | Nama Lengkap = " . $_SESSION['Nama_Lengkap']);
+
+            // --- Log Login Activity ---
+            $__logActivityPath = __DIR__ . '/admin/log_activity.php';
+            if (is_file($__logActivityPath) && !function_exists('logUserActivity')) {
+                require_once $__logActivityPath;
+            }
+            if (function_exists('logUserActivity')) {
+                logUserActivity(
+                    $conn,
+                    (int)$user['id'],
+                    $user['username'],
+                    $user['role'],
+                    'Login'
+                );
+            }
+            // --- End Log ---
 
             // Tentukan redirect berdasarkan role (clean URLs via .htaccess)
             $redirect = 'dashboard_admin'; // default

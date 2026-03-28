@@ -101,7 +101,8 @@ $isTicket = ($activePage === 'ticket');
 $isRequestPinjaman = ($activePage === 'request_pinjaman');
 $isProfile = ($activePage === 'profile');
 $isAddAkun = ($activePage === 'add_akun');
-$isSettingsSubPage = ($isProfile || $isAddAkun);
+$isLog = ($activePage === 'log');
+$isSettingsSubPage = ($isProfile || $isAddAkun || $isLog);
 
 // Build sidebar links
 $_sidebarBaseDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
@@ -120,6 +121,7 @@ $_adminLinks = [
     'request_pinjaman' => $_sidebarBaseDir . '/request_pinjaman.php',
     'profile' => $_sidebarBaseDir . '/profile.php',
     'add_akun' => $_sidebarBaseDir . '/add_akun.php',
+    'log' => $_sidebarBaseDir . '/log.php',
     'logout' => app_abs_path('logout.php'),
 ];
 ?>
@@ -205,7 +207,7 @@ $_adminLinks = [
             </button>
             
             <!-- Submenu -->
-            <ul id="settings-submenu" class="overflow-hidden transition-all duration-300 ease-in-out" style="<?php echo $isSettingsSubPage ? 'max-height: 200px; opacity: 1;' : 'max-height: 0; opacity: 0;'; ?>">
+            <ul id="settings-submenu" class="overflow-hidden transition-all duration-300 ease-in-out" style="<?php echo $isSettingsSubPage ? 'max-height: 300px; opacity: 1;' : 'max-height: 0; opacity: 0;'; ?>">
                 <li>
                     <a href="<?php echo htmlspecialchars($_adminLinks['profile']); ?>" class="w-full flex items-center space-x-3 py-2 px-3 pl-11 text-sm transition-all duration-200 rounded-lg <?php echo $isProfile ? 'bg-orange-50 text-orange-700 font-semibold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'; ?>">
                         <i class="fas fa-user text-xs <?php echo $isProfile ? 'text-orange-500' : ''; ?>"></i>
@@ -216,6 +218,12 @@ $_adminLinks = [
                     <a href="<?php echo htmlspecialchars($_adminLinks['add_akun']); ?>" class="w-full flex items-center space-x-3 py-2 px-3 pl-11 text-sm transition-all duration-200 rounded-lg <?php echo $isAddAkun ? 'bg-orange-50 text-orange-700 font-semibold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'; ?>">
                         <i class="fas fa-user-plus text-xs <?php echo $isAddAkun ? 'text-orange-500' : ''; ?>"></i>
                         <span>Add Account</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo htmlspecialchars($_adminLinks['log']); ?>" class="w-full flex items-center space-x-3 py-2 px-3 pl-11 text-sm transition-all duration-200 rounded-lg <?php echo $isLog ? 'bg-orange-50 text-orange-700 font-semibold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'; ?>">
+                        <i class="fas fa-history text-xs <?php echo $isLog ? 'text-orange-500' : ''; ?>"></i>
+                        <span>Activity Log</span>
                     </a>
                 </li>
             </ul>
@@ -419,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             settingsOpen = !settingsOpen;
             if (settingsOpen) {
-                settingsSubmenu.style.maxHeight = '200px';
+                settingsSubmenu.style.maxHeight = '300px';
                 settingsSubmenu.style.opacity = '1';
                 settingsArrow.style.transform = 'rotate(180deg)';
             } else {
