@@ -52,6 +52,9 @@ if (isset($_SESSION['user_id'])) {
     }
 
     if (isset($__dbConn) && $__dbConn instanceof mysqli) {
+        // Clear chat presence so online count is accurate immediately
+        $__userId = (int)$_SESSION['user_id'];
+        @$__dbConn->query("DELETE FROM chat_presence WHERE user_id = $__userId");
         @$__dbConn->close();
     }
 }

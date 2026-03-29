@@ -1,44 +1,24 @@
-# Pretty URLs: hide .php extension project-wide
-# Requirements:
-# - Apache mod_rewrite enabled
-# - AllowOverride All (or at least FileInfo) for this directory
+# ============================================================
+# .htaccess - HOSTING VERSION (app at root /)
+# For localhost XAMPP: use .htaccess.local-dev instead
+# ============================================================
+Options -MultiViews
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /crud/
+    Options +FollowSymLinks
+    RewriteBase /
 
-    # Canonical dashboards (short URLs)
-    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
-    RewriteCond %{THE_REQUEST} \s/+crud/admin/dashboard_admin(?:\.php)?[\s?] [NC]
-    RewriteRule ^admin/dashboard_admin(?:\.php)?$ /crud/dashboard_admin [R=302,L,NE]
-    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
-    RewriteCond %{THE_REQUEST} \s/+crud/user/dashboard_user(?:\.php)?[\s?] [NC]
-    RewriteRule ^user/dashboard_user(?:\.php)?$ /crud/dashboard_user [R=302,L,NE]
-
-    # 1) Redirect explicit .php requests to extensionless form
-    # Example: /login.php -> /login
-    # Note: exclude SSE endpoint to avoid any potential EventSource redirect quirks
-    # IMPORTANT: only redirect GET/HEAD to avoid breaking POST form submissions.
-    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
-    RewriteCond %{THE_REQUEST} \s/+crud/([^\s?]+)\.php[\s?] [NC]
-    RewriteCond %{REQUEST_URI} !ticket_stream\.php$ [NC]
-    RewriteRule ^ %1 [R=302,L,NE]
-
-    # 2) Don't rewrite existing files or directories (assets, uploads, vendor, etc.)
+    # 1) Pass-through existing files and directories
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # 2.1) Aliases (clean routes for key pages)
-    # These patterns are evaluated relative to this directory (/crud).
-    # /crud/dashboard_admin -> /crud/admin/dashboard_admin.php
+    # 2) Dashboard short-URL aliases
     RewriteRule ^dashboard_admin/?$ admin/dashboard_admin.php [L]
-
-    # /crud/dashboard_user -> /crud/user/dashboard_user.php
     RewriteRule ^dashboard_user/?$ user/dashboard_user.php [L]
 
-    # 3) Internally rewrite extensionless URLs to their .php file if it exists
-    # Example: /login -> /login.php
+    # 3) Extensionless URL -> .php (only paths without dots, prevents loops)
     RewriteCond %{REQUEST_FILENAME}.php -f
-    RewriteRule ^(.+?)/?$ $1.php [L]
+    RewriteRule ^([^.]+)/?$ $1.php [L]
 </IfModule>

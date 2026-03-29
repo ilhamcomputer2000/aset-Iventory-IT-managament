@@ -1,17 +1,10 @@
 <?php
 session_start();
-include "koneksi.php";
 
 require_once __DIR__ . '/app_url.php';
-
-// Koneksi ke database
-$conn = new mysqli("localhost", "root", "", "crud");
-// $conn = new mysqli("localhost:3306", "cktnosa2_admin", "uGXj8#eiI=P%", "cktnosa2_crud");
-
-// Cek koneksi
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
-}
+require_once __DIR__ . '/koneksi.php';
+// $conn is set by koneksi.php (reads DB_HOST/DB_USER/DB_PASS/DB_NAME env vars on hosting,
+// falls back to localhost/root on local dev). No duplicate connection needed.
 
 
 // Periksa apakah form login telah dikirim
@@ -62,12 +55,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             // --- End Log ---
 
-            // Tentukan redirect berdasarkan role (clean URLs via .htaccess)
-            $redirect = 'dashboard_admin'; // default
+            // Tentukan redirect berdasarkan role
+            $redirect = 'admin/dashboard_admin.php'; // default admin
             if ($user['role'] === 'super_admin') {
-                $redirect = 'dashboard_admin';
+                $redirect = 'admin/dashboard_admin.php';
             } elseif ($user['role'] === 'user') {
-                $redirect = 'dashboard_user';
+                $redirect = 'user/dashboard_user.php';
             }
 
             // Return success response for AJAX

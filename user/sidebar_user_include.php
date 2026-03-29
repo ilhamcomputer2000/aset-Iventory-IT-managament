@@ -70,8 +70,32 @@ $_sidebarLinks = [
 <!-- Overlay untuk mobile -->
 <div id="overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 opacity-0 pointer-events-none"></div>
 
+<!-- Global CSS: Sidebar Collapse Responsiveness -->
+<style>
+    @media (min-width: 1024px) {
+        .sidebar-content-push {
+            margin-left: 15rem;
+            transition: margin-left 0.3s ease;
+            min-width: 0; /* Prevent content from overflowing on zoom-out */
+        }
+        body.sidebar-collapsed #sidebar {
+            transform: translateX(-100%);
+        }
+        body.sidebar-collapsed .sidebar-content-push {
+            margin-left: 0 !important;
+        }
+        #sidebar {
+            transition: transform 0.3s ease;
+        }
+    }
+    /* Global fix: prevent horizontal overflow on all screen sizes */
+    body {
+        overflow-x: hidden;
+    }
+</style>
+
 <!-- Sidebar -->
-<aside id="sidebar" class="fixed top-0 left-0 h-screen w-60 bg-white border-r border-gray-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-lg lg:shadow-none overflow-y-auto">
+<aside id="sidebar" class="fixed top-0 left-0 h-screen w-60 bg-white border-r border-gray-200 z-50 transform -translate-x-full lg:translate-x-0 shadow-lg lg:shadow-none overflow-y-auto">
     <!-- Close button (mobile only) -->
     <button id="close-sidebar" class="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200 z-10 lg:hidden">
         <i class="fas fa-times text-sm"></i>
@@ -104,7 +128,7 @@ $_sidebarLinks = [
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="mt-2 px-3 pb-20">
+    <nav class="mt-2 px-3 pb-4">
         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">MENU</p>
 
         <a href="<?php echo htmlspecialchars($_sidebarLinks['dashboard']); ?>" class="flex items-center space-x-3 py-2.5 px-3 rounded-lg mb-1 transition-all duration-200 <?php echo $isDashboard ? 'bg-orange-50 text-orange-700 border-l-[3px] border-orange-500' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'; ?>">
@@ -159,22 +183,40 @@ $_sidebarLinks = [
             <span class="text-sm font-medium">Logout</span>
         </a>
     </nav>
+
 </aside>
+
+<!-- Page Footer: Copyright (outside sidebar, at bottom of content area) -->
+<footer id="page-footer" class="fixed bottom-0 z-20 border-t border-gray-200 bg-white/95 backdrop-blur-sm px-5 py-2 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+        <div class="w-4 h-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-microchip text-white" style="font-size:7px"></i>
+        </div>
+        <span class="text-[10px] font-bold text-gray-700">PT CIPTA KARYA TECHNOLOGY</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <span class="text-[9px] text-gray-400">&copy; <?php echo date('Y'); ?> All rights reserved</span>
+        <span class="text-[9px] font-semibold text-orange-400 bg-orange-50 px-1.5 py-0.5 rounded">v1.2</span>
+    </div>
+</footer>
 
 <!-- Sidebar responsive styles (inline to avoid Tailwind CDN race conditions) -->
 <style>
     /* Hamburger always visible */
     #hamburger-btn { display: flex !important; }
 
-    /* Mobile-first: navbar full-width */
-    #sidebar-navbar { width: 100%; margin-left: 0; }
+    /* Mobile-first: navbar & footer full-width (no sidebar offset) */
+    #sidebar-navbar { left: 0; right: 0; }
+    #page-footer { left: 0 !important; right: 0; transition: left 0.3s ease; }
 
-    /* Desktop: navbar offset when sidebar is open */
+    /* Desktop: navbar & footer offset when sidebar is open */
     @media (min-width: 1024px) {
-        #sidebar-navbar { width: calc(100% - 15rem); margin-left: 15rem; transition: width 0.3s ease, margin-left 0.3s ease; }
+        #sidebar-navbar { left: 15rem; right: 0; transition: left 0.3s ease; }
+        #page-footer { left: 15rem !important; right: 0; }
         /* When sidebar is collapsed on desktop */
-        body.sidebar-collapsed #sidebar-navbar { width: 100%; margin-left: 0; }
+        body.sidebar-collapsed #sidebar-navbar { left: 0; }
         body.sidebar-collapsed #sidebar { transform: translateX(-100%) !important; }
+        body.sidebar-collapsed #page-footer { left: 0 !important; }
     }
 </style>
 
@@ -270,6 +312,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.remove('sidebar-collapsed');
         }
         updateIcon();
+        // Update footer position via body class — CSS handles per-breakpoint (no inline style to override mobile)
+        // body.sidebar-collapsed #page-footer { left: 0 } is handled in CSS
         // Dispatch event so content wrappers can react
         window.dispatchEvent(new CustomEvent('sidebarToggled', { detail: { collapsed: collapsed } }));
     }
@@ -577,3 +621,10 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(fetchBadgeOnly, 30000);
 })();
 </script>
+
+<?php
+// Floating Chat Widget — muncul di semua halaman user
+if (isset($_SESSION['user_id'])) {
+    require_once __DIR__ . '/../chat_widget.php';
+}
+?>

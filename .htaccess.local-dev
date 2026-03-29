@@ -1,0 +1,27 @@
+# ============================================================
+# .htaccess - LOCALHOST XAMPP VERSION (app at /crud/)
+# Rename this to .htaccess when developing locally.
+# ============================================================
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /crud/
+
+    # 1) Redirect explicit .php GET to extensionless URL
+    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$ [NC]
+    RewriteCond %{THE_REQUEST} \s/+crud/([^\s?]+)\.php[\s?] [NC]
+    RewriteCond %{REQUEST_URI} !ticket_stream\.php$ [NC]
+    RewriteRule ^ %1 [R=302,L,NE]
+
+    # 2) Pass-through existing files/directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 2.1) Dashboard aliases
+    RewriteRule ^dashboard_admin/?$ admin/dashboard_admin.php [L]
+    RewriteRule ^dashboard_user/?$ user/dashboard_user.php [L]
+
+    # 3) Extensionless -> .php
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.+?)/?$ $1.php [L]
+</IfModule>

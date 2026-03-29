@@ -102,8 +102,26 @@ $actionList  = $kon->query("SELECT DISTINCT action FROM user_logs WHERE user_id=
 <body class="bg-gray-50">
 <?php require_once __DIR__ . '/sidebar_user_include.php'; ?>
 
-<main class="lg:ml-60 pt-14 min-h-screen">
-<div class="p-4 sm:p-6 max-w-5xl mx-auto">
+<div id="main-content-wrapper" class="lg:ml-60 transition-all duration-300 ease-in-out">
+<script>
+    (function() {
+        var wrapper = document.getElementById('main-content-wrapper');
+        if (!wrapper) return;
+        function applyState() {
+            if (window.innerWidth >= 1024) {
+                var collapsed = localStorage.getItem('sidebarCollapsed') === '1';
+                wrapper.style.marginLeft = collapsed ? '0' : '';
+            } else {
+                wrapper.style.marginLeft = '0';
+            }
+        }
+        applyState();
+        window.addEventListener('sidebarToggled', function() { applyState(); });
+        window.addEventListener('resize', function() { applyState(); });
+    })();
+</script>
+<main class="mt-16 min-h-screen bg-slate-50 p-4 sm:p-6">
+<div class="max-w-5xl mx-auto">
 
     <!-- Header -->
     <div class="mb-6">
@@ -315,5 +333,6 @@ $actionList  = $kon->query("SELECT DISTINCT action FROM user_logs WHERE user_id=
 
 </div>
 </main>
+</div>
 </body>
 </html>

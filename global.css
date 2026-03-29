@@ -82,14 +82,9 @@
             }
         }
 
-        /* Hide hamburger in desktop (sidebar locked open) */
+        /* Hamburger btn: selalu visible (dihandle oleh sidebar_admin.php dan sidebar_user_include.php) */
         #hamburger-btn {
-            display: none;
-        }
-        @media (min-width: 1024px) {
-            #hamburger-btn {
-                display: flex !important;  /* Pastikan flex seperti style inline */
-            }
+            display: flex; /* Selalu tampil - sidebar JS yang mengontrol visibility */
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -610,14 +605,9 @@
             }
         }
 
-        /* Hide hamburger in desktop (sidebar locked open) */
+        /* Hamburger btn: selalu visible (dihandle oleh sidebar component) */
         #hamburger-btn {
-            display: none;
-        }
-        @media (min-width: 1024px) {
-            #hamburger-btn {
-                display: flex !important;  /* Pastikan flex seperti style inline */
-            }
+            display: flex;
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
