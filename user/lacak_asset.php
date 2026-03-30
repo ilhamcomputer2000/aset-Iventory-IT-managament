@@ -991,49 +991,8 @@ if ($stmtAssets) {
         </div>
     </div>
 
-    <!-- Change Password Modal -->
-    <div id="changePasswordModal" class="cp-modal hidden fixed inset-0 z-[110] flex items-center justify-center p-4">
-        <div class="cp-overlay absolute inset-0 bg-black/60 backdrop-blur-sm" data-cp-close="1"></div>
-        <div class="cp-panel relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div class="flex items-center justify-between px-6 py-4 border-b">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900">Ganti Password</h3>
-                    <p class="text-sm text-gray-600">Masukkan password baru Anda.</p>
-                </div>
-                <button type="button" class="text-gray-500 hover:text-gray-800" data-cp-close="1">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <form method="POST" class="p-6 space-y-4">
-                <input type="hidden" name="action" value="change_password" />
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
-                    <input name="new_password" type="password" autocomplete="new-password" required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                    <p class="text-xs text-gray-500 mt-1">Minimal 6 karakter.</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
-                    <input name="confirm_password" type="password" autocomplete="new-password" required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                </div>
-
-                <div class="pt-2 flex justify-end gap-2">
-                    <button type="button"
-                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                        data-cp-close="1">Batal</button>
-                    <button type="submit"
-                        class="px-5 py-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all duration-200 font-medium inline-flex items-center gap-2 transform hover:scale-105 active:scale-95">
-                        <i class="fas fa-key" aria-hidden="true"></i>
-                        Simpan
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Modal Ganti Password (Global) -->
+    <?php require_once __DIR__ . '/modal_change_password.html'; ?>
 
     <script>
         // State management
@@ -1461,47 +1420,16 @@ if ($stmtAssets) {
 
         // Sidebar is already initialized inline above
 
-        // Change password modal handlers
-        const changePasswordModal = document.getElementById('changePasswordModal');
-        const btnOpenChangePassword = document.getElementById('btn-open-change-password');
-
-        function openChangePasswordModal() {
-            if (!changePasswordModal) return;
-            changePasswordModal.classList.remove('hidden');
-            // trigger animation
-            requestAnimationFrame(() => {
-                changePasswordModal.classList.add('cp-open');
+        // Change password: tombol di sidebar sudah dihandle oleh modal_change_password.html (global)
+        // Saat tombol diklik, tutup submenu settings
+        const btnOpenChangePasswordLacak = document.getElementById('btn-open-change-password');
+        if (btnOpenChangePasswordLacak) {
+            btnOpenChangePasswordLacak.addEventListener('click', () => {
+                settingsOpen = false;
+                if (settingsSubmenu) { settingsSubmenu.style.maxHeight = '0'; settingsSubmenu.style.opacity = '0'; }
+                if (settingsArrow) settingsArrow.style.transform = 'rotate(0deg)';
             });
         }
-
-        function closeChangePasswordModal() {
-            if (!changePasswordModal) return;
-            changePasswordModal.classList.remove('cp-open');
-            setTimeout(() => {
-                changePasswordModal.classList.add('hidden');
-                const form = changePasswordModal.querySelector('form');
-                if (form) form.reset();
-            }, 200);
-        }
-
-        btnOpenChangePassword?.addEventListener('click', () => {
-            // Close submenu after click
-            settingsOpen = false;
-            settingsSubmenu.style.maxHeight = '0';
-            settingsSubmenu.style.opacity = '0';
-            settingsArrow.style.transform = 'rotate(0deg)';
-            openChangePasswordModal();
-        });
-
-        changePasswordModal?.querySelectorAll('[data-cp-close="1"]').forEach((el) => {
-            el.addEventListener('click', closeChangePasswordModal);
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && changePasswordModal && !changePasswordModal.classList.contains('hidden')) {
-                closeChangePasswordModal();
-            }
-        });
 
 
         const btnAjukanBaru = document.getElementById('btn-ajukan-baru');
