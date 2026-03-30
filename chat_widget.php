@@ -1367,7 +1367,8 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         </div>
         <div id="cw-online-list">
             <div id="cw-online-empty" style="padding:24px 12px;text-align:center;color:#9ca3af;font-size:12px">
-                <i class="fas fa-spinner fa-spin" style="font-size:28px;color:#e5e7eb;display:block;margin-bottom:8px"></i>
+                <i class="fas fa-spinner fa-spin"
+                    style="font-size:28px;color:#e5e7eb;display:block;margin-bottom:8px"></i>
                 Memuat pengguna...
             </div>
         </div>
@@ -1688,6 +1689,8 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
 
         // ---- Notification Sound (Web Audio API - no external file needed) ----
         let _audioCtx = null;
+
+        // Suara Tab Umum: dua nada naik (ping ringan)
         function cwPlayNotif() {
             try {
                 if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1711,6 +1714,42 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
                 g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
                 o2.connect(g2); g2.connect(ctx.destination);
                 o2.start(now + 0.12); o2.stop(now + 0.38);
+            } catch (e) { }
+        }
+
+        // Suara Tab Online/DM: tiga nada lembut turun-naik (lebih personal & intim)
+        function cwPlayNotifDM() {
+            try {
+                if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = _audioCtx;
+                const now = ctx.currentTime;
+                // Note 1: 660 Hz (E5) - nada dasar lembut
+                const o1 = ctx.createOscillator();
+                const g1 = ctx.createGain();
+                o1.type = 'triangle'; o1.frequency.setValueAtTime(660, now);
+                g1.gain.setValueAtTime(0.0, now);
+                g1.gain.linearRampToValueAtTime(0.20, now + 0.015);
+                g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+                o1.connect(g1); g1.connect(ctx.destination);
+                o1.start(now); o1.stop(now + 0.18);
+                // Note 2: 528 Hz (turun) - nada tengah
+                const o2 = ctx.createOscillator();
+                const g2 = ctx.createGain();
+                o2.type = 'triangle'; o2.frequency.setValueAtTime(528, now + 0.10);
+                g2.gain.setValueAtTime(0.0, now + 0.10);
+                g2.gain.linearRampToValueAtTime(0.18, now + 0.115);
+                g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+                o2.connect(g2); g2.connect(ctx.destination);
+                o2.start(now + 0.10); o2.stop(now + 0.28);
+                // Note 3: 784 Hz (naik lagi) - penutup manis
+                const o3 = ctx.createOscillator();
+                const g3 = ctx.createGain();
+                o3.type = 'triangle'; o3.frequency.setValueAtTime(784, now + 0.22);
+                g3.gain.setValueAtTime(0.0, now + 0.22);
+                g3.gain.linearRampToValueAtTime(0.16, now + 0.235);
+                g3.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+                o3.connect(g3); g3.connect(ctx.destination);
+                o3.start(now + 0.22); o3.stop(now + 0.42);
             } catch (e) { }
         }
 
@@ -1778,7 +1817,7 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             editMsgId = 0;
             editBar.style.display = 'none';
             document.getElementById('cw-reply-name').textContent = 'Membalas ' + name;
-            document.getElementById('cw-reply-text').innerHTML = text ? text.replace(/</g,'&lt;') : '<i class="fas fa-paperclip"></i> Lampiran';
+            document.getElementById('cw-reply-text').innerHTML = text ? text.replace(/</g, '&lt;') : '<i class="fas fa-paperclip"></i> Lampiran';
             replyBar.style.display = 'block';
             input.focus();
         };
@@ -2044,7 +2083,7 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         }
 
         // ---- Filter users by search ----
-        window.cwFilterUsers = function(q) {
+        window.cwFilterUsers = function (q) {
             const filtered = q.trim() === ''
                 ? allUsersCache
                 : allUsersCache.filter(u => u.nama.toLowerCase().includes(q.toLowerCase()) || (u.jabatan || '').toLowerCase().includes(q.toLowerCase()));
@@ -2058,19 +2097,19 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             }
 
             // Split online / offline
-            const online  = users.filter(u => u.is_online);
+            const online = users.filter(u => u.is_online);
             const offline = users.filter(u => !u.is_online);
 
             function buildItem(u) {
-                const color   = cwAvatarColor2(u.user_id);
+                const color = cwAvatarColor2(u.user_id);
                 const initial = (u.nama || '?').charAt(0).toUpperCase();
                 const itBadge = u.is_admin ? '<span style="background:#f97316;color:white;font-size:8px;font-weight:700;padding:1px 5px;border-radius:999px;margin-left:3px">IT</span>' : '';
-                const unread  = u.unread_dm > 0 ? `<span class="cw-online-unread">${u.unread_dm}</span>` : '';
+                const unread = u.unread_dm > 0 ? `<span class="cw-online-unread">${u.unread_dm}</span>` : '';
                 const meLabel = u.is_me ? ' <span style="color:#bbb;font-weight:400;font-size:10px">(Anda)</span>' : '';
-                const dotCls  = u.is_online ? '' : ' offline';
+                const dotCls = u.is_online ? '' : ' offline';
                 const itemCls = u.is_me ? ' is-me' : (u.is_online ? '' : ' offline-user');
-                const click   = (u.is_me) ? '' : `onclick="cwOpenDM(${u.user_id},'${u.nama.replace(/'/g, "\\'")}','${(u.jabatan || '').replace(/'/g, "\\'")}',${u.is_admin})"`;
-                const title   = u.is_me ? '(Anda)' : 'Klik untuk kirim pesan';
+                const click = (u.is_me) ? '' : `onclick="cwOpenDM(${u.user_id},'${u.nama.replace(/'/g, "\\'")}','${(u.jabatan || '').replace(/'/g, "\\'")}',${u.is_admin})"`;
+                const title = u.is_me ? '(Anda)' : 'Klik untuk kirim pesan';
 
                 // Last seen / online now label
                 let seenHtml;
@@ -2149,6 +2188,9 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             if (backToOnline) cwSwitchTab('online');
         };
 
+        // Tracker unread DM total terakhir (untuk deteksi pesan baru di background)
+        let _lastDmTotalUnread = 0;
+
         // ---- Load DM messages ----
         function cwLoadDM(isIncremental) {
             const afterParam = isIncremental ? `&after_id=${dmLastId}` : '';
@@ -2158,6 +2200,14 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
                     if (!data.messages) return;
                     if (data.messages.length > 0) {
                         const wasBottom = dmMsgs.scrollHeight - dmMsgs.scrollTop - dmMsgs.clientHeight < 60;
+                        // Hitung pesan baru dari orang lain (bukan pesan sendiri)
+                        const newFromOthers = isIncremental
+                            ? data.messages.filter(m => !m.is_own).length
+                            : 0;
+                        if (newFromOthers > 0) {
+                            // Mainkan suara notifikasi DM (berbeda dari tab Umum)
+                            cwPlayNotifDM();
+                        }
                         data.messages.forEach(m => appendDMMsg(m));
                         dmLastId = data.last_id;
                         if (!isIncremental || wasBottom || data.messages.some(m => m.is_own))
@@ -2225,6 +2275,15 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
                 .then(data => {
                     if (!data.users) return;
                     allUsersCache = data.users;
+
+                    // Hitung total unread DM baru
+                    const newTotal = data.users.reduce((sum, u) => sum + (u.unread_dm || 0), 0);
+                    // Jika DM panel sedang tidak terbuka & total unread bertambah = ada pesan baru
+                    if (dmWithUserId === 0 && newTotal > _lastDmTotalUnread) {
+                        cwPlayNotifDM();
+                    }
+                    _lastDmTotalUnread = newTotal;
+
                     updateDmTotalBadge(data.users);
                     const cnt = data.online_count || 0;
                     if (onlineCountEl) onlineCountEl.textContent = cnt;
@@ -2232,7 +2291,7 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
                     if (currentTab === 'online') {
                         const q = document.getElementById('cw-user-search');
                         const qVal = q ? q.value.trim() : '';
-                        renderOnlineList(qVal ? data.users.filter(u => u.nama.toLowerCase().includes(qVal.toLowerCase()) || (u.jabatan||'').toLowerCase().includes(qVal.toLowerCase())) : data.users);
+                        renderOnlineList(qVal ? data.users.filter(u => u.nama.toLowerCase().includes(qVal.toLowerCase()) || (u.jabatan || '').toLowerCase().includes(qVal.toLowerCase())) : data.users);
                     }
                 }).catch(() => { });
         }
