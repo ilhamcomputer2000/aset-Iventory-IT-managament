@@ -1153,43 +1153,47 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
 
     .cw-dm-msg {
         display: flex;
-        gap: 6px;
+        gap: 4px;
         align-items: flex-end;
     }
 
     .cw-dm-msg.own {
         flex-direction: row-reverse;
+        justify-content: flex-start;
     }
 
     .cw-dm-bubble {
-        max-width: 80%;
         background: white;
         border: 1px solid #e5e7eb;
         color: #1f2937;
-        font-size: 12px;
-        padding: 7px 11px;
-        border-radius: 14px 14px 14px 4px;
+        font-size: 13px;
+        padding: 8px 12px;
+        border-radius: 16px 16px 16px 4px;
         word-break: break-word;
         line-height: 1.45;
         box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+        min-width: 60px;
     }
 
     .cw-dm-msg.own .cw-dm-bubble {
         background: linear-gradient(135deg, #f97316, #ea580c);
         color: white;
         border-color: transparent;
-        border-radius: 14px 14px 4px 14px;
+        border-radius: 16px 16px 4px 16px;
     }
 
     .cw-dm-time {
         font-size: 9px;
         color: #9ca3af;
-        margin-top: 2px;
-        padding: 0 3px;
+        margin-top: 3px;
+        padding: 0 4px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
     }
 
     .cw-dm-msg.own .cw-dm-time {
-        text-align: right;
+        justify-content: flex-end;
     }
 
     .cw-dm-date-div {
@@ -1263,6 +1267,9 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         transform: none;
     }
 
+    #cw-dm-input {
+        max-height: 120px;
+    }
 
     #cw-dm-total-badge {
         background: #ef4444;
@@ -1284,6 +1291,233 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             bottom: 76px;
             width: calc(100vw - 24px);
         }
+    }
+
+    /* ===== DM Enhanced Styles ===== */
+    #cw-dm-reply-bar {
+        display: none;
+        background: #fff7ed;
+        border-top: 1px solid #fed7aa;
+        padding: 7px 12px 7px 14px;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    #cw-dm-reply-bar .dm-rp-name {
+        font-size: 10px;
+        font-weight: 700;
+        color: #ea580c;
+    }
+
+    #cw-dm-reply-bar .dm-rp-text {
+        font-size: 10px;
+        color: #6b7280;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 270px;
+    }
+
+    #cw-dm-reply-close {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 13px;
+        color: #9ca3af;
+        cursor: pointer;
+    }
+
+    .cw-dm-reply-snippet {
+        background: rgba(0, 0, 0, .07);
+        border-left: 3px solid #f97316;
+        border-radius: 5px;
+        padding: 4px 8px;
+        margin-bottom: 5px;
+        font-size: 10px;
+        color: #374151;
+    }
+
+    .cw-dm-reply-snippet strong {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        color: #f97316;
+        margin-bottom: 1px;
+    }
+
+    .cw-dm-msg.own .cw-dm-reply-snippet {
+        background: rgba(255, 255, 255, .22);
+        border-color: rgba(255, 255, 255, .65);
+        color: rgba(255, 255, 255, .9);
+    }
+
+    .cw-dm-msg.own .cw-dm-reply-snippet strong {
+        color: white;
+    }
+
+    .cw-dm-receipt {
+        display: inline-flex;
+        align-items: center;
+        gap: 1px;
+        cursor: pointer;
+        position: relative;
+        margin-left: 3px;
+        vertical-align: middle;
+    }
+
+    .cw-dm-check {
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .cw-dm-check.sent {
+        color: #9ca3af;
+    }
+
+    .cw-dm-check.read {
+        color: #f97316;
+    }
+
+    .cw-dm-receipt-tip {
+        position: absolute;
+        bottom: calc(100% + 5px);
+        right: 0;
+        background: #1f2937;
+        color: white;
+        border-radius: 7px;
+        padding: 4px 9px;
+        font-size: 10px;
+        white-space: nowrap;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, .18);
+        display: none;
+        z-index: 210;
+    }
+
+    .cw-dm-receipt-tip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        right: 8px;
+        border: 4px solid transparent;
+        border-top-color: #1f2937;
+    }
+
+    .cw-dm-receipt:hover .cw-dm-receipt-tip {
+        display: block;
+    }
+
+    .cw-dm-reactions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-top: 3px;
+    }
+
+    .cw-dm-react-pill {
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        padding: 2px 7px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        transition: all .12s;
+        line-height: 1;
+    }
+
+    .cw-dm-react-pill.mine {
+        background: #fff7ed;
+        border-color: #f97316;
+    }
+
+    .cw-dm-react-pill span {
+        font-size: 10px;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .cw-dm-react-picker {
+        position: absolute;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, .14);
+        padding: 5px 6px;
+        display: flex;
+        gap: 2px;
+        z-index: 215;
+        bottom: calc(100% + 5px);
+        white-space: nowrap;
+    }
+
+    .cw-dm-msg.own .cw-dm-react-picker {
+        right: 0;
+    }
+
+    .cw-dm-msg:not(.own) .cw-dm-react-picker {
+        left: 0;
+    }
+
+    .cw-dm-pick-emoji {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        border-radius: 6px;
+        padding: 3px 4px;
+        transition: background .1s;
+        line-height: 1;
+    }
+
+    .cw-dm-pick-emoji:hover {
+        background: #f3f4f6;
+    }
+
+    .cw-dm-msg-wrap {
+        position: relative;
+        max-width: 75%;
+        min-width: 0;
+    }
+
+    .cw-dm-actions {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        opacity: 0;
+        transition: opacity .2s;
+        flex-shrink: 0;
+    }
+
+    .cw-dm-msg:hover .cw-dm-actions {
+        opacity: 1;
+    }
+
+    .cw-dm-action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #9ca3af;
+        font-size: 11px;
+        padding: 3px 5px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        transition: all .12s;
+    }
+
+    .cw-dm-action-btn:hover {
+        background: #f3f4f6;
+        color: #f97316;
+    }
+
+    .cw-dm-bubble .dm-para+.dm-para {
+        margin-top: 5px;
     }
 </style>
 
@@ -1312,6 +1546,11 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         </div>
     </div>
     <div id="cw-dm-footer">
+        <div id="cw-dm-reply-bar">
+            <div class="dm-rp-name" id="cw-dm-reply-name"></div>
+            <div class="dm-rp-text" id="cw-dm-reply-text"></div>
+            <button id="cw-dm-reply-close" onclick="cwDmCancelReply()"><i class="fas fa-times"></i></button>
+        </div>
         <div id="cw-dm-input-row">
             <textarea id="cw-dm-input" placeholder="Ketik pesan..." rows="1" maxlength="1000"></textarea>
             <button id="cw-dm-send" onclick="cwSendDM()" disabled><i class="fas fa-paper-plane"></i></button>
@@ -2163,6 +2402,9 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             dmWithName = nama;
             dmLastId = 0;
             dmLastDateStr = '';
+            dmReplyToId = 0;
+            document.getElementById('cw-dm-reply-bar').style.display = 'none';
+            cwDmClosePicker();
 
             const color = cwAvatarColor2(userId);
             dmHeaderAvatar.textContent = nama.charAt(0).toUpperCase();
@@ -2185,11 +2427,26 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             cwStopDMPoll();
             dmPanel.style.display = 'none';
             dmWithUserId = 0;
+            dmReplyToId = 0;
+            document.getElementById('cw-dm-reply-bar').style.display = 'none';
+            cwDmClosePicker();
             if (backToOnline) cwSwitchTab('online');
         };
 
         // Tracker unread DM total terakhir (untuk deteksi pesan baru di background)
         let _lastDmTotalUnread = 0;
+        let dmReplyToId = 0;
+        let _dmActivePicker = null;
+
+        // ---- Format DM text (paragraph support) ----
+        function formatDMText(text) {
+            if (!text) return '';
+            const paras = text.split(/\n\n+/);
+            if (paras.length > 1) {
+                return paras.map(p => `<div class="dm-para">${p.replace(/\n/g, '<br>')}</div>`).join('');
+            }
+            return text.replace(/\n/g, '<br>');
+        }
 
         // ---- Load DM messages ----
         function cwLoadDM(isIncremental) {
@@ -2220,6 +2477,7 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         function appendDMMsg(m) {
             const emp = document.getElementById('cw-dm-empty');
             if (emp) emp.remove();
+
             if (m.date_display && m.date_display !== dmLastDateStr) {
                 dmLastDateStr = m.date_display;
                 const div = document.createElement('div');
@@ -2229,8 +2487,21 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
                 div.textContent = m.date_display === tStr ? 'Hari ini' : m.date_display;
                 dmMsgs.appendChild(div);
             }
+
             const row = document.createElement('div');
             row.className = 'cw-dm-msg' + (m.is_own ? ' own' : '');
+            row.dataset.dmid = m.id;
+
+            // Reply snippet
+            let replyHtml = '';
+            if (m.reply_snippet) {
+                const rs = m.reply_snippet;
+                const rName = rs.is_mine ? 'Kamu' : rs.name;
+                const rText = rs.has_file ? `<i class="fas fa-paperclip"></i> ${rs.file}` : rs.text;
+                replyHtml = `<div class="cw-dm-reply-snippet"><strong>${rName}</strong>${rText}</div>`;
+            }
+
+            // Attachment
             let attachHtml = '';
             if (m.attachment_path && m.attachment_type === 'image') {
                 const url = WEB_BASE + '/' + m.attachment_path;
@@ -2239,8 +2510,62 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
                 const url = WEB_BASE + '/' + m.attachment_path;
                 attachHtml = `<a href="${url}" target="_blank" download style="display:flex;align-items:center;gap:4px;margin-top:4px;font-size:11px;color:inherit;opacity:.8"><i class='fas fa-paperclip'></i> ${m.attachment_name}</a>`;
             }
-            const safeMsg = m.message ? m.message.replace(/\n/g, '<br>') : '';
-            row.innerHTML = `<div><div class="cw-dm-bubble">${safeMsg}${attachHtml}</div><div class="cw-dm-time">${m.time_display}</div></div>`;
+
+            const safeMsg = formatDMText(m.message);
+
+            // Read receipt (own messages only)
+            let receiptHtml = '';
+            if (m.is_own) {
+                const isRead = m.is_read;
+                const readTime = m.read_at_display || '';
+                const tipText = isRead ? `Dibaca${readTime ? ' pukul ' + readTime : ''}` : 'Terkirim';
+                receiptHtml = `<span class="cw-dm-receipt" data-drid="${m.id}">
+                    <div class="cw-dm-receipt-tip">${tipText}</div>
+                    <span class="cw-dm-check ${isRead ? 'read' : 'sent'}">&#10003;</span>
+                    <span class="cw-dm-check ${isRead ? 'read' : 'sent'}">&#10003;</span>
+                </span>`;
+            }
+
+            // Reactions
+            let reactionsHtml = '';
+            if (m.reactions && m.reactions.length > 0) {
+                reactionsHtml = '<div class="cw-dm-reactions">' +
+                    m.reactions.map(r =>
+                        `<button class="cw-dm-react-pill${r.mine ? ' mine' : ''}" onclick="cwDmReact(${m.id},'${r.emoji}')">${r.emoji}<span>${r.count}</span></button>`
+                    ).join('') + '</div>';
+            }
+
+            // Emoji picker
+            const emojis = ['👍', '❤️', '😂', '😮', '😢', '👏', '🔥', '✅'];
+            const pickerHtml = `<div class="cw-dm-react-picker" id="cwdmrp-${m.id}" style="display:none">${emojis.map(e => `<button class="cw-dm-pick-emoji" onclick="cwDmReact(${m.id},'${e}');cwDmClosePicker()">${e}</button>`).join('')
+                }</div>`;
+
+            // Action buttons
+            const safeNameForJs = m.is_own
+                ? 'Kamu'
+                : (m.from_nama || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const safeMsgForJs = (m.message || '').replace(/'/g, "\\'").replace(/\n/g, ' ').substring(0, 60);
+            const actionBtns = `<div class="cw-dm-actions">
+                <button class="cw-dm-action-btn" title="Balas" onclick="cwDmReplyTo(${m.id},'${safeNameForJs}','${safeMsgForJs}')">
+                    <i class="fas fa-reply"></i>
+                </button>
+                <button class="cw-dm-action-btn" title="Reaksi" onclick="cwDmTogglePicker(${m.id},event)">
+                    <i class="far fa-smile"></i>
+                </button>
+            </div>`;
+
+            row.innerHTML = m.is_own
+                ? `<div class="cw-dm-msg-wrap">${pickerHtml}
+                    <div class="cw-dm-bubble">${replyHtml}${safeMsg}${attachHtml}</div>
+                    ${reactionsHtml}
+                    <div class="cw-dm-time">${m.time_display}${receiptHtml}</div>
+                  </div>${actionBtns}`
+                : `<div class="cw-dm-msg-wrap">${pickerHtml}
+                    <div class="cw-dm-bubble">${replyHtml}${safeMsg}${attachHtml}</div>
+                    ${reactionsHtml}
+                    <div class="cw-dm-time">${m.time_display}</div>
+                  </div>${actionBtns}`;
+
             dmMsgs.appendChild(row);
         }
 
@@ -2253,6 +2578,7 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             fd.append('action', 'send_dm');
             fd.append('to_user_id', dmWithUserId);
             fd.append('message', msg);
+            if (dmReplyToId > 0) { fd.append('reply_to_id', dmReplyToId); cwDmCancelReply(); }
             fetch(ENDPOINT, { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
@@ -2261,9 +2587,83 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
                 }).catch(() => { dmSendBtn.disabled = false; });
         };
 
+        // ---- DM Reply ----
+        window.cwDmReplyTo = function (id, name, text) {
+            dmReplyToId = id;
+            document.getElementById('cw-dm-reply-name').textContent = 'Membalas ' + name;
+            document.getElementById('cw-dm-reply-text').textContent = text || '📎 Lampiran';
+            document.getElementById('cw-dm-reply-bar').style.display = 'block';
+            cwDmClosePicker();
+            dmInput.focus();
+        };
+        window.cwDmCancelReply = function () {
+            dmReplyToId = 0;
+            document.getElementById('cw-dm-reply-bar').style.display = 'none';
+        };
+
+        // ---- Emoji Reactions ----
+        window.cwDmTogglePicker = function (id, e) {
+            e.stopPropagation();
+            const picker = document.getElementById('cwdmrp-' + id);
+            if (!picker) return;
+            if (_dmActivePicker && _dmActivePicker !== picker) { _dmActivePicker.style.display = 'none'; }
+            const isOpen = picker.style.display === 'flex';
+            picker.style.display = isOpen ? 'none' : 'flex';
+            _dmActivePicker = isOpen ? null : picker;
+        };
+        window.cwDmClosePicker = function () {
+            if (_dmActivePicker) { _dmActivePicker.style.display = 'none'; _dmActivePicker = null; }
+        };
+        document.addEventListener('click', () => cwDmClosePicker());
+
+        window.cwDmReact = function (dmId, emoji) {
+            const fd = new FormData();
+            fd.append('action', 'react_dm');
+            fd.append('dm_id', dmId);
+            fd.append('emoji', emoji);
+            fetch(ENDPOINT, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(() => {
+                    // Re-load current DM to refresh reactions
+                    const orig = dmLastId;
+                    dmLastId = 0;
+                    dmLastDateStr = '';
+                    dmMsgs.innerHTML = '';
+                    cwLoadDM(false);
+                    setTimeout(() => { dmMsgs.scrollTop = dmMsgs.scrollHeight; }, 300);
+                }).catch(() => { });
+        };
+
+        // ---- Refresh DM Read Receipts ----
+        function cwRefreshDMReceipts() {
+            const receipts = dmMsgs.querySelectorAll('.cw-dm-receipt[data-drid]');
+            if (!receipts.length) return;
+            // Only query un-read ones (class 'sent')
+            const unreadIds = Array.from(receipts)
+                .filter(el => el.querySelector('.cw-dm-check.sent'))
+                .map(el => el.getAttribute('data-drid')).filter(Boolean);
+            if (!unreadIds.length) return;
+            fetch(`${ENDPOINT}?action=get_dm_receipts&ids=${unreadIds.join(',')}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.receipts) return;
+                    receipts.forEach(el => {
+                        const mid = el.getAttribute('data-drid');
+                        const info = data.receipts[mid];
+                        if (!info || !info.is_read) return;
+                        const checks = el.querySelectorAll('.cw-dm-check');
+                        checks.forEach(c => c.className = 'cw-dm-check read');
+                        const tip = el.querySelector('.cw-dm-receipt-tip');
+                        if (tip) tip.textContent = `Dibaca${info.read_at_display ? ' pukul ' + info.read_at_display : ''}`;
+                    });
+                }).catch(() => { });
+        }
+
         function cwStartDMPoll() {
             cwStopDMPoll();
-            dmPollTimer = setInterval(() => { if (dmWithUserId > 0) cwLoadDM(true); }, 3000);
+            dmPollTimer = setInterval(() => {
+                if (dmWithUserId > 0) { cwLoadDM(true); cwRefreshDMReceipts(); }
+            }, 3000);
         }
         function cwStopDMPoll() {
             if (dmPollTimer) { clearInterval(dmPollTimer); dmPollTimer = null; }
@@ -2304,6 +2704,7 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             cwDmAutoResize();
         });
         dmInput.addEventListener('keydown', function (e) {
+            // Shift+Enter = kirim, Enter biasa = baris baru
             if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); if (!dmSendBtn.disabled) cwSendDM(); }
         });
         function cwDmAutoResize() {

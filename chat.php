@@ -96,6 +96,23 @@ $kon->query("CREATE TABLE IF NOT EXISTS chat_dm (
     INDEX idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+// Upgrade chat_dm columns
+foreach ([
+    "ALTER TABLE chat_dm ADD COLUMN IF NOT EXISTS read_at DATETIME NULL",
+    "ALTER TABLE chat_dm ADD COLUMN IF NOT EXISTS reply_to_id INT NULL",
+] as $sql) @$kon->query($sql);
+
+// DM Reactions table
+$kon->query("CREATE TABLE IF NOT EXISTS chat_dm_reactions (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    dm_id      INT NOT NULL,
+    user_id    INT NOT NULL,
+    emoji      VARCHAR(10) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_react (dm_id, user_id),
+    INDEX idx_dm (dm_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
 // Helper: update presence
 function updatePresence($kon, $uid, $uname, $nama, $role, $jabatan = '')
 {
@@ -392,14 +409,14 @@ if ($action === 'get_online_users') {
 
 // ---- ACTION: send_dm ----
 if ($action === 'send_dm') {
-    $to_id  = max(0, (int)($_POST['to_user_id'] ?? 0));
-    $message = trim((string)($_POST['message'] ?? ''));
+    $to_id      = max(0, (int)($_POST['to_user_id'] ?? 0));
+    $message    = trim((string)($_POST['message'] ?? ''));
+    $reply_to   = max(0, (int)($_POST['reply_to_id'] ?? 0));
     if ($to_id === 0 || ($message === '' && empty($_FILES['attachment']))) {
         echo json_encode(['error' => 'Data tidak valid']); exit;
     }
     if ($to_id === $user_id) { echo json_encode(['error' => 'Tidak bisa kirim pesan ke diri sendiri']); exit; }
 
-    // Verify target user exists
     $chkUser = $kon->query("SELECT id FROM users WHERE id=$to_id LIMIT 1");
     if (!$chkUser || $chkUser->num_rows === 0) { echo json_encode(['error' => 'Pengguna tidak ditemukan']); exit; }
 
@@ -425,8 +442,9 @@ if ($action === 'send_dm') {
     }
 
     updatePresence($kon, $user_id, $username, $nama, $role, $jabatan);
-    $stmt = $kon->prepare("INSERT INTO chat_dm (from_user_id,to_user_id,from_nama,from_role,from_jabatan,message,attachment_path,attachment_name,attachment_type,attachment_size) VALUES (?,?,?,?,?,?,?,?,?,?)");
-    $stmt->bind_param('iisssssssi', $user_id, $to_id, $nama, $role, $jabatan, $message, $att_path, $att_name, $att_type, $att_size);
+    $reply_to_val = $reply_to > 0 ? $reply_to : null;
+    $stmt = $kon->prepare("INSERT INTO chat_dm (from_user_id,to_user_id,from_nama,from_role,from_jabatan,message,reply_to_id,attachment_path,attachment_name,attachment_type,attachment_size) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+    $stmt->bind_param('iissssisssi', $user_id, $to_id, $nama, $role, $jabatan, $message, $reply_to_val, $att_path, $att_name, $att_type, $att_size);
 
     if ($stmt->execute()) {
         echo json_encode(['success' => true, 'id' => $kon->insert_id]);
@@ -439,22 +457,21 @@ if ($action === 'send_dm') {
 
 // ---- ACTION: get_dm ----
 if ($action === 'get_dm') {
-    $with_id = max(0, (int)($_GET['with_user_id'] ?? 0));
+    $with_id  = max(0, (int)($_GET['with_user_id'] ?? 0));
     $after_id = max(0, (int)($_GET['after_id'] ?? 0));
     if ($with_id === 0) { echo json_encode(['error' => 'Pengguna tidak valid']); exit; }
 
     updatePresence($kon, $user_id, $username, $nama, $role, $jabatan);
 
     if ($after_id > 0) {
-        $stmt = $kon->prepare("SELECT id, from_user_id, to_user_id, from_nama, from_role, from_jabatan, message, is_read, attachment_path, attachment_name, attachment_type, attachment_size, created_at
+        $stmt = $kon->prepare("SELECT id, from_user_id, to_user_id, from_nama, from_role, from_jabatan, message, is_read, read_at, reply_to_id, attachment_path, attachment_name, attachment_type, attachment_size, created_at
                                FROM chat_dm
                                WHERE ((from_user_id=? AND to_user_id=?) OR (from_user_id=? AND to_user_id=?))
-                               AND id > ?
-                               ORDER BY id ASC LIMIT 50");
+                               AND id > ? ORDER BY id ASC LIMIT 50");
         $stmt->bind_param('iiiii', $user_id, $with_id, $with_id, $user_id, $after_id);
     } else {
         $limit = 60;
-        $stmt = $kon->prepare("SELECT id, from_user_id, to_user_id, from_nama, from_role, from_jabatan, message, is_read, attachment_path, attachment_name, attachment_type, attachment_size, created_at
+        $stmt = $kon->prepare("SELECT id, from_user_id, to_user_id, from_nama, from_role, from_jabatan, message, is_read, read_at, reply_to_id, attachment_path, attachment_name, attachment_type, attachment_size, created_at
                                FROM chat_dm
                                WHERE ((from_user_id=? AND to_user_id=?) OR (from_user_id=? AND to_user_id=?))
                                ORDER BY id DESC LIMIT ?");
@@ -463,24 +480,20 @@ if ($action === 'get_dm') {
     $stmt->execute();
     $messages = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
-
     if ($after_id === 0) $messages = array_reverse($messages);
 
-    // Mark as read
-    $kon->query("UPDATE chat_dm SET is_read=1 WHERE to_user_id=$user_id AND from_user_id=$with_id AND is_read=0");
+    // Mark incoming as read (preserve original read_at)
+    $kon->query("UPDATE chat_dm SET is_read=1, read_at=IF(read_at IS NULL,NOW(),read_at) WHERE to_user_id=$user_id AND from_user_id=$with_id AND is_read=0");
 
     // Format messages
-    $WEB_BASE = rtrim((isset($_SERVER['SCRIPT_NAME']) ? dirname($_SERVER['SCRIPT_NAME']) : ''), '/');
     $formatted = [];
     foreach ($messages as $m) {
         $isOwn = ((int)$m['from_user_id'] === $user_id);
-        try {
-            $dt = new DateTime($m['created_at']);
-            $timeDisplay = $dt->format('H:i');
-            $dateDisplay = $dt->format('d M Y');
-        } catch (Exception $e) {
-            $timeDisplay = '';
-            $dateDisplay = '';
+        try { $dt = new DateTime($m['created_at']); $timeDisplay = $dt->format('H:i'); $dateDisplay = $dt->format('d M Y'); }
+        catch (Exception $e) { $timeDisplay = ''; $dateDisplay = ''; }
+        $readAtDisplay = null;
+        if ($isOwn && $m['is_read'] && $m['read_at']) {
+            try { $rdt = new DateTime($m['read_at']); $readAtDisplay = $rdt->format('H:i'); } catch (Exception $e) {}
         }
         $formatted[] = [
             'id'              => (int)$m['id'],
@@ -493,22 +506,88 @@ if ($action === 'get_dm') {
             'is_own'          => $isOwn,
             'is_admin'        => in_array($m['from_role'], ['super_admin', 'admin']),
             'is_read'         => (bool)$m['is_read'],
+            'read_at_display' => $readAtDisplay,
+            'reply_to_id'     => (int)($m['reply_to_id'] ?? 0),
             'attachment_path' => $m['attachment_path'],
             'attachment_name' => htmlspecialchars($m['attachment_name'] ?? ''),
             'attachment_type' => $m['attachment_type'],
             'attachment_size' => (int)($m['attachment_size'] ?? 0),
             'time_display'    => $timeDisplay,
             'date_display'    => $dateDisplay,
+            'reactions'       => [],
+            'reply_snippet'   => null,
         ];
     }
 
+    // Fetch reply snippets
+    foreach ($formatted as &$m) {
+        if ($m['reply_to_id'] > 0) {
+            $rid = $m['reply_to_id'];
+            $rq2 = $kon->query("SELECT from_user_id, from_nama, message, attachment_name FROM chat_dm WHERE id=$rid LIMIT 1");
+            if ($rq2 && ($rr2 = $rq2->fetch_assoc())) {
+                $m['reply_snippet'] = [
+                    'name'     => htmlspecialchars($rr2['from_nama']),
+                    'text'     => htmlspecialchars(mb_substr($rr2['message'], 0, 80)),
+                    'has_file' => !empty($rr2['attachment_name']),
+                    'file'     => htmlspecialchars($rr2['attachment_name'] ?? ''),
+                    'is_mine'  => ((int)$rr2['from_user_id'] === $user_id),
+                ];
+            }
+        }
+    } unset($m);
+
+    // Fetch reactions
+    if (!empty($formatted)) {
+        $allIds = implode(',', array_map('intval', array_column($formatted, 'id')));
+        $reactRq = $kon->query("SELECT dm_id, emoji, COUNT(*) cnt, GROUP_CONCAT(user_id) uids FROM chat_dm_reactions WHERE dm_id IN ($allIds) GROUP BY dm_id, emoji");
+        $reactMap = [];
+        if ($reactRq) while ($rr = $reactRq->fetch_assoc()) {
+            $reactMap[(int)$rr['dm_id']][] = ['emoji'=>$rr['emoji'],'count'=>(int)$rr['cnt'],'mine'=>in_array((string)$user_id,explode(',',$rr['uids']))];
+        }
+        foreach ($formatted as &$m) { $m['reactions'] = $reactMap[$m['id']] ?? []; } unset($m);
+    }
+
     $lastId = empty($formatted) ? $after_id : end($formatted)['id'];
-    echo json_encode([
-        'messages'  => $formatted,
-        'last_id'   => (int)$lastId,
-        'my_id'     => $user_id,
-        'with_id'   => $with_id,
-    ]);
+    echo json_encode(['messages'=>$formatted,'last_id'=>(int)$lastId,'my_id'=>$user_id,'with_id'=>$with_id]);
+    exit;
+}
+
+// ---- ACTION: react_dm ----
+if ($action === 'react_dm') {
+    $dm_id = max(0, (int)($_POST['dm_id'] ?? 0));
+    $emoji = trim((string)($_POST['emoji'] ?? ''));
+    if ($dm_id === 0 || $emoji === '') { echo json_encode(['error' => 'Invalid']); exit; }
+    $chk = $kon->prepare("SELECT emoji FROM chat_dm_reactions WHERE dm_id=? AND user_id=? LIMIT 1");
+    $chk->bind_param('ii', $dm_id, $user_id); $chk->execute();
+    $chkRes = $chk->get_result();
+    $existingEmoji = $chkRes->num_rows > 0 ? $chkRes->fetch_assoc()['emoji'] : null;
+    $chk->close();
+    if ($existingEmoji !== null && $existingEmoji === $emoji) {
+        $del = $kon->prepare("DELETE FROM chat_dm_reactions WHERE dm_id=? AND user_id=?");
+        $del->bind_param('ii', $dm_id, $user_id); $del->execute(); $del->close();
+        echo json_encode(['success'=>true,'action'=>'removed']);
+    } else {
+        $e = $kon->real_escape_string($emoji);
+        $kon->query("INSERT INTO chat_dm_reactions (dm_id,user_id,emoji) VALUES ($dm_id,$user_id,'$e') ON DUPLICATE KEY UPDATE emoji='$e',created_at=NOW()");
+        echo json_encode(['success'=>true,'action'=>$existingEmoji!==null?'updated':'added']);
+    }
+    exit;
+}
+
+// ---- ACTION: get_dm_receipts ----
+if ($action === 'get_dm_receipts') {
+    $rawIds = (string)($_GET['ids'] ?? '');
+    $ids = array_filter(array_map('intval', explode(',', $rawIds)));
+    if (empty($ids)) { echo json_encode(['receipts'=>[]]); exit; }
+    $idsStr = implode(',', $ids);
+    $rq = $kon->query("SELECT id, is_read, read_at FROM chat_dm WHERE id IN ($idsStr) AND from_user_id=$user_id");
+    $out = [];
+    if ($rq) while ($rr = $rq->fetch_assoc()) {
+        $rat = null;
+        if ($rr['is_read'] && $rr['read_at']) { try { $dt=new DateTime($rr['read_at']); $rat=$dt->format('H:i'); } catch(Exception $e){} }
+        $out[(int)$rr['id']] = ['is_read'=>(bool)$rr['is_read'],'read_at_display'=>$rat];
+    }
+    echo json_encode(['receipts'=>$out]);
     exit;
 }
 
