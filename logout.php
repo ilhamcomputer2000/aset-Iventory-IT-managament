@@ -52,9 +52,10 @@ if (isset($_SESSION['user_id'])) {
     }
 
     if (isset($__dbConn) && $__dbConn instanceof mysqli) {
-        // Clear chat presence so online count is accurate immediately
+        // Tandai user offline dengan menggeser last_seen ke luar window 90 detik
+        // (TIDAK DELETE agar tetap menampilkan "Aktif X menit lalu", bukan "Belum pernah online")
         $__userId = (int)$_SESSION['user_id'];
-        @$__dbConn->query("DELETE FROM chat_presence WHERE user_id = $__userId");
+        @$__dbConn->query("UPDATE chat_presence SET last_seen = DATE_SUB(NOW(), INTERVAL 95 SECOND) WHERE user_id = $__userId");
         @$__dbConn->close();
     }
 }

@@ -8,17 +8,55 @@ require_once __DIR__ . '/koneksi.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+$_action = trim((string)($_GET['action'] ?? $_POST['action'] ?? ''));
+
+// ---- ACTION: go_offline (harus diproses SEBELUM session check) ----
+// Token HMAC statis berbasis user_id + server secret — TIDAK bergantung session_id()
+// agar bisa bekerja walau session sudah dihancurkan oleh logout.php
+define('CW_OFFLINE_SECRET', 'cw_offline_s3cr3t_2025_aset_it');
+
+if ($_action === 'go_offline') {
+    $cw_uid   = (int)($_POST['cw_uid'] ?? 0);
+    $cw_token = (string)($_POST['cw_token'] ?? '');
+    $deleted  = false;
+
+    if ($cw_uid > 0 && strlen($cw_token) >= 32) {
+        // Validasi token dalam 5 window waktu (50 menit toleransi) untuk akomodasi network delay hosting
+        $tNow = (int)floor(time() / 600);
+        // Token hanya menggunakan user_id — TIDAK pakai session_id() agar konsisten di hosting
+        foreach ([$tNow, $tNow - 1, $tNow - 2, $tNow + 1, $tNow + 2] as $tWindow) {
+            $expected = hash_hmac('sha256', $cw_uid . '|' . $tWindow, CW_OFFLINE_SECRET);
+            if (hash_equals($expected, $cw_token)) {
+                // UPDATE bukan DELETE agar last_seen tetap ada (tampil "Aktif X menit lalu", bukan "Belum pernah online")
+                $kon->query("UPDATE chat_presence SET last_seen = DATE_SUB(NOW(), INTERVAL 95 SECOND) WHERE user_id = $cw_uid");
+                $deleted = true;
+                break;
+            }
+        }
+    }
+
+    // Fallback: jika session masih aktif dan valid, percayai saja
+    if (!$deleted && isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === $cw_uid && $cw_uid > 0) {
+        $kon->query("UPDATE chat_presence SET last_seen = DATE_SUB(NOW(), INTERVAL 95 SECOND) WHERE user_id = $cw_uid");
+        $deleted = true;
+    }
+
+    echo json_encode(['ok' => $deleted]);
+    exit;
+}
+
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['error' => 'Unauthorized']);
     exit;
 }
+
 
 $user_id  = (int)$_SESSION['user_id'];
 $username = (string)($_SESSION['username'] ?? 'Unknown');
 $nama     = (string)($_SESSION['Nama_Lengkap'] ?? $username);
 $role     = (string)($_SESSION['role'] ?? 'user');
 $jabatan  = (string)($_SESSION['Jabatan_Level'] ?? '');
-$action   = trim((string)($_GET['action'] ?? $_POST['action'] ?? ''));
+$action   = $_action; // sudah didefinisikan sebelum session check
 
 // ---- Ensure Tables ----
 $kon->query("CREATE TABLE IF NOT EXISTS chat_messages (
@@ -611,6 +649,7 @@ if ($action === 'get_all_users') {
     updatePresence($kon, $user_id, $username, $nama, $role, $jabatan);
 
     // Ambil semua user aktif dari tabel users, join dengan chat_presence untuk last_seen
+    // Gunakan TIMESTAMPDIFF di MySQL agar tidak ada timezone mismatch antara PHP dan MySQL
     $rq = $kon->query("
         SELECT
             u.id,
@@ -619,41 +658,42 @@ if ($action === 'get_all_users') {
             u.role,
             u.Jabatan_Level,
             u.Status_Akun,
-            p.last_seen
+            p.last_seen,
+            CASE WHEN p.last_seen IS NOT NULL AND TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) <= 90 THEN 1 ELSE 0 END AS is_online_mysql,
+            CASE WHEN p.last_seen IS NOT NULL THEN TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) ELSE NULL END AS seconds_ago
         FROM users u
         LEFT JOIN chat_presence p ON p.user_id = u.id
         WHERE u.Status_Akun IN ('Aktif', 'aktif', 'active', 'Active', '1', '')
            OR u.Status_Akun IS NULL
         ORDER BY
-            CASE WHEN p.last_seen >= DATE_SUB(NOW(), INTERVAL 90 SECOND) THEN 0 ELSE 1 END ASC,
+            CASE WHEN p.last_seen IS NOT NULL AND TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) <= 90 THEN 0 ELSE 1 END ASC,
             p.last_seen DESC,
             u.Nama_Lengkap ASC
         LIMIT 200
     ");
 
     $users = [];
-    $now = time();
     if ($rq) {
         while ($row = $rq->fetch_assoc()) {
-            $uid      = (int)$row['id'];
-            $lastSeen = $row['last_seen'];
-            $isOnline = false;
+            $uid        = (int)$row['id'];
+            $lastSeen   = $row['last_seen'];
+            // Gunakan hasil kalkulasi MySQL (TIMESTAMPDIFF) bukan PHP time() untuk hindari timezone mismatch
+            $isOnline   = (isset($row['is_online_mysql']) && (int)$row['is_online_mysql'] === 1);
             $lastSeenTs = null;
             $lastSeenLabel = null;
 
-            if ($lastSeen) {
+            if ($lastSeen && isset($row['seconds_ago'])) {
+                $diff = (int)$row['seconds_ago'];
                 $lastSeenTs = strtotime($lastSeen);
-                $diff = $now - $lastSeenTs;
-                $isOnline = ($diff <= 90);
 
                 if (!$isOnline) {
-                    if ($diff < 60)        $lastSeenLabel = 'Baru saja';
-                    elseif ($diff < 3600)  $lastSeenLabel = 'Aktif ' . floor($diff / 60) . ' menit lalu';
-                    elseif ($diff < 86400) $lastSeenLabel = 'Aktif ' . floor($diff / 3600) . ' jam lalu';
+                    if ($diff < 60)         $lastSeenLabel = 'Baru saja';
+                    elseif ($diff < 3600)   $lastSeenLabel = 'Aktif ' . floor($diff / 60) . ' menit lalu';
+                    elseif ($diff < 86400)  $lastSeenLabel = 'Aktif ' . floor($diff / 3600) . ' jam lalu';
                     elseif ($diff < 172800) $lastSeenLabel = 'Aktif kemarin';
                     elseif ($diff < 604800) $lastSeenLabel = 'Aktif ' . floor($diff / 86400) . ' hari lalu';
                     elseif ($diff < 2592000) $lastSeenLabel = 'Aktif ' . floor($diff / 604800) . ' minggu lalu';
-                    else  $lastSeenLabel = 'Aktif ' . date('d M Y', $lastSeenTs);
+                    else                    $lastSeenLabel = 'Aktif ' . ($lastSeenTs ? date('d M Y', $lastSeenTs) : '-');
                 }
             } else {
                 $lastSeenLabel = 'Belum pernah online';
@@ -685,6 +725,14 @@ if ($action === 'get_all_users') {
     $onlineCnt = array_reduce($users, fn($c, $u) => $c + ($u['is_online'] ? 1 : 0), 0);
 
     echo json_encode(['users' => $users, 'my_id' => $user_id, 'online_count' => $onlineCnt]);
+    exit;
+}
+
+// ---- ACTION: go_offline (beacon saat user tutup/tinggalkan halaman) ----
+if ($action === 'go_offline') {
+    // Geser last_seen ke luar window online — TIDAK DELETE agar "Aktif X menit lalu" tetap tampil
+    $kon->query("UPDATE chat_presence SET last_seen = DATE_SUB(NOW(), INTERVAL 95 SECOND) WHERE user_id = $user_id");
+    echo json_encode(['ok' => true]);
     exit;
 }
 

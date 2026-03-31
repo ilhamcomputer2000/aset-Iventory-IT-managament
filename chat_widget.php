@@ -16,6 +16,12 @@ require_once __DIR__ . '/app_url.php';
 $_cw_endpoint = app_abs_path('chat.php');
 // Web base for attachments
 $_cw_web_base = rtrim(app_abs_path(''), '/');
+
+// Token untuk go_offline — pakai HMAC statis (TIDAK bergantung session_id)
+// agar tetap valid bahkan setelah session_destroy() di logout.php (penting untuk hosting)
+if (!defined('CW_OFFLINE_SECRET'))
+    define('CW_OFFLINE_SECRET', 'cw_offline_s3cr3t_2025_aset_it');
+$_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600), CW_OFFLINE_SECRET);
 ?>
 
 <style>
@@ -491,20 +497,70 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         flex-shrink: 0
     }
 
-    #cw-attach-preview {
+    #cw-attach-preview,
+    #cw-dm-attach-preview {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         font-size: 12px;
-        color: #374151
+        color: #374151;
+        overflow-x: auto;
+        padding: 2px 0;
     }
 
-    #cw-attach-thumb {
-        max-height: 48px;
-        max-width: 80px;
-        border-radius: 6px;
+    #cw-attach-preview::-webkit-scrollbar,
+    #cw-dm-attach-preview::-webkit-scrollbar {
+        height: 3px;
+    }
+
+    #cw-attach-preview::-webkit-scrollbar-thumb,
+    #cw-dm-attach-preview::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 2px;
+    }
+
+    .cw-attach-chip {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 4px 8px;
+        flex-shrink: 0;
+        max-width: 150px;
+    }
+
+    .cw-attach-chip-thumb {
+        height: 30px;
+        width: 30px;
+        border-radius: 4px;
         object-fit: cover;
-        display: none
+        flex-shrink: 0;
+    }
+
+    .cw-attach-chip-name {
+        font-size: 11px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 80px;
+    }
+
+    .cw-attach-clear-all {
+        margin-left: auto;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #9ca3af;
+        font-size: 14px;
+        flex-shrink: 0;
+        padding: 0 2px;
+        transition: color .15s;
+    }
+
+    .cw-attach-clear-all:hover {
+        color: #ef4444;
     }
 
     /* Footer */
@@ -1271,6 +1327,54 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         max-height: 120px;
     }
 
+    /* DM Attach button */
+    #cw-dm-attach-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: 1.5px solid #e5e7eb;
+        background: white;
+        color: #6b7280;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 13px;
+        transition: all .15s;
+    }
+
+    #cw-dm-attach-btn:hover {
+        border-color: #f97316;
+        color: #f97316;
+        background: #fff7ed;
+    }
+
+    /* DM Attach preview bar */
+    #cw-dm-attach-bar {
+        display: none;
+        padding: 6px 10px;
+        background: #f9fafb;
+        border-top: 1px solid #f3f4f6;
+        flex-shrink: 0;
+    }
+
+    #cw-dm-attach-preview {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #374151;
+    }
+
+    #cw-dm-attach-thumb {
+        max-height: 44px;
+        max-width: 70px;
+        border-radius: 6px;
+        object-fit: cover;
+        display: none;
+    }
+
     #cw-dm-total-badge {
         background: #ef4444;
         color: white;
@@ -1551,10 +1655,19 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             <div class="dm-rp-text" id="cw-dm-reply-text"></div>
             <button id="cw-dm-reply-close" onclick="cwDmCancelReply()"><i class="fas fa-times"></i></button>
         </div>
+        <div id="cw-dm-attach-bar">
+            <div id="cw-dm-attach-preview"></div>
+        </div>
         <div id="cw-dm-input-row">
+            <button id="cw-dm-attach-btn" onclick="document.getElementById('cw-dm-file-input').click()"
+                title="Lampirkan foto/dokumen">
+                <i class="fas fa-paperclip"></i>
+            </button>
             <textarea id="cw-dm-input" placeholder="Ketik pesan..." rows="1" maxlength="1000"></textarea>
             <button id="cw-dm-send" onclick="cwSendDM()" disabled><i class="fas fa-paper-plane"></i></button>
         </div>
+        <input type="file" id="cw-dm-file-input" style="display:none" multiple
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip">
     </div>
 </div>
 
@@ -1628,14 +1741,7 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
 
     <!-- Attach preview bar -->
     <div id="cw-attach-bar">
-        <div id="cw-attach-preview">
-            <img id="cw-attach-thumb" src="" alt="">
-            <i class="fas fa-paperclip" id="cw-attach-icon" style="color:#f97316"></i>
-            <span id="cw-attach-label"></span>
-            <button onclick="cwClearAttach()"
-                style="margin-left:auto;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:14px"><i
-                    class="fas fa-times"></i></button>
-        </div>
+        <div id="cw-attach-preview"></div>
     </div>
 
     <!-- Footer -->
@@ -1651,7 +1757,7 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             </button>
         </div>
         <div id="cw-char">0 / 1000</div>
-        <input type="file" id="cw-file-input" style="display:none"
+        <input type="file" id="cw-file-input" style="display:none" multiple
             accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip">
     </div>
 </div>
@@ -1671,8 +1777,54 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         let lastDateStr = '';
         let replyToId = 0;
         let editMsgId = 0;
-        let pendingFile = null; // { blob, name, type ('image'|'file'), dataUrl }
+        let pendingFiles = []; // array of { blob, name, type ('image'|'file'), dataUrl }
         let openDropdown = null;
+        let _sessionExpired = false; // flag: stop all polls jika session sudah habis
+
+        // ---- Offline token (di-embed dari PHP, valid tanpa session aktif) ----
+        const CW_OFFLINE_TOKEN = <?php echo json_encode($_cw_offline_token); ?>;
+        const CW_UID = <?php echo $_cw_user_id; ?>;
+
+        // ---- Fungsi go_offline — kirim dengan token, tidak butuh session ----
+        function cwSendOffline() {
+            const fd = new FormData();
+            fd.append('action', 'go_offline');
+            fd.append('cw_uid', CW_UID);
+            fd.append('cw_token', CW_OFFLINE_TOKEN);
+            // Gunakan keepalive fetch agar tetap terkirim walau halaman sudah berganti
+            fetch(ENDPOINT, { method: 'POST', body: fd, keepalive: true }).catch(() => { });
+        }
+
+        // ---- Intercept semua link logout di halaman ini ----
+        // Dipanggil SEBELUM navigasi ke logout.php, sehingga session masih valid
+        function cwInterceptLogout() {
+            document.querySelectorAll('a[href*="logout"]').forEach(function (link) {
+                if (link._cwLogoutIntercepted) return; // cegah double-bind
+                link._cwLogoutIntercepted = true;
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const dest = link.href;
+                    cwSendOffline();
+                    // Navigasi setelah minimal 150ms agar request sempat terkirim
+                    setTimeout(function () { window.location.href = dest; }, 150);
+                });
+            });
+        }
+
+        // Intercept saat halaman load dan update jika DOM berubah
+        document.addEventListener('DOMContentLoaded', cwInterceptLogout);
+        cwInterceptLogout(); // juga jalankan sekarang (jika DOM sudah siap)
+
+        // Fallback: sendBeacon saat tab ditutup (bukan saat logout — untuk kasus user tutup browser)
+        window.addEventListener('pagehide', function () {
+            if (navigator.sendBeacon) {
+                const fd = new FormData();
+                fd.append('action', 'go_offline');
+                fd.append('cw_uid', CW_UID);
+                fd.append('cw_token', CW_OFFLINE_TOKEN);
+                navigator.sendBeacon(ENDPOINT, fd);
+            }
+        });
 
         const panel = document.getElementById('cw-panel');
         const msgs = document.getElementById('cw-messages');
@@ -1890,9 +2042,16 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         }
 
         function poll() {
+            if (_sessionExpired) return;
             fetch(`${ENDPOINT}?action=get&after_id=${lastId}`)
                 .then(r => r.json())
                 .then(data => {
+                    // Deteksi session expired
+                    if (data.error === 'Unauthorized') {
+                        _sessionExpired = true;
+                        stopPoll();
+                        return;
+                    }
                     if (data.messages && data.messages.length) {
                         const fromOthers = data.messages.filter(m => parseInt(m.user_id) !== MY_ID).length;
                         if (fromOthers > 0) {
@@ -2031,9 +2190,22 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         setInterval(() => { if (panelOpen) cwRefreshReceipts(); }, 5000);
 
         // Background poll for unread badge
-        setInterval(() => { if (!panelOpen) poll(); }, 8000);
-        // Presence ping every 60s (within 90s server window)
-        setInterval(() => { fetch(`${ENDPOINT}?action=online`).catch(() => { }); }, 60000);
+        setInterval(() => { if (!panelOpen && !_sessionExpired) poll(); }, 8000);
+        // Presence ping every 30s (well within 90s server window, even on high-latency hosting)
+        // Jika server balas Unauthorized → session expired → hentikan ping
+        setInterval(() => {
+            if (_sessionExpired) return;
+            fetch(`${ENDPOINT}?action=online`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error === 'Unauthorized') {
+                        // Session habis — hentikan semua poll dan ping
+                        _sessionExpired = true;
+                        stopPoll();
+                    }
+                })
+                .catch(() => { });
+        }, 30000);
 
         // ---- Dropdown ----
         window.cwToggleDropdown = function (mid, e) {
@@ -2107,41 +2279,47 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
 
         // ---- File Attachment ----
         fileInput.addEventListener('change', function () {
-            const file = this.files[0];
-            if (!file) return;
-            const ext = file.name.split('.').pop().toLowerCase();
-            const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
-            if (isImg) {
-                cwCompressImage(file, (blob, dataUrl) => {
-                    pendingFile = { blob, name: file.name, type: 'image', dataUrl };
-                    showAttachPreview();
-                });
-            } else {
-                // Non-image: use as-is
-                pendingFile = { blob: file, name: file.name, type: 'file', dataUrl: null };
-                showAttachPreview();
-            }
+            const files = Array.from(this.files);
+            if (!files.length) return;
+            let pending = files.length;
+            files.forEach(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+                if (isImg) {
+                    cwCompressImage(file, (blob, dataUrl) => {
+                        pendingFiles.push({ blob, name: file.name, type: 'image', dataUrl });
+                        if (--pending === 0) showAttachPreview();
+                    });
+                } else {
+                    pendingFiles.push({ blob: file, name: file.name, type: 'file', dataUrl: null });
+                    if (--pending === 0) showAttachPreview();
+                }
+            });
             this.value = '';
         });
 
         function showAttachPreview() {
-            if (!pendingFile) return;
+            if (!pendingFiles.length) { attachBar.style.display = 'none'; return; }
             attachBar.style.display = 'block';
-            document.getElementById('cw-attach-label').textContent = pendingFile.name;
-            const thumb = document.getElementById('cw-attach-thumb');
-            const icon = document.getElementById('cw-attach-icon');
-            if (pendingFile.type === 'image' && pendingFile.dataUrl) {
-                thumb.src = pendingFile.dataUrl; thumb.style.display = 'block'; icon.style.display = 'none';
-            } else {
-                thumb.style.display = 'none'; icon.style.display = 'inline';
-            }
+            const preview = document.getElementById('cw-attach-preview');
+            preview.innerHTML = pendingFiles.map((f, i) => {
+                const thumbHtml = f.type === 'image' && f.dataUrl
+                    ? `<img src="${f.dataUrl}" class="cw-attach-chip-thumb">`
+                    : `<i class="fas fa-file" style="color:#f97316;font-size:18px;flex-shrink:0"></i>`;
+                return `<div class="cw-attach-chip">${thumbHtml}<span class="cw-attach-chip-name">${f.name}</span><button onclick="cwRemoveAttach(${i})" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:10px;padding:0;flex-shrink:0"><i class="fas fa-times"></i></button></div>`;
+            }).join('') + `<button class="cw-attach-clear-all" onclick="cwClearAttach()" title="Hapus semua"><i class="fas fa-times-circle"></i></button>`;
             updateSendBtn();
         }
 
+        window.cwRemoveAttach = function (i) {
+            pendingFiles.splice(i, 1);
+            showAttachPreview();
+        };
+
         window.cwClearAttach = function () {
-            pendingFile = null;
+            pendingFiles = [];
             attachBar.style.display = 'none';
-            document.getElementById('cw-attach-thumb').style.display = 'none';
+            document.getElementById('cw-attach-preview').innerHTML = '';
             updateSendBtn();
         };
 
@@ -2173,7 +2351,7 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         // ---- Send ----
         window.cwSend = function () {
             const msg = input.value.trim();
-            if (!msg && !pendingFile) return;
+            if (!msg && pendingFiles.length === 0) return;
             if (msg.length > 1000) return;
             sendBtn.disabled = true;
 
@@ -2185,10 +2363,8 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
                     .then(r => r.json())
                     .then(data => {
                         if (data.success) {
-                            // Update DOM immediately
                             const el = document.querySelector(`[data-mid="${editMsgId}"] .cw-text`);
                             if (el) {
-                                // crude: just update text node, will be refreshed on next poll anyway
                                 el.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = msg; });
                                 const et = document.querySelector(`[data-mid="${editMsgId}"] .cw-edited-tag`);
                                 if (et) et.innerHTML = '<i class="fas fa-pencil-alt" style="font-size:8px"></i> diedit';
@@ -2199,34 +2375,45 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
                             }
                             document.getElementById('cw-edit-close').click();
                         }
-                        sendBtn.disabled = input.value.trim().length === 0 && !pendingFile;
+                        updateSendBtn();
                     }).catch(() => { sendBtn.disabled = false; });
                 return;
             }
 
-            // Normal send
-            const fd = new FormData();
-            fd.append('action', 'send');
-            fd.append('message', msg);
-            if (replyToId > 0) fd.append('reply_to_id', replyToId);
-            if (pendingFile) fd.append('attachment', pendingFile.blob, pendingFile.name);
+            // Capture state then clear UI
+            const capturedMsg = msg;
+            const capturedReplyId = replyToId;
+            const capturedFiles = [...pendingFiles];
+            input.value = ''; charEl.textContent = '0 / 1000'; autoResize();
+            if (replyToId > 0) { replyToId = 0; replyBar.style.display = 'none'; }
+            cwClearAttach();
 
-            fetch(ENDPOINT, { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        input.value = ''; charEl.textContent = '0 / 1000';
-                        autoResize();
-                        if (replyToId) { replyToId = 0; replyBar.style.display = 'none'; }
-                        if (pendingFile) cwClearAttach();
-                        poll();
-                    }
-                    sendBtn.disabled = input.value.trim().length === 0 && !pendingFile;
-                }).catch(() => { sendBtn.disabled = false; });
+            // Build queue: text+first file together, rest as file-only messages
+            const queue = [];
+            if (capturedFiles.length === 0) {
+                queue.push({ message: capturedMsg, file: null });
+            } else {
+                capturedFiles.forEach((f, i) => queue.push({ message: i === 0 ? capturedMsg : '', file: f }));
+            }
+
+            function sendNext(idx) {
+                if (idx >= queue.length) { sendBtn.disabled = false; poll(); return; }
+                const item = queue[idx];
+                const fd = new FormData();
+                fd.append('action', 'send');
+                fd.append('message', item.message || '');
+                if (idx === 0 && capturedReplyId > 0) fd.append('reply_to_id', capturedReplyId);
+                if (item.file) fd.append('attachment', item.file.blob, item.file.name);
+                fetch(ENDPOINT, { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(() => sendNext(idx + 1))
+                    .catch(() => sendNext(idx + 1));
+            }
+            sendNext(0);
         };
 
         function updateSendBtn() {
-            sendBtn.disabled = input.value.trim().length === 0 && !pendingFile;
+            sendBtn.disabled = input.value.trim().length === 0 && pendingFiles.length === 0;
         }
 
         function autoResize() {
@@ -2417,6 +2604,13 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             dmSendBtn.disabled = true;
             cwDmAutoResize();
 
+            // Reset DM attachment state when opening new DM
+            dmPendingFiles = [];
+            const dmAttBar = document.getElementById('cw-dm-attach-bar');
+            if (dmAttBar) dmAttBar.style.display = 'none';
+            const dmAttPreview = document.getElementById('cw-dm-attach-preview');
+            if (dmAttPreview) dmAttPreview.innerHTML = '';
+
             dmPanel.style.display = 'flex';
             cwLoadDM(false);
             cwStartDMPoll();
@@ -2569,22 +2763,96 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
             dmMsgs.appendChild(row);
         }
 
+        // ---- DM File Attachment ----
+        let dmPendingFiles = []; // array of { blob, name, type ('image'|'file'), dataUrl }
+
+        const dmFileInput = document.getElementById('cw-dm-file-input');
+        dmFileInput.addEventListener('change', function () {
+            const files = Array.from(this.files);
+            if (!files.length) return;
+            let pending = files.length;
+            files.forEach(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+                if (isImg) {
+                    cwCompressImage(file, (blob, dataUrl) => {
+                        dmPendingFiles.push({ blob, name: file.name, type: 'image', dataUrl });
+                        if (--pending === 0) cwDmShowAttachPreview();
+                    });
+                } else {
+                    dmPendingFiles.push({ blob: file, name: file.name, type: 'file', dataUrl: null });
+                    if (--pending === 0) cwDmShowAttachPreview();
+                }
+            });
+            this.value = '';
+        });
+
+        function cwDmShowAttachPreview() {
+            if (!dmPendingFiles.length) { document.getElementById('cw-dm-attach-bar').style.display = 'none'; return; }
+            document.getElementById('cw-dm-attach-bar').style.display = 'block';
+            const preview = document.getElementById('cw-dm-attach-preview');
+            preview.innerHTML = dmPendingFiles.map((f, i) => {
+                const thumbHtml = f.type === 'image' && f.dataUrl
+                    ? `<img src="${f.dataUrl}" class="cw-attach-chip-thumb">`
+                    : `<i class="fas fa-file" style="color:#f97316;font-size:18px;flex-shrink:0"></i>`;
+                return `<div class="cw-attach-chip">${thumbHtml}<span class="cw-attach-chip-name">${f.name}</span><button onclick="cwDmRemoveAttach(${i})" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:10px;padding:0;flex-shrink:0"><i class="fas fa-times"></i></button></div>`;
+            }).join('') + `<button class="cw-attach-clear-all" onclick="cwDmClearAttach()" title="Hapus semua"><i class="fas fa-times-circle"></i></button>`;
+            cwDmUpdateSendBtn();
+        }
+
+        window.cwDmRemoveAttach = function (i) {
+            dmPendingFiles.splice(i, 1);
+            cwDmShowAttachPreview();
+        };
+
+        window.cwDmClearAttach = function () {
+            dmPendingFiles = [];
+            document.getElementById('cw-dm-attach-bar').style.display = 'none';
+            document.getElementById('cw-dm-attach-preview').innerHTML = '';
+            cwDmUpdateSendBtn();
+        };
+
+        function cwDmUpdateSendBtn() {
+            dmSendBtn.disabled = dmInput.value.trim().length === 0 && dmPendingFiles.length === 0;
+        }
+
         // ---- Send DM ----
         window.cwSendDM = function () {
             const msg = dmInput.value.trim();
-            if (!msg || dmWithUserId === 0) return;
+            if (!msg && dmPendingFiles.length === 0) return;
+            if (dmWithUserId === 0) return;
             dmSendBtn.disabled = true;
-            const fd = new FormData();
-            fd.append('action', 'send_dm');
-            fd.append('to_user_id', dmWithUserId);
-            fd.append('message', msg);
-            if (dmReplyToId > 0) { fd.append('reply_to_id', dmReplyToId); cwDmCancelReply(); }
-            fetch(ENDPOINT, { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) { dmInput.value = ''; cwDmAutoResize(); cwLoadDM(true); }
-                    dmSendBtn.disabled = dmInput.value.trim().length === 0;
-                }).catch(() => { dmSendBtn.disabled = false; });
+
+            // Capture state then clear UI
+            const capturedMsg = msg;
+            const capturedReplyId = dmReplyToId;
+            const capturedFiles = [...dmPendingFiles];
+            dmInput.value = ''; cwDmAutoResize();
+            if (dmReplyToId > 0) cwDmCancelReply();
+            cwDmClearAttach();
+
+            const queue = [];
+            if (capturedFiles.length === 0) {
+                queue.push({ message: capturedMsg, file: null });
+            } else {
+                capturedFiles.forEach((f, i) => queue.push({ message: i === 0 ? capturedMsg : '', file: f }));
+            }
+
+            function sendNextDM(idx) {
+                if (idx >= queue.length) { dmSendBtn.disabled = false; cwLoadDM(true); return; }
+                const item = queue[idx];
+                const fd = new FormData();
+                fd.append('action', 'send_dm');
+                fd.append('to_user_id', dmWithUserId);
+                fd.append('message', item.message || '');
+                if (idx === 0 && capturedReplyId > 0) fd.append('reply_to_id', capturedReplyId);
+                if (item.file) fd.append('attachment', item.file.blob, item.file.name);
+                fetch(ENDPOINT, { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(() => sendNextDM(idx + 1))
+                    .catch(() => sendNextDM(idx + 1));
+            }
+            sendNextDM(0);
         };
 
         // ---- DM Reply ----
@@ -2697,10 +2965,12 @@ $_cw_web_base = rtrim(app_abs_path(''), '/');
         }
 
         // Poll online every 10s when panel open
-        onlinePollTimer = setInterval(() => { if (panelOpen) cwLoadOnlineBackground(); }, 10000);
+        onlinePollTimer = setInterval(() => {
+            if (!_sessionExpired && panelOpen) cwLoadOnlineBackground();
+        }, 10000);
 
         dmInput.addEventListener('input', function () {
-            dmSendBtn.disabled = dmInput.value.trim().length === 0;
+            cwDmUpdateSendBtn();
             cwDmAutoResize();
         });
         dmInput.addEventListener('keydown', function (e) {
