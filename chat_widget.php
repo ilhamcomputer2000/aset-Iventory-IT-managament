@@ -648,35 +648,45 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
     #cw-lightbox {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, .85);
-        z-index: 99999;
+        background: rgba(0, 0, 0, .88);
+        z-index: 200000;
         display: none;
         align-items: center;
-        justify-content: center
+        justify-content: center;
+        padding: 60px 20px 20px;
+        box-sizing: border-box
     }
 
     #cw-lightbox img {
-        max-width: 90vw;
-        max-height: 90vh;
+        max-width: min(90vw, 800px);
+        max-height: calc(100vh - 100px);
         border-radius: 12px;
-        object-fit: contain
+        object-fit: contain;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, .5);
+        display: block
     }
 
     #cw-lightbox-close {
         position: absolute;
         top: 16px;
         right: 16px;
-        background: rgba(255, 255, 255, .15);
+        background: rgba(255, 255, 255, .2);
         border: none;
         color: white;
         font-size: 20px;
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         cursor: pointer;
         display: flex;
         align-items: center;
-        justify-content: center
+        justify-content: center;
+        transition: background .15s;
+        backdrop-filter: blur(4px)
+    }
+
+    #cw-lightbox-close:hover {
+        background: rgba(255, 255, 255, .35)
     }
 
     /* Edit mode indicator */
@@ -1175,6 +1185,26 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         font-size: 11px;
     }
 
+    #cw-dm-call-btn {
+        background: rgba(255, 255, 255, .2);
+        border: none;
+        color: white;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 11px;
+        transition: background .15s;
+    }
+
+    #cw-dm-call-btn:hover {
+        background: rgba(255, 255, 255, .35);
+    }
+
     #cw-dm-messages {
         flex: 1;
         overflow-y: auto;
@@ -1623,6 +1653,236 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
     .cw-dm-bubble .dm-para+.dm-para {
         margin-top: 5px;
     }
+
+    /* ===== Call System ===== */
+    .cw-call-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100002;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, .78);
+        backdrop-filter: blur(8px);
+    }
+
+    .cw-call-overlay.active {
+        display: flex;
+    }
+
+    .cw-call-card {
+        background: linear-gradient(145deg, #1e293b, #0f172a);
+        border-radius: 24px;
+        padding: 32px 28px;
+        width: 300px;
+        max-width: calc(100vw - 32px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, .55);
+        border: 1px solid rgba(255, 255, 255, .08);
+        animation: cwSlideIn .3s ease forwards;
+    }
+
+    .cw-call-avatar-wrap {
+        position: relative;
+        width: 84px;
+        height: 84px;
+    }
+
+    .cw-call-avatar {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        font-size: 30px;
+        font-weight: 700;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    @keyframes cwRingPulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+            opacity: .5;
+        }
+
+        50% {
+            transform: scale(1.65);
+            opacity: 0;
+        }
+    }
+
+    .cw-call-ring1,
+    .cw-call-ring2 {
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        background: rgba(249, 115, 22, .35);
+        animation: cwRingPulse 1.8s ease-out infinite;
+    }
+
+    .cw-call-ring2 {
+        inset: -20px;
+        animation-delay: .7s;
+    }
+
+    .cw-call-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .cw-call-status {
+        font-size: 13px;
+        color: rgba(255, 255, 255, .55);
+    }
+
+    .cw-call-duration {
+        font-size: 15px;
+        color: #4ade80;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cw-call-actions {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        margin-top: 6px;
+    }
+
+    .cw-call-btn {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: white;
+        transition: transform .15s, box-shadow .15s;
+    }
+
+    .cw-call-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .cw-call-btn.accept {
+        background: #16a34a;
+        box-shadow: 0 4px 16px rgba(22, 163, 74, .4);
+    }
+
+    .cw-call-btn.accept-video {
+        background: #2563eb;
+        box-shadow: 0 4px 16px rgba(37, 99, 235, .4);
+    }
+
+    .cw-call-btn.decline {
+        background: #dc2626;
+        box-shadow: 0 4px 16px rgba(220, 38, 38, .4);
+    }
+
+    .cw-call-btn.hangup {
+        background: #dc2626;
+        box-shadow: 0 4px 16px rgba(220, 38, 38, .4);
+    }
+
+    .cw-call-btn.ctrl {
+        background: rgba(255, 255, 255, .14);
+    }
+
+    .cw-call-btn.ctrl.off {
+        background: #dc2626;
+    }
+
+    /* Active call card */
+    #cw-call-active .cw-call-card {
+        width: 380px;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    #cw-call-video-wrap {
+        width: 100%;
+        height: 210px;
+        background: #0a0f1a;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #cw-call-remote-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: none;
+    }
+
+    #cw-call-no-video {
+        font-size: 70px;
+        opacity: .25;
+    }
+
+    #cw-call-local-wrap {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 82px;
+        height: 62px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, .28);
+        display: none;
+    }
+
+    #cw-call-local-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+    }
+
+    .cw-call-active-body {
+        padding: 18px 20px 22px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* Call button on user list */
+    .cw-online-call-btn {
+        background: rgba(249, 115, 22, .12);
+        border: 1px solid rgba(249, 115, 22, .3);
+        color: #f97316;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        flex-shrink: 0;
+        transition: all .15s;
+    }
+
+    .cw-online-call-btn:hover {
+        background: #f97316;
+        border-color: #f97316;
+        color: white;
+        transform: scale(1.08);
+    }
 </style>
 
 <!-- Bubble -->
@@ -1641,6 +1901,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             <div id="cw-dm-header-name">-</div>
             <div id="cw-dm-header-sub">Pesan Langsung</div>
         </div>
+        <button id="cw-dm-call-btn" onclick="cwStartCallFromDM()" title="Telepon" style="display:none"><i
+                class="fas fa-phone"></i></button>
         <button id="cw-dm-close-btn" onclick="cwCloseDM(false)"><i class="fas fa-times"></i></button>
     </div>
     <div id="cw-dm-messages">
@@ -1672,9 +1934,69 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
 </div>
 
 <!-- Lightbox -->
-<div id="cw-lightbox" onclick="document.getElementById('cw-lightbox').style.display='none'">
-    <button id="cw-lightbox-close"><i class="fas fa-times"></i></button>
-    <img id="cw-lightbox-img" src="" alt="Preview">
+<div id="cw-lightbox" onclick="cwCloseLightbox(event)">
+    <button id="cw-lightbox-close" onclick="document.getElementById('cw-lightbox').style.display='none'" title="Tutup">
+        <i class="fas fa-times"></i>
+    </button>
+    <img id="cw-lightbox-img" src="" alt="Preview" onclick="event.stopPropagation()">
+</div>
+
+<!-- ===== Call Overlays ===== -->
+<!-- Incoming Call -->
+<div class="cw-call-overlay" id="cw-call-incoming">
+    <div class="cw-call-card">
+        <div class="cw-call-avatar-wrap">
+            <span class="cw-call-ring1"></span><span class="cw-call-ring2"></span>
+            <div class="cw-call-avatar" id="cw-ci-avatar">?</div>
+        </div>
+        <div class="cw-call-name" id="cw-ci-name">-</div>
+        <div class="cw-call-status">Panggilan masuk...</div>
+        <div class="cw-call-actions">
+            <button class="cw-call-btn decline" onclick="cwCallReject()" title="Tolak"><i
+                    class="fas fa-phone-slash"></i></button>
+            <button class="cw-call-btn accept" onclick="cwCallAccept('audio')" title="Angkat Audio"><i
+                    class="fas fa-phone"></i></button>
+            <button class="cw-call-btn accept-video" onclick="cwCallAccept('video')" title="Angkat Video"><i
+                    class="fas fa-video"></i></button>
+        </div>
+    </div>
+</div>
+<!-- Outgoing Call -->
+<div class="cw-call-overlay" id="cw-call-outgoing">
+    <div class="cw-call-card">
+        <div class="cw-call-avatar-wrap">
+            <span class="cw-call-ring1"></span><span class="cw-call-ring2"></span>
+            <div class="cw-call-avatar" id="cw-co-avatar">?</div>
+        </div>
+        <div class="cw-call-name" id="cw-co-name">-</div>
+        <div class="cw-call-status" id="cw-co-status">Menghubungi...</div>
+        <div class="cw-call-actions">
+            <button class="cw-call-btn decline" onclick="cwCallCancel()" title="Batalkan"><i
+                    class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+</div>
+<!-- Active Call -->
+<div class="cw-call-overlay" id="cw-call-active">
+    <div class="cw-call-card">
+        <div id="cw-call-video-wrap">
+            <video id="cw-call-remote-video" autoplay playsinline></video>
+            <div id="cw-call-no-video">🎙️</div>
+            <div id="cw-call-local-wrap"><video id="cw-call-local-video" autoplay playsinline muted></video></div>
+        </div>
+        <div class="cw-call-active-body">
+            <div class="cw-call-name" id="cw-ca-name">-</div>
+            <div class="cw-call-duration" id="cw-ca-dur">00:00</div>
+            <div class="cw-call-actions">
+                <button class="cw-call-btn ctrl" id="cw-ca-mute" onclick="cwCallToggleMute()" title="Mute"><i
+                        class="fas fa-microphone"></i></button>
+                <button class="cw-call-btn ctrl" id="cw-ca-cam" onclick="cwCallToggleCam()" title="Kamera"><i
+                        class="fas fa-video"></i></button>
+                <button class="cw-call-btn hangup" onclick="cwCallHangup()" title="Tutup"><i
+                        class="fas fa-phone-slash"></i></button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Chat Panel -->
@@ -2534,7 +2856,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 const meLabel = u.is_me ? ' <span style="color:#bbb;font-weight:400;font-size:10px">(Anda)</span>' : '';
                 const dotCls = u.is_online ? '' : ' offline';
                 const itemCls = u.is_me ? ' is-me' : (u.is_online ? '' : ' offline-user');
-                const click = (u.is_me) ? '' : `onclick="cwOpenDM(${u.user_id},'${u.nama.replace(/'/g, "\\'")}','${(u.jabatan || '').replace(/'/g, "\\'")}',${u.is_admin})"`;
+                const click = (u.is_me) ? '' : `onclick="cwOpenDM(${u.user_id},'${u.nama.replace(/'/g, "\\'")}','${(u.jabatan || '').replace(/'/g, "\\'")}',${u.is_admin},${u.is_online})"`;
                 const title = u.is_me ? '(Anda)' : 'Klik untuk kirim pesan';
 
                 // Last seen / online now label
@@ -2547,6 +2869,9 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                     seenHtml = `<div class="cw-online-lastseen">${u.last_seen_label || 'Belum pernah online'}</div>`;
                 }
 
+                const callBtn = (!u.is_me && u.is_online)
+                    ? `<button class="cw-online-call-btn" onclick="event.stopPropagation();cwStartCall(${u.user_id},'${u.nama.replace(/'/g, "\\'")}',' audio')" title="Telepon ${u.nama}"><i class="fas fa-phone"></i></button><button class="cw-online-call-btn" onclick="event.stopPropagation();cwStartCall(${u.user_id},'${u.nama.replace(/'/g, "\\'")}',' video')" title="Video Call ${u.nama}" style="margin-left:3px"><i class="fas fa-video"></i></button>`
+                    : '';
                 return `<div class="cw-online-item${itemCls}" ${click} title="${title}">
                     <div class="cw-online-avatar" style="background:${color}">${initial}<span class="cw-online-dot-indicator${dotCls}"></span></div>
                     <div class="cw-online-info">
@@ -2555,6 +2880,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         ${seenHtml}
                     </div>
                     ${unread}
+                    ${callBtn}
                 </div>`;
             }
 
@@ -2584,7 +2910,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         }
 
         // ---- Open DM ----
-        window.cwOpenDM = function (userId, nama, jabatan, isAdmin) {
+        window.cwOpenDM = function (userId, nama, jabatan, isAdmin, isOnline) {
             dmWithUserId = userId;
             dmWithName = nama;
             dmLastId = 0;
@@ -2610,6 +2936,10 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             if (dmAttBar) dmAttBar.style.display = 'none';
             const dmAttPreview = document.getElementById('cw-dm-attach-preview');
             if (dmAttPreview) dmAttPreview.innerHTML = '';
+
+            // Show/hide call button based on online status
+            const dmCallBtn = document.getElementById('cw-dm-call-btn');
+            if (dmCallBtn) dmCallBtn.style.display = isOnline ? 'flex' : 'none';
 
             dmPanel.style.display = 'flex';
             cwLoadDM(false);
@@ -2981,6 +3311,363 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             dmInput.style.height = 'auto';
             dmInput.style.height = Math.min(dmInput.scrollHeight, 80) + 'px';
         }
+
+
+        // ===== WebRTC CALL SYSTEM =====
+        let _callState = 'idle'; // idle | outgoing | incoming | active
+        let _callPeer = null;
+        let _callLocalStream = null;
+        let _callPeerId = 0;
+        let _callPeerName = '';
+        let _callType = 'audio';
+        let _callMuted = false;
+        let _callCamOff = false;
+        let _callDurationTimer = null;
+        let _callDurationSec = 0;
+        let _callIncomingData = null;
+        let _callQueuedIce = [];
+        let _callSignalLastId = 0;
+        let _callRingTimer = null;
+        let _ringAudioCtx = null;
+        let _ringNodes = [];
+
+        const ICE_CFG = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun.cloudflare.com:3478' }
+            ]
+        };
+
+        function cwPlayRing(loop) {
+            cwStopRing();
+            try {
+                if (!_ringAudioCtx) _ringAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = _ringAudioCtx;
+                function ring() {
+                    const now = ctx.currentTime;
+                    [0, 0.42].forEach(off => {
+                        const o = ctx.createOscillator(), g = ctx.createGain();
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(440, now + off);
+                        o.frequency.linearRampToValueAtTime(490, now + off + 0.2);
+                        g.gain.setValueAtTime(0, now + off);
+                        g.gain.linearRampToValueAtTime(0.38, now + off + 0.025);
+                        g.gain.setValueAtTime(0.38, now + off + 0.28);
+                        g.gain.linearRampToValueAtTime(0, now + off + 0.38);
+                        o.connect(g); g.connect(ctx.destination);
+                        o.start(now + off); o.stop(now + off + 0.39);
+                        _ringNodes.push(o);
+                    });
+                }
+                ring();
+                if (loop) _callRingTimer = setInterval(ring, 2400);
+            } catch (e) { }
+        }
+
+        function cwStopRing() {
+            if (_callRingTimer) { clearInterval(_callRingTimer); _callRingTimer = null; }
+            _ringNodes.forEach(n => { try { n.stop(); } catch (e) { } });
+            _ringNodes = [];
+        }
+
+        function cwCleanupCall() {
+            cwStopRing();
+            if (_callDurationTimer) { clearInterval(_callDurationTimer); _callDurationTimer = null; }
+            if (_callLocalStream) { _callLocalStream.getTracks().forEach(t => t.stop()); _callLocalStream = null; }
+            if (_callPeer) { _callPeer.close(); _callPeer = null; }
+            _callState = 'idle'; _callPeerId = 0; _callPeerName = '';
+            _callMuted = false; _callCamOff = false; _callDurationSec = 0;
+            _callIncomingData = null; _callQueuedIce = [];
+            document.getElementById('cw-call-incoming').classList.remove('active');
+            document.getElementById('cw-call-outgoing').classList.remove('active');
+            document.getElementById('cw-call-active').classList.remove('active');
+            const rv = document.getElementById('cw-call-remote-video');
+            const lv = document.getElementById('cw-call-local-video');
+            const lw = document.getElementById('cw-call-local-wrap');
+            const nv = document.getElementById('cw-call-no-video');
+            const muteBtn = document.getElementById('cw-ca-mute');
+            const camBtn = document.getElementById('cw-ca-cam');
+            if (rv) { rv.srcObject = null; rv.style.display = 'none'; }
+            if (lv) lv.srcObject = null;
+            if (lw) lw.style.display = 'none';
+            if (nv) nv.style.display = 'block';
+            if (muteBtn) { muteBtn.querySelector('i').className = 'fas fa-microphone'; muteBtn.classList.remove('off'); }
+            if (camBtn) { camBtn.querySelector('i').className = 'fas fa-video'; camBtn.classList.remove('off'); }
+        }
+
+        function cwSendSignal(toId, type, data) {
+            const fd = new FormData();
+            fd.append('action', 'call_signal');
+            fd.append('to_user_id', toId);
+            fd.append('type', type);
+            fd.append('data', JSON.stringify(data || {}));
+            return fetch(ENDPOINT, { method: 'POST', body: fd }).then(r => r.json()).catch(() => { });
+        }
+
+        function cwCreatePeer() {
+            const peer = new RTCPeerConnection(ICE_CFG);
+            peer.onicecandidate = e => {
+                if (e.candidate && _callPeerId > 0)
+                    cwSendSignal(_callPeerId, 'ice', { candidate: e.candidate });
+            };
+            peer.ontrack = e => {
+                if (!e.streams || !e.streams[0]) return;
+                const rv = document.getElementById('cw-call-remote-video');
+                const nv = document.getElementById('cw-call-no-video');
+                const hasVid = e.streams[0].getVideoTracks().length > 0;
+                if (rv) {
+                    if (hasVid) { rv.srcObject = e.streams[0]; rv.style.display = 'block'; if (nv) nv.style.display = 'none'; }
+                    else { rv.style.display = 'none'; if (nv) nv.style.display = 'block'; }
+                }
+            };
+            peer.onconnectionstatechange = () => {
+                if (['disconnected', 'failed', 'closed'].includes(peer.connectionState) && _callState === 'active')
+                    cwCallHangup();
+            };
+            return peer;
+        }
+
+        function cwCallShowActive() {
+            const el = document.getElementById('cw-ca-name');
+            const dur = document.getElementById('cw-ca-dur');
+            if (el) el.textContent = _callPeerName;
+            if (dur) dur.textContent = '00:00';
+            document.getElementById('cw-call-active').classList.add('active');
+            if (_callDurationTimer) clearInterval(_callDurationTimer);
+            _callDurationSec = 0;
+            _callDurationTimer = setInterval(() => {
+                _callDurationSec++;
+                const m = Math.floor(_callDurationSec / 60).toString().padStart(2, '0');
+                const s = (_callDurationSec % 60).toString().padStart(2, '0');
+                const durEl = document.getElementById('cw-ca-dur');
+                if (durEl) durEl.textContent = `${m}:${s}`;
+            }, 1000);
+        }
+
+        window.cwStartCall = function (userId, nama, callType) {
+            if (_callState !== 'idle') { alert('Sedang ada panggilan aktif.'); return; }
+            if (!navigator.mediaDevices || !window.RTCPeerConnection) {
+                alert('Browser Anda tidak mendukung fitur panggilan suara/video. Gunakan Chrome atau Firefox terbaru.');
+                return;
+            }
+            callType = (callType || 'audio').trim();
+            _callState = 'outgoing'; _callPeerId = userId; _callPeerName = nama; _callType = callType;
+            const color = cwAvatarColor2(userId);
+            const coAv = document.getElementById('cw-co-avatar');
+            coAv.textContent = (nama || '?').charAt(0).toUpperCase();
+            coAv.style.background = color;
+            document.getElementById('cw-co-name').textContent = nama;
+            document.getElementById('cw-co-status').textContent = callType === 'video' ? 'Menghubungi (video)...' : 'Menghubungi...';
+            document.getElementById('cw-call-outgoing').classList.add('active');
+            cwPlayRing(true);
+            const constraints = { audio: true, video: callType === 'video' ? { width: { ideal: 640 }, height: { ideal: 480 } } : false };
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    if (_callState !== 'outgoing') { stream.getTracks().forEach(t => t.stop()); return; }
+                    _callLocalStream = stream;
+                    if (callType === 'video') {
+                        const lv = document.getElementById('cw-call-local-video');
+                        const lw = document.getElementById('cw-call-local-wrap');
+                        if (lv) lv.srcObject = stream;
+                        if (lw) lw.style.display = 'block';
+                    }
+                    _callPeer = cwCreatePeer();
+                    stream.getTracks().forEach(t => _callPeer.addTrack(t, stream));
+                    return _callPeer.createOffer()
+                        .then(offer => _callPeer.setLocalDescription(offer))
+                        .then(() => cwSendSignal(userId, 'offer', { sdp: _callPeer.localDescription, callType, callerName: MY_NAMA }));
+                })
+                .catch(err => {
+                    cwCleanupCall();
+                    alert(err.name === 'NotAllowedError'
+                        ? 'Akses mikrofon/kamera ditolak. Mohon izinkan di pengaturan browser.'
+                        : 'Gagal mengakses perangkat: ' + err.message);
+                });
+            // Auto-cancel if no answer in 30s
+            setTimeout(() => {
+                if (_callState === 'outgoing' && _callPeerId === userId) {
+                    cwSendSignal(userId, 'end', {});
+                    cwCleanupCall();
+                    cwShowCallToast('Tidak ada jawaban dari ' + nama);
+                }
+            }, 30000);
+        };
+
+        window.cwCallAccept = function (preferredType) {
+            if (_callState !== 'incoming') return;
+            cwStopRing();
+            const inData = _callIncomingData;
+            _callType = preferredType === 'video' ? 'video' : 'audio';
+            document.getElementById('cw-call-incoming').classList.remove('active');
+            _callState = 'active';
+            cwCallShowActive();
+            const constraints = { audio: true, video: _callType === 'video' ? { width: { ideal: 640 }, height: { ideal: 480 } } : false };
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    _callLocalStream = stream;
+                    if (_callType === 'video') {
+                        const lv = document.getElementById('cw-call-local-video');
+                        const lw = document.getElementById('cw-call-local-wrap');
+                        if (lv) lv.srcObject = stream;
+                        if (lw) lw.style.display = 'block';
+                    }
+                    _callPeer = cwCreatePeer();
+                    stream.getTracks().forEach(t => _callPeer.addTrack(t, stream));
+                    return _callPeer.setRemoteDescription(new RTCSessionDescription(inData.sdp))
+                        .then(() => {
+                            _callQueuedIce.forEach(c => _callPeer.addIceCandidate(new RTCIceCandidate(c)).catch(() => { }));
+                            _callQueuedIce = [];
+                        })
+                        .then(() => _callPeer.createAnswer())
+                        .then(ans => _callPeer.setLocalDescription(ans))
+                        .then(() => cwSendSignal(_callPeerId, 'answer', { sdp: _callPeer.localDescription, callType: _callType }));
+                })
+                .catch(err => {
+                    cwSendSignal(_callPeerId, 'reject', {});
+                    cwCleanupCall();
+                    alert(err.name === 'NotAllowedError' ? 'Akses mikrofon/kamera ditolak.' : 'Gagal mengakses perangkat: ' + err.message);
+                });
+        };
+
+        window.cwCallReject = function () {
+            if (_callState !== 'incoming') return;
+            const pid = _callPeerId;
+            cwCleanupCall();
+            cwSendSignal(pid, 'reject', {});
+        };
+
+        window.cwCallCancel = function () {
+            if (_callState !== 'outgoing') return;
+            const pid = _callPeerId;
+            cwCleanupCall();
+            cwSendSignal(pid, 'end', {});
+        };
+
+        window.cwCallHangup = function () {
+            if (_callState === 'idle') return;
+            const pid = _callPeerId;
+            cwCleanupCall();
+            if (pid > 0) cwSendSignal(pid, 'end', {});
+        };
+
+        window.cwCallToggleMute = function () {
+            if (!_callLocalStream) return;
+            _callMuted = !_callMuted;
+            _callLocalStream.getAudioTracks().forEach(t => t.enabled = !_callMuted);
+            const btn = document.getElementById('cw-ca-mute');
+            if (btn) {
+                btn.querySelector('i').className = _callMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
+                btn.classList.toggle('off', _callMuted);
+            }
+        };
+
+        window.cwCallToggleCam = function () {
+            if (!_callLocalStream) return;
+            _callCamOff = !_callCamOff;
+            _callLocalStream.getVideoTracks().forEach(t => t.enabled = !_callCamOff);
+            const btn = document.getElementById('cw-ca-cam');
+            if (btn) {
+                btn.querySelector('i').className = _callCamOff ? 'fas fa-video-slash' : 'fas fa-video';
+                btn.classList.toggle('off', _callCamOff);
+            }
+        };
+
+        window.cwStartCallFromDM = function () {
+            if (dmWithUserId === 0) return;
+            cwStartCall(dmWithUserId, dmWithName, 'audio');
+        };
+
+        function cwShowCallToast(msg) {
+            let t = document.getElementById('cw-call-toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'cw-call-toast';
+                t.style.cssText = 'position:fixed;bottom:90px;right:24px;background:#1f2937;color:white;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:500;z-index:100003;box-shadow:0 4px 16px rgba(0,0,0,.35);opacity:0;transition:opacity .3s;pointer-events:none';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            t.style.opacity = '1';
+            clearTimeout(t._tid);
+            t._tid = setTimeout(() => { t.style.opacity = '0'; }, 3500);
+        }
+
+        function cwPollSignals() {
+            if (_sessionExpired) return;
+            fetch(`${ENDPOINT}?action=get_call_signals&after_id=${_callSignalLastId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.signals || !data.signals.length) return;
+                    data.signals.forEach(sig => {
+                        if (sig.id > _callSignalLastId) _callSignalLastId = sig.id;
+                        cwHandleSignal(sig);
+                    });
+                }).catch(() => { });
+        }
+
+        function cwHandleSignal(sig) {
+            const type = sig.type;
+            const fromId = sig.from_user_id;
+            const fromName = sig.from_name;
+            let payload = {};
+            try { payload = JSON.parse(sig.data); } catch (e) { }
+
+            if (type === 'offer') {
+                if (_callState !== 'idle') {
+                    cwSendSignal(fromId, 'reject', { reason: 'busy' });
+                    return;
+                }
+                _callState = 'incoming'; _callPeerId = fromId; _callPeerName = fromName;
+                _callIncomingData = payload; _callQueuedIce = [];
+                const ciAv = document.getElementById('cw-ci-avatar');
+                ciAv.textContent = (fromName || '?').charAt(0).toUpperCase();
+                ciAv.style.background = cwAvatarColor2(fromId);
+                document.getElementById('cw-ci-name').textContent = fromName;
+                document.getElementById('cw-call-incoming').classList.add('active');
+                cwPlayRing(true);
+                // Auto-reject after 30s
+                setTimeout(() => { if (_callState === 'incoming' && _callPeerId === fromId) cwCallReject(); }, 30000);
+
+            } else if (type === 'answer') {
+                if (_callState !== 'outgoing' || _callPeerId !== fromId || !_callPeer) return;
+                cwStopRing();
+                _callPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp))
+                    .then(() => {
+                        _callQueuedIce.forEach(c => _callPeer.addIceCandidate(new RTCIceCandidate(c)).catch(() => { }));
+                        _callQueuedIce = [];
+                    }).catch(() => { });
+                _callState = 'active';
+                document.getElementById('cw-call-outgoing').classList.remove('active');
+                cwCallShowActive();
+
+            } else if (type === 'ice') {
+                if (_callPeerId !== fromId) return;
+                const cand = payload.candidate;
+                if (!cand) return;
+                if (_callPeer && _callPeer.remoteDescription && _callPeer.remoteDescription.type) {
+                    _callPeer.addIceCandidate(new RTCIceCandidate(cand)).catch(() => { });
+                } else {
+                    _callQueuedIce.push(cand);
+                }
+
+            } else if (type === 'reject') {
+                if (_callState !== 'outgoing' || _callPeerId !== fromId) return;
+                const name = _callPeerName;
+                cwCleanupCall();
+                cwShowCallToast(name + ' menolak panggilan');
+
+            } else if (type === 'end') {
+                if (_callPeerId !== fromId) return;
+                const wasActive = _callState === 'active';
+                const wasIncoming = _callState === 'incoming';
+                cwCleanupCall();
+                if (wasActive) cwShowCallToast('Panggilan berakhir');
+                else if (wasIncoming) cwShowCallToast(fromName + ' membatalkan panggilan');
+            }
+        }
+
+        // Poll call signals every 1.5 seconds
+        setInterval(cwPollSignals, 1500);
 
     })();
 </script>

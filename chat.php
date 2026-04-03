@@ -151,6 +151,20 @@ $kon->query("CREATE TABLE IF NOT EXISTS chat_dm_reactions (
     INDEX idx_dm (dm_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+// Call Signals table (WebRTC signaling via polling)
+$kon->query("CREATE TABLE IF NOT EXISTS chat_call_signals (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    from_user_id    INT NOT NULL,
+    to_user_id      INT NOT NULL,
+    type            VARCHAR(20) NOT NULL,
+    data            MEDIUMTEXT NOT NULL DEFAULT '{}',
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_to    (to_user_id, created_at),
+    INDEX idx_pair  (from_user_id, to_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+// Auto-purge signals older than 60 seconds
+@$kon->query("DELETE FROM chat_call_signals WHERE created_at < DATE_SUB(NOW(), INTERVAL 60 SECOND)");
+
 // Helper: update presence
 function updatePresence($kon, $uid, $uname, $nama, $role, $jabatan = '')
 {
@@ -733,6 +747,47 @@ if ($action === 'go_offline') {
     // Geser last_seen ke luar window online — TIDAK DELETE agar "Aktif X menit lalu" tetap tampil
     $kon->query("UPDATE chat_presence SET last_seen = DATE_SUB(NOW(), INTERVAL 95 SECOND) WHERE user_id = $user_id");
     echo json_encode(['ok' => true]);
+    exit;
+}
+
+// ---- ACTION: call_signal ----
+if ($action === 'call_signal') {
+    $to_id = max(0, (int)($_POST['to_user_id'] ?? 0));
+    $type  = trim((string)($_POST['type'] ?? ''));
+    $data  = trim((string)($_POST['data'] ?? '{}'));
+    $allowed = ['offer','answer','ice','reject','end'];
+    if ($to_id === 0 || !in_array($type, $allowed)) {
+        echo json_encode(['error' => 'Invalid']); exit;
+    }
+    $dataEsc = $kon->real_escape_string($data);
+    $typeEsc = $kon->real_escape_string($type);
+    $kon->query("INSERT INTO chat_call_signals (from_user_id,to_user_id,type,data) VALUES ($user_id,$to_id,'$typeEsc','$dataEsc')");
+    echo json_encode(['success' => true]);
+    exit;
+}
+
+// ---- ACTION: get_call_signals ----
+if ($action === 'get_call_signals') {
+    $after_id = max(0, (int)($_GET['after_id'] ?? 0));
+    $rq = $kon->query("
+        SELECT cs.id, cs.from_user_id, cs.type, cs.data,
+               COALESCE(u.Nama_Lengkap, u.username, 'Pengguna') AS from_name
+        FROM chat_call_signals cs
+        JOIN users u ON u.id = cs.from_user_id
+        WHERE cs.to_user_id = $user_id AND cs.id > $after_id
+        ORDER BY cs.id ASC LIMIT 30"
+    );
+    $signals = [];
+    if ($rq) while ($r = $rq->fetch_assoc()) {
+        $signals[] = [
+            'id'           => (int)$r['id'],
+            'from_user_id' => (int)$r['from_user_id'],
+            'from_name'    => htmlspecialchars($r['from_name']),
+            'type'         => $r['type'],
+            'data'         => $r['data'],
+        ];
+    }
+    echo json_encode(['signals' => $signals]);
     exit;
 }
 

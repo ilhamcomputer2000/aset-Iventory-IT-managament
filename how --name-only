@@ -1,0 +1,53 @@
+[33mcommit 43bdb3bc3bd000fc04f72266e49aef86e86e277c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Ilham Computer <ilhamcomputer2000@gmail.com>
+Date:   Tue Mar 31 13:25:05 2026 +0700
+
+    Fitur tambah gambar multiple di tab online
+
+[33mcommit 6562da463a104d16eeb6fa112bd89bfa1f414f44[m
+Author: Ilham Computer <ilhamcomputer2000@gmail.com>
+Date:   Tue Mar 31 03:30:35 2026 +0700
+
+    fix ganti password di menu all sidebar user
+
+[33mcommit 242d05bd385d4b9f7611f921ab4f12328080e925[m
+Author: Ilham Computer <ilhamcomputer2000@gmail.com>
+Date:   Tue Mar 31 02:54:08 2026 +0700
+
+    perbaikan bug pada menu chat tab online agar posisi badget oren responsif & tambahan fitur emoji, bisa liat read pesan dijam berapa, & bisa balas reaksi pesan
+
+[33mcommit 4741f3379b9bd520140528a83d0b2257c532c6fd[m
+Author: Ilham Computer <ilhamcomputer2000@gmail.com>
+Date:   Tue Mar 31 01:57:25 2026 +0700
+
+    suara notif saat ada pesan masuk di tab online yg berbeda dengan tab umum
+
+[33mcommit 279df1deb381f3fcd343c19e40158533bd7ec4fe[m
+Author: Ilham Computer <ilhamcomputer2000@gmail.com>
+Date:   Tue Mar 31 01:39:16 2026 +0700
+
+    fitur chat tab user yang online
+
+[33mcommit 59cb14ce83b7ea82212170c790955e53ea1b3df8[m
+Author: Ilham Computer <ilhamcomputer2000@gmail.com>
+Date:   Sun Mar 29 18:13:50 2026 +0700
+
+    Menambahkan fitur chat dan log admin user
+
+[33mcommit 202723e0c00d8cd9f6d84c4dc3af8aed4625b906[m
+Author: Ilham Computer <ilhamcomputer2000@gmail.com>
+Date:   Sat Mar 28 23:58:57 2026 +0700
+
+    Fitur Log admin & user
+
+[33mcommit 01bf198fa4a6353a7ad939d7df6818603a763ca7[m
+Author: Ilham Computer <ilhamcomputer2000@gmail.com>
+Date:   Sat Mar 28 09:46:17 2026 +0700
+
+    Selesai fixing fitur peminjaman barang
+
+[33mcommit 73df50b4e94f8cdf6bd2754589680329a9b9e86b[m
+Author: Ilham Computer <ilhamcomputer2000@gmail.com>
+Date:   Fri Mar 27 23:33:13 2026 +0700
+
+    Initial commit project IT Asset Management
