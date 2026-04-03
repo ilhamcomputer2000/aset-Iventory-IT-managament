@@ -725,7 +725,12 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         cursor: pointer;
         position: relative;
         margin-left: 3px;
-        vertical-align: middle
+        vertical-align: middle;
+        transition: transform .15s;
+    }
+
+    .cw-read-receipt:hover {
+        transform: scale(1.15);
     }
 
     .cw-check {
@@ -742,43 +747,197 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         color: #f97316
     }
 
-    /* Readers tooltip */
-    .cw-readers-tip {
-        position: absolute;
-        bottom: calc(100% + 6px);
-        right: 0;
-        background: #1f2937;
-        color: white;
-        border-radius: 8px;
-        padding: 6px 10px;
-        font-size: 10px;
-        min-width: 120px;
-        max-width: 200px;
-        white-space: normal;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, .2);
+    /* ===== Seen By Modal (WhatsApp-style) ===== */
+    #cw-seen-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .55);
+        z-index: 200100;
         display: none;
-        z-index: 200;
-        line-height: 1.5
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+        backdrop-filter: blur(4px);
+        animation: cwFadeIn .18s ease forwards;
     }
 
-    .cw-readers-tip::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        right: 8px;
-        border: 5px solid transparent;
-        border-top-color: #1f2937
+    #cw-seen-modal-overlay.active {
+        display: flex;
     }
 
-    .cw-read-receipt:hover .cw-readers-tip {
-        display: block
+    @keyframes cwFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 
-    .cw-readers-tip strong {
-        display: block;
-        margin-bottom: 3px;
-        color: #fb923c;
-        font-size: 10px
+    #cw-seen-modal {
+        background: white;
+        border-radius: 20px;
+        width: 320px;
+        max-width: calc(100vw - 40px);
+        max-height: min(480px, calc(100vh - 80px));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, .3);
+        animation: cwSeenModalIn .22s cubic-bezier(.34, 1.56, .64, 1) forwards;
+    }
+
+    @keyframes cwSeenModalIn {
+        from { transform: scale(.88) translateY(16px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    #cw-seen-modal-header {
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        padding: 16px 18px 14px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+    }
+
+    #cw-seen-modal-header h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #cw-seen-modal-close {
+        background: rgba(255, 255, 255, .2);
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: background .15s;
+        flex-shrink: 0;
+    }
+
+    #cw-seen-modal-close:hover {
+        background: rgba(255, 255, 255, .35);
+    }
+
+    #cw-seen-modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 0;
+    }
+
+    #cw-seen-modal-body::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #cw-seen-modal-body::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 2px;
+    }
+
+    .cw-seen-section-title {
+        font-size: 10px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: .6px;
+        padding: 8px 18px 4px;
+    }
+
+    .cw-seen-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 18px;
+        transition: background .12s;
+    }
+
+    .cw-seen-row:hover {
+        background: #f9fafb;
+    }
+
+    .cw-seen-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: white;
+    }
+
+    .cw-seen-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .cw-seen-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cw-seen-time {
+        font-size: 10px;
+        color: #9ca3af;
+        margin-top: 1px;
+    }
+
+    .cw-seen-check-icon {
+        font-size: 14px;
+        color: #f97316;
+        flex-shrink: 0;
+    }
+
+    #cw-seen-modal-empty {
+        padding: 32px 18px;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #cw-seen-msg-preview {
+        padding: 10px 18px;
+        border-bottom: 1px solid #f3f4f6;
+        flex-shrink: 0;
+    }
+
+    #cw-seen-msg-preview .preview-bubble {
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: white;
+        font-size: 12px;
+        padding: 7px 12px;
+        border-radius: 12px 12px 4px 12px;
+        display: inline-block;
+        max-width: 100%;
+        word-break: break-word;
+        line-height: 1.4;
+    }
+
+    #cw-seen-counter {
+        background: rgba(255,255,255,.25);
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 700;
     }
 
     @media(max-width:480px) {
@@ -1941,6 +2100,24 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
     <img id="cw-lightbox-img" src="" alt="Preview" onclick="event.stopPropagation()">
 </div>
 
+<!-- ===== Seen By Modal (WhatsApp-style) ===== -->
+<div id="cw-seen-modal-overlay" onclick="cwSeenModalClose(event)">
+    <div id="cw-seen-modal" onclick="event.stopPropagation()">
+        <div id="cw-seen-modal-header">
+            <h4>
+                <i class="fas fa-eye"></i>
+                Dilihat oleh
+                <span id="cw-seen-counter">0</span>
+            </h4>
+            <button id="cw-seen-modal-close" onclick="cwSeenModalForceClose()" title="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="cw-seen-msg-preview"></div>
+        <div id="cw-seen-modal-body"></div>
+    </div>
+</div>
+
 <!-- ===== Call Overlays ===== -->
 <!-- Incoming Call -->
 <div class="cw-call-overlay" id="cw-call-incoming">
@@ -2246,11 +2423,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 const cnt = parseInt(m.read_count || 0);
                 const readers = m.read_by || [];
                 const isSeen = cnt > 0;
-                const tipName = readers.length > 0 ? readers.slice(0, 5).join(', ') + (readers.length > 5 ? ` +${readers.length - 5}` : '') : '';
-                const tipHtml = isSeen
-                    ? `<div class="cw-readers-tip"><strong>Dilihat oleh:</strong>${tipName}</div>`
-                    : `<div class="cw-readers-tip"><strong>Belum dilihat</strong></div>`;
-                readHtml = `<span class="cw-read-receipt" data-rid="${m.id}">${tipHtml}
+                const msgPreview = m.message ? m.message.substring(0, 80) + (m.message.length > 80 ? '…' : '') : (m.attachment_name || '📎 Lampiran');
+                readHtml = `<span class="cw-read-receipt" data-rid="${m.id}" data-seen="${isSeen ? 1 : 0}" data-preview="${msgPreview.replace(/"/g, '&quot;').replace(/\n/g, ' ')}" onclick="cwSeenModalOpen(${m.id},event)" title="${isSeen ? 'Klik untuk lihat siapa yang membaca' : 'Belum dilihat'}">
                 <span class="cw-check ${isSeen ? 'seen' : 'sent'}">&#10003;</span>
                 <span class="cw-check ${isSeen ? 'seen' : 'sent'}">&#10003;</span>
             </span>`;
@@ -2491,25 +2665,110 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         const info = data.reads[mid];
                         if (!info) return;
                         const isSeen = info.count > 0;
+                        el.setAttribute('data-seen', isSeen ? 1 : 0);
+                        el.title = isSeen ? 'Klik untuk lihat siapa yang membaca' : 'Belum dilihat';
                         const checks = el.querySelectorAll('.cw-check');
                         checks.forEach(c => {
                             c.className = 'cw-check ' + (isSeen ? 'seen' : 'sent');
                         });
-                        const tip = el.querySelector('.cw-readers-tip');
-                        if (tip) {
-                            if (isSeen) {
-                                const names = (info.names || []).slice(0, 5).join(', ') + (info.names.length > 5 ? ` +${info.names.length - 5}` : '');
-                                tip.innerHTML = `<strong>Dilihat oleh:</strong>${names}`;
-                            } else {
-                                tip.innerHTML = '<strong>Belum dilihat</strong>';
-                            }
-                        }
                     });
                 }).catch(() => { });
         }
 
         // Refresh receipts every 5 seconds when panel is open
         setInterval(() => { if (panelOpen) cwRefreshReceipts(); }, 5000);
+
+        // ===== SEEN BY MODAL (WhatsApp-style) =====
+        let _seenModalMsgId = 0;
+
+        window.cwSeenModalOpen = function (msgId, e) {
+            if (e) e.stopPropagation();
+            _seenModalMsgId = msgId;
+
+            const overlay = document.getElementById('cw-seen-modal-overlay');
+            const body = document.getElementById('cw-seen-modal-body');
+            const counter = document.getElementById('cw-seen-counter');
+            const previewEl = document.getElementById('cw-seen-msg-preview');
+
+            // Show message preview
+            const receiptEl = msgs.querySelector(`.cw-read-receipt[data-rid="${msgId}"]`);
+            const msgEl = receiptEl ? receiptEl.closest('[data-mid]') : null;
+            const rawPreview = receiptEl ? receiptEl.getAttribute('data-preview') : '';
+            if (rawPreview) {
+                previewEl.innerHTML = `<div class="preview-bubble">${rawPreview.replace(/</g, '&lt;')}</div>`;
+                previewEl.style.display = 'block';
+            } else {
+                previewEl.style.display = 'none';
+            }
+
+            // Show loading state
+            body.innerHTML = `<div id="cw-seen-modal-empty"><i class="fas fa-spinner fa-spin" style="font-size:24px;color:#e5e7eb"></i><span>Memuat...</span></div>`;
+            counter.textContent = '...';
+            overlay.classList.add('active');
+
+            // Fetch readers
+            fetch(`${ENDPOINT}?action=get_reads&ids=${msgId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.reads || !data.reads[msgId]) {
+                        body.innerHTML = `<div id="cw-seen-modal-empty"><i class="fas fa-eye-slash" style="font-size:28px;color:#e5e7eb"></i><span>Belum ada yang melihat pesan ini</span></div>`;
+                        counter.textContent = '0';
+                        return;
+                    }
+                    const info = data.reads[msgId];
+                    const readers = info.readers || [];
+                    counter.textContent = readers.length;
+
+                    if (readers.length === 0) {
+                        body.innerHTML = `<div id="cw-seen-modal-empty"><i class="fas fa-eye-slash" style="font-size:28px;color:#e5e7eb"></i><span>Belum ada yang melihat pesan ini</span></div>`;
+                        return;
+                    }
+
+                    const avatarColors = ['#f97316','#8b5cf6','#06b6d4','#10b981','#f43f5e','#3b82f6','#ec4899','#84cc16'];
+                    function getColor(uid) { return avatarColors[Math.abs(uid) % avatarColors.length]; }
+
+                    let html = `<div class="cw-seen-section-title"><i class="fas fa-eye" style="margin-right:5px;color:#f97316"></i>Dibaca oleh ${readers.length} orang</div>`;
+                    readers.forEach(r => {
+                        const initial = (r.name || '?').charAt(0).toUpperCase();
+                        const color = getColor(r.user_id || 0);
+                        const timeLabel = r.read_at ? `<div class="cw-seen-time"><i class="fas fa-clock" style="margin-right:3px;font-size:9px"></i>${r.read_at}</div>` : '';
+                        html += `<div class="cw-seen-row">
+                            <div class="cw-seen-avatar" style="background:${color}">${initial}</div>
+                            <div class="cw-seen-info">
+                                <div class="cw-seen-name">${r.name || 'Pengguna'}</div>
+                                ${timeLabel}
+                            </div>
+                            <i class="fas fa-check-double cw-seen-check-icon"></i>
+                        </div>`;
+                    });
+                    body.innerHTML = html;
+                }).catch(() => {
+                    body.innerHTML = `<div id="cw-seen-modal-empty"><i class="fas fa-exclamation-circle" style="font-size:24px;color:#f97316"></i><span>Gagal memuat data</span></div>`;
+                    counter.textContent = '?';
+                });
+        };
+
+        window.cwSeenModalClose = function (e) {
+            // Called from X button (no arg) OR from overlay onclick (has arg)
+            // When called from overlay onclick, only close if clicking the overlay itself (not the modal card)
+            if (e && e.target !== document.getElementById('cw-seen-modal-overlay')) return;
+            const overlay = document.getElementById('cw-seen-modal-overlay');
+            overlay.classList.remove('active');
+            _seenModalMsgId = 0;
+        };
+
+        // Dedicated close for the X button (always closes)
+        window.cwSeenModalForceClose = function () {
+            document.getElementById('cw-seen-modal-overlay').classList.remove('active');
+            _seenModalMsgId = 0;
+        };
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && document.getElementById('cw-seen-modal-overlay').classList.contains('active')) {
+                document.getElementById('cw-seen-modal-overlay').classList.remove('active');
+            }
+        });
 
         // Background poll for unread badge
         setInterval(() => { if (!panelOpen && !_sessionExpired) poll(); }, 8000);

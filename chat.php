@@ -404,19 +404,29 @@ if ($action === 'get_reads') {
     if ($ownCheck) while ($oc = $ownCheck->fetch_assoc()) $ownIds[] = (int)$oc['id'];
     if (empty($ownIds)) { echo json_encode(['reads' => []]); exit; }
     $ownStr   = implode(',', $ownIds);
-    $rq       = $kon->query("SELECT message_id, nama_lengkap FROM chat_message_reads WHERE message_id IN ($ownStr) ORDER BY read_at ASC");
+    $rq       = $kon->query("SELECT message_id, user_id, nama_lengkap, read_at FROM chat_message_reads WHERE message_id IN ($ownStr) ORDER BY read_at ASC");
     $readsMap = [];
     if ($rq) {
         while ($rr = $rq->fetch_assoc()) {
             $mid = (int)$rr['message_id'];
+            $readAtFmt = null;
+            if ($rr['read_at']) {
+                try { $dt = new DateTime($rr['read_at']); $readAtFmt = $dt->format('H:i, d M'); } catch (Exception $e) {}
+            }
+            $readsMap[$mid]['readers'][] = [
+                'user_id' => (int)$rr['user_id'],
+                'name'    => htmlspecialchars($rr['nama_lengkap']),
+                'read_at' => $readAtFmt,
+            ];
             $readsMap[$mid]['names'][] = htmlspecialchars($rr['nama_lengkap']);
         }
     }
     $out = [];
     foreach ($ownIds as $mid) {
         $out[$mid] = [
-            'count' => count($readsMap[$mid]['names'] ?? []),
-            'names' => $readsMap[$mid]['names'] ?? [],
+            'count'   => count($readsMap[$mid]['readers'] ?? []),
+            'names'   => $readsMap[$mid]['names'] ?? [],
+            'readers' => $readsMap[$mid]['readers'] ?? [],
         ];
     }
     echo json_encode(['reads' => $out]);
