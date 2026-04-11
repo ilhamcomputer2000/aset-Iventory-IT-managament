@@ -6,7 +6,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$rawRole = isset($_SESSION['role']) ? (string)$_SESSION['role'] : 'user';
+$rawRole = isset($_SESSION['role']) ? (string) $_SESSION['role'] : 'user';
 $role = strtolower(trim($rawRole));
 
 // Admin yang nyasar ke halaman user diarahkan ke halaman admin.
@@ -20,16 +20,16 @@ if ($role !== 'user') {
     $role = 'user';
 }
 
-$username = isset($_SESSION['username']) ? (string)$_SESSION['username'] : 'User';
-$Id_Karyawan = isset($_SESSION['Id_Karyawan']) && (string)$_SESSION['Id_Karyawan'] !== ''
-    ? (string)$_SESSION['Id_Karyawan']
+$username = isset($_SESSION['username']) ? (string) $_SESSION['username'] : 'User';
+$Id_Karyawan = isset($_SESSION['Id_Karyawan']) && (string) $_SESSION['Id_Karyawan'] !== ''
+    ? (string) $_SESSION['Id_Karyawan']
     : $username;
 
-$Nama_Lengkap = isset($_SESSION['Nama_Lengkap']) && (string)$_SESSION['Nama_Lengkap'] !== ''
-    ? (string)$_SESSION['Nama_Lengkap']
+$Nama_Lengkap = isset($_SESSION['Nama_Lengkap']) && (string) $_SESSION['Nama_Lengkap'] !== ''
+    ? (string) $_SESSION['Nama_Lengkap']
     : $username;
 
-$Jabatan_Level = isset($_SESSION['Jabatan_Level']) ? trim((string)$_SESSION['Jabatan_Level']) : '';
+$Jabatan_Level = isset($_SESSION['Jabatan_Level']) ? trim((string) $_SESSION['Jabatan_Level']) : '';
 
 require_once __DIR__ . '/../koneksi.php';
 
@@ -38,21 +38,23 @@ $flashError = null;
 
 // Flash message (PRG) untuk mencegah resubmit POST saat refresh
 if (isset($_SESSION['flash_success'])) {
-    $flashSuccess = (string)$_SESSION['flash_success'];
+    $flashSuccess = (string) $_SESSION['flash_success'];
     unset($_SESSION['flash_success']);
 }
 if (isset($_SESSION['flash_error'])) {
-    $flashError = (string)$_SESSION['flash_error'];
+    $flashError = (string) $_SESSION['flash_error'];
     unset($_SESSION['flash_error']);
 }
 
-function ticket_redirect_self(): void {
-    $self = isset($_SERVER['PHP_SELF']) ? (string)$_SERVER['PHP_SELF'] : 'ticket.php';
+function ticket_redirect_self(): void
+{
+    $self = isset($_SERVER['PHP_SELF']) ? (string) $_SERVER['PHP_SELF'] : 'ticket.php';
     header('Location: ' . $self);
     exit();
 }
 
-function ticket_audit_ensure_table(mysqli $kon): void {
+function ticket_audit_ensure_table(mysqli $kon): void
+{
     $sql = "CREATE TABLE IF NOT EXISTS `ticket_status_history` (\n"
         . "  `id` INT NOT NULL AUTO_INCREMENT,\n"
         . "  `Ticket_code` INT NOT NULL,\n"
@@ -112,7 +114,7 @@ $Jabatan_Auto = '';
 $Divisi_Auto = '';
 $Region_Auto = '';
 try {
-    $userId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+    $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
     if ($userId > 0) {
         $stmtU = $kon->prepare('SELECT `Jabatan_Level`, `Divisi`, `Region` FROM `users` WHERE `id` = ? LIMIT 1');
         if ($stmtU) {
@@ -123,13 +125,13 @@ try {
                     $rowU = $resU->fetch_assoc();
                     if ($rowU) {
                         if (isset($rowU['Jabatan_Level'])) {
-                            $Jabatan_Auto = trim((string)$rowU['Jabatan_Level']);
+                            $Jabatan_Auto = trim((string) $rowU['Jabatan_Level']);
                         }
                         if (isset($rowU['Divisi'])) {
-                            $Divisi_Auto = trim((string)$rowU['Divisi']);
+                            $Divisi_Auto = trim((string) $rowU['Divisi']);
                         }
                         if (isset($rowU['Region'])) {
-                            $Region_Auto = trim((string)$rowU['Region']);
+                            $Region_Auto = trim((string) $rowU['Region']);
                         }
                     }
                 }
@@ -142,26 +144,30 @@ try {
     error_log('Fetch user metadata (Jabatan_Level/Divisi) failed (user/ticket.php): ' . $e->getMessage());
 }
 
-function ticket_user_format_code(int $ticketCode, ?string $createUser): string {
-    $year = (string)date('Y');
+function ticket_user_format_code(int $ticketCode, ?string $createUser): string
+{
+    $year = (string) date('Y');
     if ($createUser) {
         $ts = strtotime($createUser);
         if ($ts !== false) {
             $year = date('Y', $ts);
         }
     }
-    return 'ITCKT-' . $year . '-' . str_pad((string)$ticketCode, 6, '0', STR_PAD_LEFT);
+    return 'ITCKT-' . $year . '-' . str_pad((string) $ticketCode, 6, '0', STR_PAD_LEFT);
 }
 
-function ticket_user_status_list(): array {
+function ticket_user_status_list(): array
+{
     return ['Open', 'In Progress', 'Review', 'Done', 'Reject', 'Closed'];
 }
 
-function ticket_user_is_allowed_status(string $status): bool {
+function ticket_user_is_allowed_status(string $status): bool
+{
     return in_array($status, ticket_user_status_list(), true);
 }
 
-function ticket_trim_max(string $value, int $maxLen): string {
+function ticket_trim_max(string $value, int $maxLen): string
+{
     $value = trim($value);
     if ($maxLen <= 0) {
         return $value;
@@ -172,7 +178,8 @@ function ticket_trim_max(string $value, int $maxLen): string {
     return substr($value, 0, $maxLen);
 }
 
-function ticket_badge_priority_class(string $priority): string {
+function ticket_badge_priority_class(string $priority): string
+{
     $key = strtolower(trim($priority));
     $key = str_replace(['_', '-'], ' ', $key);
     switch ($key) {
@@ -189,7 +196,8 @@ function ticket_badge_priority_class(string $priority): string {
     }
 }
 
-function ticket_badge_status_class(string $status): string {
+function ticket_badge_status_class(string $status): string
+{
     $key = strtolower(trim($status));
     $key = str_replace(['_', '-'], ' ', $key);
     $key = preg_replace('/\s+/', ' ', $key);
@@ -213,7 +221,8 @@ function ticket_badge_status_class(string $status): string {
     }
 }
 
-function ticket_badge_type_pekerjaan_class(string $type): string {
+function ticket_badge_type_pekerjaan_class(string $type): string
+{
     $key = strtolower(trim($type));
     $key = str_replace(['_', '-'], ' ', $key);
     $key = preg_replace('/\s+/', ' ', $key);
@@ -228,16 +237,17 @@ function ticket_badge_type_pekerjaan_class(string $type): string {
     }
 }
 
-function ticket_save_upload(array $file, string $destDir, string $prefix, array $allowedExts = []): string {
+function ticket_save_upload(array $file, string $destDir, string $prefix, array $allowedExts = []): string
+{
     if (!isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
         return '';
     }
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('Upload file gagal (kode: ' . (int)$file['error'] . ').');
+        throw new Exception('Upload file gagal (kode: ' . (int) $file['error'] . ').');
     }
 
-    $name = isset($file['name']) ? (string)$file['name'] : '';
-    $tmp = isset($file['tmp_name']) ? (string)$file['tmp_name'] : '';
+    $name = isset($file['name']) ? (string) $file['name'] : '';
+    $tmp = isset($file['tmp_name']) ? (string) $file['tmp_name'] : '';
     if ($tmp === '' || !is_uploaded_file($tmp)) {
         throw new Exception('Upload file tidak valid.');
     }
@@ -277,28 +287,32 @@ function ticket_save_upload(array $file, string $destDir, string $prefix, array 
     if ($isImageExt && function_exists('getimagesize')) {
         $imgInfo = @getimagesize($tmp);
         if (is_array($imgInfo) && isset($imgInfo[0], $imgInfo[1], $imgInfo[2])) {
-            $srcW = (int)$imgInfo[0];
-            $srcH = (int)$imgInfo[1];
-            $imgType = (int)$imgInfo[2];
+            $srcW = (int) $imgInfo[0];
+            $srcH = (int) $imgInfo[1];
+            $imgType = (int) $imgInfo[2];
 
             if ($srcW > 0 && $srcH > 0) {
                 $scale = min(1, $maxDim / max($srcW, $srcH));
-                $dstW = (int)max(1, floor($srcW * $scale));
-                $dstH = (int)max(1, floor($srcH * $scale));
+                $dstW = (int) max(1, floor($srcW * $scale));
+                $dstH = (int) max(1, floor($srcH * $scale));
 
                 $srcImg = null;
                 switch ($imgType) {
                     case IMAGETYPE_JPEG:
-                        if (function_exists('imagecreatefromjpeg')) $srcImg = @imagecreatefromjpeg($tmp);
+                        if (function_exists('imagecreatefromjpeg'))
+                            $srcImg = @imagecreatefromjpeg($tmp);
                         break;
                     case IMAGETYPE_PNG:
-                        if (function_exists('imagecreatefrompng')) $srcImg = @imagecreatefrompng($tmp);
+                        if (function_exists('imagecreatefrompng'))
+                            $srcImg = @imagecreatefrompng($tmp);
                         break;
                     case IMAGETYPE_GIF:
-                        if (function_exists('imagecreatefromgif')) $srcImg = @imagecreatefromgif($tmp);
+                        if (function_exists('imagecreatefromgif'))
+                            $srcImg = @imagecreatefromgif($tmp);
                         break;
                     case IMAGETYPE_WEBP:
-                        if (function_exists('imagecreatefromwebp')) $srcImg = @imagecreatefromwebp($tmp);
+                        if (function_exists('imagecreatefromwebp'))
+                            $srcImg = @imagecreatefromwebp($tmp);
                         break;
                     default:
                         $srcImg = null;
@@ -376,7 +390,8 @@ function ticket_save_upload(array $file, string $destDir, string $prefix, array 
     return $safe;
 }
 
-function ticket_safe_unlink(string $baseDir, string $filename): void {
+function ticket_safe_unlink(string $baseDir, string $filename): void
+{
     $filename = trim($filename);
     if ($filename === '') {
         return;
@@ -398,10 +413,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $divisi = ticket_trim_max($Divisi_Auto, 200);
         // Region wajib: diambil dari tabel users kolom Region
         $region = ticket_trim_max($Region_Auto, 250);
-        $subject = ticket_trim_max((string)($_POST['Subject'] ?? ''), 250);
-        $kategori = ticket_trim_max((string)($_POST['Kategori_Masalah'] ?? ''), 2050);
-        $priority = ticket_trim_max((string)($_POST['Priority'] ?? ''), 50);
-        $deskripsi = ticket_trim_max((string)($_POST['Deskripsi_Masalah'] ?? ''), 255);
+        $subject = ticket_trim_max((string) ($_POST['Subject'] ?? ''), 250);
+        $kategori = ticket_trim_max((string) ($_POST['Kategori_Masalah'] ?? ''), 2050);
+        $priority = ticket_trim_max((string) ($_POST['Priority'] ?? ''), 50);
+        $deskripsi = ticket_trim_max((string) ($_POST['Deskripsi_Masalah'] ?? ''), 255);
 
         if ($divisi === '' || $region === '' || $subject === '' || $kategori === '' || $priority === '' || $deskripsi === '') {
             throw new Exception('Mohon lengkapi semua field yang wajib.');
@@ -424,9 +439,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         if ($maxRes) {
             $m = $maxRes->fetch_assoc();
             if ($m) {
-                $nextNo = (int)$m['nextNo'];
-                $nextId = (int)$m['nextId'];
-                $nextTicketCode = (int)$m['nextTicketCode'];
+                $nextNo = (int) $m['nextNo'];
+                $nextId = (int) $m['nextId'];
+                $nextTicketCode = (int) $m['nextTicketCode'];
             }
             $maxRes->free();
         }
@@ -524,15 +539,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             throw new Exception('Data user belum lengkap.');
         }
 
-        $ticketCode = isset($_POST['Ticket_code']) ? (int)$_POST['Ticket_code'] : 0;
+        $ticketCode = isset($_POST['Ticket_code']) ? (int) $_POST['Ticket_code'] : 0;
         if ($ticketCode <= 0) {
             throw new Exception('Ticket code tidak valid.');
         }
 
-        $subject = ticket_trim_max((string)($_POST['Subject'] ?? ''), 250);
-        $kategori = ticket_trim_max((string)($_POST['Kategori_Masalah'] ?? ''), 2050);
-        $priority = ticket_trim_max((string)($_POST['Priority'] ?? ''), 50);
-        $deskripsi = ticket_trim_max((string)($_POST['Deskripsi_Masalah'] ?? ''), 255);
+        $subject = ticket_trim_max((string) ($_POST['Subject'] ?? ''), 250);
+        $kategori = ticket_trim_max((string) ($_POST['Kategori_Masalah'] ?? ''), 2050);
+        $priority = ticket_trim_max((string) ($_POST['Priority'] ?? ''), 50);
+        $deskripsi = ticket_trim_max((string) ($_POST['Deskripsi_Masalah'] ?? ''), 255);
 
         if ($subject === '' || $kategori === '' || $priority === '' || $deskripsi === '') {
             throw new Exception('Mohon lengkapi field yang wajib.');
@@ -555,13 +570,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             throw new Exception('Ticket tidak ditemukan atau bukan milik akun ini.');
         }
 
-        $statusNow = isset($existing['Status_Request']) ? (string)$existing['Status_Request'] : '';
+        $statusNow = isset($existing['Status_Request']) ? (string) $existing['Status_Request'] : '';
         if ($statusNow !== 'Open') {
             throw new Exception('Ticket hanya bisa diedit saat status Open.');
         }
 
-        $fotoName = isset($existing['Foto_Ticket']) ? (string)$existing['Foto_Ticket'] : '';
-        $docName = isset($existing['Document']) ? (string)$existing['Document'] : '';
+        $fotoName = isset($existing['Foto_Ticket']) ? (string) $existing['Foto_Ticket'] : '';
+        $docName = isset($existing['Document']) ? (string) $existing['Document'] : '';
 
         $uploadDir = __DIR__ . '/../uploads/ticket';
         if (isset($_FILES['Foto_Ticket']) && isset($_FILES['Foto_Ticket']['error']) && $_FILES['Foto_Ticket']['error'] !== UPLOAD_ERR_NO_FILE) {
@@ -597,7 +612,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             throw new Exception('Data user belum lengkap.');
         }
 
-        $ticketCode = isset($_POST['Ticket_code']) ? (int)$_POST['Ticket_code'] : 0;
+        $ticketCode = isset($_POST['Ticket_code']) ? (int) $_POST['Ticket_code'] : 0;
         if ($ticketCode <= 0) {
             throw new Exception('Ticket code tidak valid.');
         }
@@ -619,7 +634,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             throw new Exception('Ticket tidak ditemukan atau bukan milik akun ini.');
         }
 
-        $statusNow = isset($existing['Status_Request']) ? (string)$existing['Status_Request'] : '';
+        $statusNow = isset($existing['Status_Request']) ? (string) $existing['Status_Request'] : '';
         if ($statusNow !== 'Open') {
             throw new Exception('Ticket hanya bisa dihapus saat status Open.');
         }
@@ -636,8 +651,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // Best-effort hapus file yang terkait (kalau ada)
         $uploadDir = __DIR__ . '/../uploads/ticket';
-        ticket_safe_unlink($uploadDir, (string)($existing['Foto_Ticket'] ?? ''));
-        ticket_safe_unlink($uploadDir, (string)($existing['Document'] ?? ''));
+        ticket_safe_unlink($uploadDir, (string) ($existing['Foto_Ticket'] ?? ''));
+        ticket_safe_unlink($uploadDir, (string) ($existing['Document'] ?? ''));
 
         $_SESSION['flash_success'] = 'Ticket berhasil dihapus.';
         ticket_redirect_self();
@@ -655,7 +670,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             throw new Exception('Data user belum lengkap.');
         }
 
-        $ticketCode = isset($_POST['Ticket_code']) ? (int)$_POST['Ticket_code'] : 0;
+        $ticketCode = isset($_POST['Ticket_code']) ? (int) $_POST['Ticket_code'] : 0;
         if ($ticketCode <= 0) {
             throw new Exception('Ticket code tidak valid.');
         }
@@ -677,7 +692,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             throw new Exception('Ticket tidak ditemukan atau bukan milik akun ini.');
         }
 
-        $statusNow = isset($existing['Status_Request']) ? (string)$existing['Status_Request'] : '';
+        $statusNow = isset($existing['Status_Request']) ? (string) $existing['Status_Request'] : '';
         if ($statusNow !== 'Done') {
             throw new Exception('Approval Close hanya bisa dilakukan saat status Done.');
         }
@@ -730,7 +745,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Pagination setup (template: user/dashboard_user.php)
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $page = max(1, $page);
 $limit = 10;
 $offset = ($page - 1) * $limit;
@@ -738,7 +753,7 @@ $offset = ($page - 1) * $limit;
 // Status filter (tabs)
 $statusFilter = '';
 if (isset($_GET['status'])) {
-    $requestedStatus = trim((string)$_GET['status']);
+    $requestedStatus = trim((string) $_GET['status']);
     if ($requestedStatus !== '' && strcasecmp($requestedStatus, 'all') !== 0 && ticket_user_is_allowed_status($requestedStatus)) {
         $statusFilter = $requestedStatus;
     }
@@ -747,7 +762,7 @@ if (isset($_GET['status'])) {
 // Search query (progressive enhancement: works with non-AJAX submit, realtime with AJAX)
 $searchQuery = '';
 if (isset($_GET['q'])) {
-    $searchQuery = ticket_trim_max((string)$_GET['q'], 120);
+    $searchQuery = ticket_trim_max((string) $_GET['q'], 120);
 }
 $searchQuery = trim($searchQuery);
 $hasSearch = ($searchQuery !== '');
@@ -778,7 +793,8 @@ $ticketUserSearchWhereSql = '('
     . 'OR `Create_User` LIKE ?'
     . ')';
 
-function ticket_build_pagination_html(int $page, int $totalPages, int $totalRecords, int $offset, int $limit, array $baseParams = []): string {
+function ticket_build_pagination_html(int $page, int $totalPages, int $totalRecords, int $offset, int $limit, array $baseParams = []): string
+{
     $paginationHtml = '';
     if ($totalPages <= 1) {
         return $paginationHtml;
@@ -843,6 +859,8 @@ function ticket_build_pagination_html(int $page, int $totalPages, int $totalReco
 // Handle AJAX request untuk pagination (template: user/dashboard_user.php)
 if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_tickets') {
     header('Content-Type: application/json; charset=utf-8');
+    // Release session lock so concurrent requests (SSE/polling) don't block us
+    session_write_close();
 
     try {
         // Build base params (preserve other query params except action)
@@ -880,8 +898,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_tickets') {
                 $resStatus = $stmtStatusCounts->get_result();
                 if ($resStatus) {
                     while ($r = $resStatus->fetch_assoc()) {
-                        $st = isset($r['Status_Request']) ? (string)$r['Status_Request'] : '';
-                        $cnt = (int)($r['total'] ?? 0);
+                        $st = isset($r['Status_Request']) ? (string) $r['Status_Request'] : '';
+                        $cnt = (int) ($r['total'] ?? 0);
                         $ajaxTotalAllRecords += $cnt;
                         if ($st !== '' && ticket_user_is_allowed_status($st)) {
                             $ajaxStatusCounts[$st] = $cnt;
@@ -946,23 +964,23 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_tickets') {
         }
         $resCount = $stmtCount->get_result();
         $rowCount = $resCount ? $resCount->fetch_assoc() : null;
-        $totalRecords = $rowCount ? (int)($rowCount['total'] ?? 0) : 0;
+        $totalRecords = $rowCount ? (int) ($rowCount['total'] ?? 0) : 0;
         $stmtCount->close();
 
-        $totalPages = $totalRecords > 0 ? (int)ceil($totalRecords / $limit) : 1;
+        $totalPages = $totalRecords > 0 ? (int) ceil($totalRecords / $limit) : 1;
         $page = min($page, $totalPages);
         $offset = ($page - 1) * $limit;
 
         // Data
         $tickets = [];
         if ($statusFilter !== '' && $hasSearch) {
-            $stmtList = $kon->prepare('SELECT `Ticket_code`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`, `Photo_IT` FROM `ticket` WHERE `Id_Karyawan` = ? AND `Create_By_User` = ? AND `Status_Request` = ? AND ' . $ticketUserSearchWhereSql . ' ORDER BY `Ticket_code` DESC LIMIT ? OFFSET ?');
+            $stmtList = $kon->prepare('SELECT `Ticket_code`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`, `Photo_IT`, `assigned_to` FROM `ticket` WHERE `Id_Karyawan` = ? AND `Create_By_User` = ? AND `Status_Request` = ? AND ' . $ticketUserSearchWhereSql . ' ORDER BY `Ticket_code` DESC LIMIT ? OFFSET ?');
         } elseif ($statusFilter !== '') {
-            $stmtList = $kon->prepare('SELECT `Ticket_code`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`, `Photo_IT` FROM `ticket` WHERE `Id_Karyawan` = ? AND `Create_By_User` = ? AND `Status_Request` = ? ORDER BY `Ticket_code` DESC LIMIT ? OFFSET ?');
+            $stmtList = $kon->prepare('SELECT `Ticket_code`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`, `Photo_IT`, `assigned_to` FROM `ticket` WHERE `Id_Karyawan` = ? AND `Create_By_User` = ? AND `Status_Request` = ? ORDER BY `Ticket_code` DESC LIMIT ? OFFSET ?');
         } elseif ($hasSearch) {
-            $stmtList = $kon->prepare('SELECT `Ticket_code`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`, `Photo_IT` FROM `ticket` WHERE `Id_Karyawan` = ? AND `Create_By_User` = ? AND ' . $ticketUserSearchWhereSql . ' ORDER BY `Ticket_code` DESC LIMIT ? OFFSET ?');
+            $stmtList = $kon->prepare('SELECT `Ticket_code`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`, `Photo_IT`, `assigned_to` FROM `ticket` WHERE `Id_Karyawan` = ? AND `Create_By_User` = ? AND ' . $ticketUserSearchWhereSql . ' ORDER BY `Ticket_code` DESC LIMIT ? OFFSET ?');
         } else {
-            $stmtList = $kon->prepare('SELECT `Ticket_code`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`, `Photo_IT` FROM `ticket` WHERE `Id_Karyawan` = ? AND `Create_By_User` = ? ORDER BY `Ticket_code` DESC LIMIT ? OFFSET ?');
+            $stmtList = $kon->prepare('SELECT `Ticket_code`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`, `Photo_IT`, `assigned_to` FROM `ticket` WHERE `Id_Karyawan` = ? AND `Create_By_User` = ? ORDER BY `Ticket_code` DESC LIMIT ? OFFSET ?');
         }
         if (!$stmtList) {
             throw new Exception('Prepare list gagal: ' . $kon->error);
@@ -1047,134 +1065,143 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_tickets') {
         } else {
             foreach ($tickets as $t) {
                 $rowNo++;
-            $codeInt = (int)($t['Ticket_code'] ?? 0);
-            $codeDisplay = ticket_user_format_code($codeInt, isset($t['Create_User']) ? (string)$t['Create_User'] : null);
-            $hasFoto = isset($t['Foto_Ticket']) && (string)$t['Foto_Ticket'] !== '';
-            $hasDoc = isset($t['Document']) && (string)$t['Document'] !== '';
-            $canEdit = isset($t['Status_Request']) && (string)$t['Status_Request'] === 'Open';
-            $canApproveClose = isset($t['Status_Request']) && (string)$t['Status_Request'] === 'Done';
+                $codeInt = (int) ($t['Ticket_code'] ?? 0);
+                $codeDisplay = ticket_user_format_code($codeInt, isset($t['Create_User']) ? (string) $t['Create_User'] : null);
+                $hasFoto = isset($t['Foto_Ticket']) && (string) $t['Foto_Ticket'] !== '';
+                $hasDoc = isset($t['Document']) && (string) $t['Document'] !== '';
+                $canEdit = isset($t['Status_Request']) && (string) $t['Status_Request'] === 'Open';
+                $canApproveClose = isset($t['Status_Request']) && (string) $t['Status_Request'] === 'Done';
 
-            $jawabanItText = isset($t['Jawaban_IT']) ? trim((string)$t['Jawaban_IT']) : '';
-            $jawabanItDisplay = ($jawabanItText !== '') ? $jawabanItText : 'Menunggu respon IT';
+                $jawabanItText = isset($t['Jawaban_IT']) ? trim((string) $t['Jawaban_IT']) : '';
+                $jawabanItDisplay = ($jawabanItText !== '') ? $jawabanItText : 'Menunggu respon IT';
 
-            $itFileName = isset($t['Photo_IT']) ? trim((string)$t['Photo_IT']) : '';
-            $itFileDisplay = ($itFileName !== '') ? $itFileName : 'Menunggu update dari IT';
+                $itFileName = isset($t['Photo_IT']) ? trim((string) $t['Photo_IT']) : '';
+                $itFileDisplay = ($itFileName !== '') ? $itFileName : 'Menunggu update dari IT';
 
-            $priorityText = (string)($t['Priority'] ?? '');
-            $statusText = (string)($t['Status_Request'] ?? '');
-            $typePekerjaanText = trim((string)($t['Type_Pekerjaan'] ?? ''));
+                $priorityText = (string) ($t['Priority'] ?? '');
+                $statusText = (string) ($t['Status_Request'] ?? '');
+                $typePekerjaanText = trim((string) ($t['Type_Pekerjaan'] ?? ''));
 
-            $priorityClass = ticket_badge_priority_class($priorityText);
-            $statusClass = ticket_badge_status_class($statusText);
-            $typeClass = ticket_badge_type_pekerjaan_class($typePekerjaanText);
+                $priorityClass = ticket_badge_priority_class($priorityText);
+                $statusClass = ticket_badge_status_class($statusText);
+                $typeClass = ticket_badge_type_pekerjaan_class($typePekerjaanText);
 
-            $tableHtml .= '<tr class="hover:bg-orange-50/40 transition-colors">'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string)$rowNo) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
-                . '<div class="font-semibold text-gray-900">' . htmlspecialchars($codeDisplay) . '</div>'
-                . '<div class="text-xs text-gray-500">#' . htmlspecialchars((string)$codeInt) . '</div>'
-                . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string)($t['Subject'] ?? '')) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string)($t['Kategori_Masalah'] ?? '')) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
-                . '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' . htmlspecialchars($priorityClass) . '">' . htmlspecialchars($priorityText) . '</span>'
-                . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
-                . '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' . htmlspecialchars($statusClass) . '">' . htmlspecialchars($statusText) . '</span>'
-                . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
-                . ($typePekerjaanText !== ''
-                    ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' . htmlspecialchars($typeClass) . '">' . htmlspecialchars($typePekerjaanText) . '</span>'
-                    : '<span class="text-gray-400">-</span>')
-                . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string)($t['Create_User'] ?? '')) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">';
+                $assignedToUser = trim((string) ($t['assigned_to'] ?? ''));
+                $assignedBadge  = $assignedToUser !== '' ? (
+                    '<div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 w-full">'
+                    . '<span class="relative flex h-2 w-2 flex-shrink-0"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>'
+                    . '<span class="leading-tight">Sedang ditangani<br><span class="font-semibold">' . htmlspecialchars($assignedToUser) . '</span></span>'
+                    . '</div>'
+                ) : '';
 
-            if ($hasFoto) {
-                $tableHtml .= '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string)$t['Foto_Ticket']) . '" target="_blank" rel="noopener">Foto</a>';
-            }
-            if ($hasFoto && $hasDoc) {
-                $tableHtml .= '<span class="text-gray-400">|</span>';
-            }
-            if ($hasDoc) {
-                $tableHtml .= '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string)$t['Document']) . '" target="_blank" rel="noopener">Doc</a>';
-            }
-            if (!$hasFoto && !$hasDoc) {
-                $tableHtml .= '<span class="text-gray-400">-</span>';
-            }
+                $tableHtml .= '<tr class="hover:bg-orange-50/40 transition-colors">'
+                    . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string) $rowNo) . '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
+                    . '<div class="font-semibold text-gray-900">' . htmlspecialchars($codeDisplay) . '</div>'
+                    . '<div class="text-xs text-gray-500">#' . htmlspecialchars((string) $codeInt) . '</div>'
+                    . '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string) ($t['Subject'] ?? '')) . '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string) ($t['Kategori_Masalah'] ?? '')) . '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
+                    . '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' . htmlspecialchars($priorityClass) . '">' . htmlspecialchars($priorityText) . '</span>'
+                    . '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
+                    . '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' . htmlspecialchars($statusClass) . '">' . htmlspecialchars($statusText) . '</span>'
+                    . $assignedBadge
+                    . '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
+                    . ($typePekerjaanText !== ''
+                        ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' . htmlspecialchars($typeClass) . '">' . htmlspecialchars($typePekerjaanText) . '</span>'
+                        : '<span class="text-gray-400">-</span>')
+                    . '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string) ($t['Create_User'] ?? '')) . '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">';
 
-            $tableHtml .= '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 min-w-[220px]">' . htmlspecialchars((string)$jawabanItDisplay) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
-                . ($itFileName !== ''
-                    ? '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string)$itFileName) . '" target="_blank" rel="noopener">File IT</a>'
-                    : '<span class="text-gray-500">' . htmlspecialchars((string)$itFileDisplay) . '</span>')
-                . '</td>'
-                . '<td class="px-4 py-3 text-sm whitespace-nowrap">'
-                . '<div class="flex items-center gap-2">'
-                . '<button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all duration-150 transform hover:scale-105 active:scale-95" '
-                . 'data-action="auditTicket" '
-                . 'data-ticket-code="' . htmlspecialchars((string)$codeInt, ENT_QUOTES) . '" '
-                . 'data-code-display="' . htmlspecialchars($codeDisplay, ENT_QUOTES) . '">'
-                . '<i class="fas fa-clock-rotate-left" aria-hidden="true"></i>Audit</button>'
-                . ($canApproveClose
-                    ? '<form method="POST" class="inline" data-action="approveClose">'
+                if ($hasFoto) {
+                    $tableHtml .= '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string) $t['Foto_Ticket']) . '" target="_blank" rel="noopener">Foto</a>';
+                }
+                if ($hasFoto && $hasDoc) {
+                    $tableHtml .= '<span class="text-gray-400">|</span>';
+                }
+                if ($hasDoc) {
+                    $tableHtml .= '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string) $t['Document']) . '" target="_blank" rel="noopener">Doc</a>';
+                }
+                if (!$hasFoto && !$hasDoc) {
+                    $tableHtml .= '<span class="text-gray-400">-</span>';
+                }
+
+                $tableHtml .= '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800 min-w-[220px]">' . htmlspecialchars((string) $jawabanItDisplay) . '</td>'
+                    . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
+                    . ($itFileName !== ''
+                        ? '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string) $itFileName) . '" target="_blank" rel="noopener">File IT</a>'
+                        : '<span class="text-gray-500">' . htmlspecialchars((string) $itFileDisplay) . '</span>')
+                    . '</td>'
+                    . '<td class="px-4 py-3 text-sm whitespace-nowrap">'
+                    . '<div class="flex items-center gap-2">'
+                    . '<button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all duration-150 transform hover:scale-105 active:scale-95" '
+                    . 'data-action="auditTicket" '
+                    . 'data-ticket-code="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '" '
+                    . 'data-code-display="' . htmlspecialchars($codeDisplay, ENT_QUOTES) . '">'
+                    . '<i class="fas fa-clock-rotate-left" aria-hidden="true"></i>Audit</button>'
+                    . ($canApproveClose
+                        ? '<form method="POST" class="inline" data-action="approveClose">'
                         . '<input type="hidden" name="action" value="approve_close" />'
-                        . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string)$codeInt, ENT_QUOTES) . '" />'
+                        . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '" />'
                         . '<button type="submit" class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-all duration-150 transform hover:scale-105 active:scale-95">'
                         . '<i class="fas fa-circle-check" aria-hidden="true"></i>Approve Close</button>'
+                        . '</form>'
+                        : '')
+                    . '<button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200 transition-all duration-150 transform hover:scale-105 active:scale-95" '
+                    . 'data-action="viewTicket" '
+                    . 'data-ticket-code="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '" '
+                    . 'data-code-display="' . htmlspecialchars($codeDisplay, ENT_QUOTES) . '" '
+                    . 'data-created="' . htmlspecialchars((string) ($t['Create_User'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-status="' . htmlspecialchars((string) ($t['Status_Request'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-subject="' . htmlspecialchars((string) ($t['Subject'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-kategori="' . htmlspecialchars((string) ($t['Kategori_Masalah'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-priority="' . htmlspecialchars((string) ($t['Priority'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-type-pekerjaan="' . htmlspecialchars((string) ($t['Type_Pekerjaan'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-divisi="' . htmlspecialchars((string) ($t['Divisi_User'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-jabatan="' . htmlspecialchars((string) ($t['Jabatan_User'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-region="' . htmlspecialchars((string) ($t['Region'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-deskripsi="' . htmlspecialchars((string) ($t['Deskripsi_Masalah'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-foto="' . htmlspecialchars((string) ($t['Foto_Ticket'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-doc="' . htmlspecialchars((string) ($t['Document'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-jawaban-it="' . htmlspecialchars((string) ($t['Jawaban_IT'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-file-it="' . htmlspecialchars((string) ($t['Photo_IT'] ?? ''), ENT_QUOTES) . '">'
+                    . '<i class="fas fa-eye" aria-hidden="true"></i>View</button>';
+
+                $editExtra = $canEdit ? 'hover:bg-orange-100 hover:scale-105 active:scale-95' : 'opacity-50 cursor-not-allowed';
+                $disabledAttr = $canEdit ? '' : 'disabled';
+                $tableHtml .= '<button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-orange-200 bg-orange-50 text-orange-800 transition-all duration-150 transform ' . $editExtra . '" '
+                    . 'data-action="editTicket" '
+                    . 'data-ticket-code="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '" '
+                    . 'data-code-display="' . htmlspecialchars($codeDisplay, ENT_QUOTES) . '" '
+                    . 'data-status="' . htmlspecialchars((string) ($t['Status_Request'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-subject="' . htmlspecialchars((string) ($t['Subject'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-kategori="' . htmlspecialchars((string) ($t['Kategori_Masalah'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-priority="' . htmlspecialchars((string) ($t['Priority'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-deskripsi="' . htmlspecialchars((string) ($t['Deskripsi_Masalah'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-foto="' . htmlspecialchars((string) ($t['Foto_Ticket'] ?? ''), ENT_QUOTES) . '" '
+                    . 'data-doc="' . htmlspecialchars((string) ($t['Document'] ?? ''), ENT_QUOTES) . '" '
+                    . $disabledAttr . '>'
+                    . '<i class="fas fa-pen" aria-hidden="true"></i>Edit</button>';
+
+                $deleteExtra = $canEdit ? 'hover:bg-red-100 hover:scale-105 active:scale-95' : 'opacity-50 cursor-not-allowed';
+                $delDisabled = $canEdit ? '' : 'disabled';
+                $tableHtml .= '<form method="POST" class="inline" data-action="deleteTicket">'
+                    . '<input type="hidden" name="action" value="delete_ticket" />'
+                    . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '" />'
+                    . '<button type="submit" class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-700 transition-all duration-150 transform ' . $deleteExtra . '" ' . $delDisabled . '>'
+                    . '<i class="fas fa-trash" aria-hidden="true"></i>Hapus</button>'
                     . '</form>'
-                    : '')
-                . '<button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200 transition-all duration-150 transform hover:scale-105 active:scale-95" '
-                . 'data-action="viewTicket" '
-                . 'data-ticket-code="' . htmlspecialchars((string)$codeInt, ENT_QUOTES) . '" '
-                . 'data-code-display="' . htmlspecialchars($codeDisplay, ENT_QUOTES) . '" '
-                . 'data-created="' . htmlspecialchars((string)($t['Create_User'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-status="' . htmlspecialchars((string)($t['Status_Request'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-subject="' . htmlspecialchars((string)($t['Subject'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-kategori="' . htmlspecialchars((string)($t['Kategori_Masalah'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-priority="' . htmlspecialchars((string)($t['Priority'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-type-pekerjaan="' . htmlspecialchars((string)($t['Type_Pekerjaan'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-divisi="' . htmlspecialchars((string)($t['Divisi_User'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-jabatan="' . htmlspecialchars((string)($t['Jabatan_User'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-region="' . htmlspecialchars((string)($t['Region'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-deskripsi="' . htmlspecialchars((string)($t['Deskripsi_Masalah'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-foto="' . htmlspecialchars((string)($t['Foto_Ticket'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-doc="' . htmlspecialchars((string)($t['Document'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-jawaban-it="' . htmlspecialchars((string)($t['Jawaban_IT'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-file-it="' . htmlspecialchars((string)($t['Photo_IT'] ?? ''), ENT_QUOTES) . '">' 
-                . '<i class="fas fa-eye" aria-hidden="true"></i>View</button>';
-
-            $editExtra = $canEdit ? 'hover:bg-orange-100 hover:scale-105 active:scale-95' : 'opacity-50 cursor-not-allowed';
-            $disabledAttr = $canEdit ? '' : 'disabled';
-            $tableHtml .= '<button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-orange-200 bg-orange-50 text-orange-800 transition-all duration-150 transform ' . $editExtra . '" '
-                . 'data-action="editTicket" '
-                . 'data-ticket-code="' . htmlspecialchars((string)$codeInt, ENT_QUOTES) . '" '
-                . 'data-code-display="' . htmlspecialchars($codeDisplay, ENT_QUOTES) . '" '
-                . 'data-status="' . htmlspecialchars((string)($t['Status_Request'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-subject="' . htmlspecialchars((string)($t['Subject'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-kategori="' . htmlspecialchars((string)($t['Kategori_Masalah'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-priority="' . htmlspecialchars((string)($t['Priority'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-deskripsi="' . htmlspecialchars((string)($t['Deskripsi_Masalah'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-foto="' . htmlspecialchars((string)($t['Foto_Ticket'] ?? ''), ENT_QUOTES) . '" '
-                . 'data-doc="' . htmlspecialchars((string)($t['Document'] ?? ''), ENT_QUOTES) . '" '
-                . $disabledAttr . '>'
-                . '<i class="fas fa-pen" aria-hidden="true"></i>Edit</button>';
-
-            $deleteExtra = $canEdit ? 'hover:bg-red-100 hover:scale-105 active:scale-95' : 'opacity-50 cursor-not-allowed';
-            $delDisabled = $canEdit ? '' : 'disabled';
-            $tableHtml .= '<form method="POST" class="inline" data-action="deleteTicket">'
-                . '<input type="hidden" name="action" value="delete_ticket" />'
-                . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string)$codeInt, ENT_QUOTES) . '" />'
-                . '<button type="submit" class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-700 transition-all duration-150 transform ' . $deleteExtra . '" ' . $delDisabled . '>'
-                . '<i class="fas fa-trash" aria-hidden="true"></i>Hapus</button>'
-                . '</form>'
-                . '</div>'
-                . (!$canEdit ? '<div class="text-xs text-gray-500 mt-1">Edit hanya saat status Open</div>' : '')
-                . '</td>'
-                . '</tr>';
-                }
+                    . '</div>'
+                    . (!$canEdit ? '<div class="text-xs text-gray-500 mt-1">Edit hanya saat status Open</div>' : '')
+                    . '</td>'
+                    . '</tr>';
             }
+        }
 
         $tableHtml .= '</tbody>';
         $paginationHtml = ticket_build_pagination_html($page, $totalPages, $totalRecords, $offset, $limit, $baseParams);
@@ -1201,16 +1228,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_ticket_audit') {
     header('Content-Type: application/json; charset=utf-8');
 
     try {
-        $ticketCode = isset($_GET['ticket_code']) ? (int)$_GET['ticket_code'] : 0;
+        $ticketCode = isset($_GET['ticket_code']) ? (int) $_GET['ticket_code'] : 0;
         if ($ticketCode <= 0) {
             throw new Exception('Ticket code tidak valid.');
         }
 
         $normalizeStatus = static function (?string $status): string {
-            $key = strtolower(trim((string)$status));
+            $key = strtolower(trim((string) $status));
             $key = str_replace(['_', '-'], ' ', $key);
             $key = preg_replace('/\s+/', ' ', $key);
-            return trim((string)$key);
+            return trim((string) $key);
         };
 
         $formatDuration = static function (int $seconds): string {
@@ -1222,8 +1249,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_ticket_audit') {
             $mins = intdiv($seconds, 60);
 
             $parts = [];
-            if ($days > 0) $parts[] = $days . ' hari';
-            if ($hours > 0) $parts[] = $hours . ' jam';
+            if ($days > 0)
+                $parts[] = $days . ' hari';
+            if ($hours > 0)
+                $parts[] = $hours . ' jam';
             $parts[] = $mins . ' menit';
             return implode(' ', $parts);
         };
@@ -1252,15 +1281,15 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_ticket_audit') {
         $slaStartTs = null;
         $doneTs = null;
         $closedTs = null;
-        $itJawaban = isset($ownRow['Jawaban_IT']) ? trim((string)$ownRow['Jawaban_IT']) : '';
-        $itFile = isset($ownRow['Photo_IT']) ? trim((string)$ownRow['Photo_IT']) : '';
+        $itJawaban = isset($ownRow['Jawaban_IT']) ? trim((string) $ownRow['Jawaban_IT']) : '';
+        $itFile = isset($ownRow['Photo_IT']) ? trim((string) $ownRow['Photo_IT']) : '';
 
         $createdTs = null;
-        $createdAt = isset($ownRow['Create_User']) ? (string)$ownRow['Create_User'] : '';
+        $createdAt = isset($ownRow['Create_User']) ? (string) $ownRow['Create_User'] : '';
         if ($createdAt !== '') {
             $ts = strtotime($createdAt);
             if ($ts !== false) {
-                $createdTs = (int)$ts;
+                $createdTs = (int) $ts;
             }
         }
 
@@ -1271,27 +1300,27 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_ticket_audit') {
                 $resH = $stmtH->get_result();
                 if ($resH) {
                     while ($row = $resH->fetch_assoc()) {
-                        $statusTo = isset($row['status_to']) ? (string)$row['status_to'] : '';
+                        $statusTo = isset($row['status_to']) ? (string) $row['status_to'] : '';
                         $statusToNorm = $normalizeStatus($statusTo);
-                        $changedAt = isset($row['changed_at']) ? (string)$row['changed_at'] : '';
+                        $changedAt = isset($row['changed_at']) ? (string) $row['changed_at'] : '';
 
                         if ($slaStartTs === null && $statusToNorm === 'in progress') {
                             $ts = strtotime($changedAt);
                             if ($ts !== false) {
-                                $slaStartTs = (int)$ts;
+                                $slaStartTs = (int) $ts;
                             }
                         }
                         if ($statusToNorm === 'closed') {
                             $ts = strtotime($changedAt);
                             if ($ts !== false) {
-                                $closedTs = (int)$ts;
+                                $closedTs = (int) $ts;
                             }
                         }
 
                         if ($doneTs === null && $statusToNorm === 'done') {
                             $ts = strtotime($changedAt);
                             if ($ts !== false) {
-                                $doneTs = (int)$ts;
+                                $doneTs = (int) $ts;
                             }
                         }
 
@@ -1311,7 +1340,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_ticket_audit') {
 
         // Add IT response + IT file on Done event
         foreach ($items as $idx => $it) {
-            $statusToNorm = $normalizeStatus(isset($it['status_to']) ? (string)$it['status_to'] : '');
+            $statusToNorm = $normalizeStatus(isset($it['status_to']) ? (string) $it['status_to'] : '');
             if ($statusToNorm === 'done') {
                 $items[$idx]['it_response'] = $itJawaban;
                 $items[$idx]['it_file'] = $itFile;
@@ -1325,10 +1354,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_ticket_audit') {
                 $slaStartResolved = $createdTs;
             }
             if ($slaStartResolved !== null && $doneTs >= $slaStartResolved) {
-                $slaDoneSeconds = (int)($doneTs - $slaStartResolved);
+                $slaDoneSeconds = (int) ($doneTs - $slaStartResolved);
                 $slaDoneText = $formatDuration($slaDoneSeconds);
                 foreach ($items as $idx => $it) {
-                    $statusToNorm = $normalizeStatus(isset($it['status_to']) ? (string)$it['status_to'] : '');
+                    $statusToNorm = $normalizeStatus(isset($it['status_to']) ? (string) $it['status_to'] : '');
                     if ($statusToNorm === 'done') {
                         $items[$idx]['sla_done_seconds'] = $slaDoneSeconds;
                         $items[$idx]['sla_done_text'] = $slaDoneText;
@@ -1344,10 +1373,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_ticket_audit') {
             }
 
             if ($slaStartTs !== null && $closedTs >= $slaStartTs) {
-                $slaSeconds = (int)($closedTs - $slaStartTs);
+                $slaSeconds = (int) ($closedTs - $slaStartTs);
                 $slaText = $formatDuration($slaSeconds);
                 foreach ($items as $idx => $it) {
-                    $statusToNorm = $normalizeStatus(isset($it['status_to']) ? (string)$it['status_to'] : '');
+                    $statusToNorm = $normalizeStatus(isset($it['status_to']) ? (string) $it['status_to'] : '');
                     if ($statusToNorm === 'closed') {
                         $items[$idx]['sla_seconds'] = $slaSeconds;
                         $items[$idx]['sla_text'] = $slaText;
@@ -1358,11 +1387,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_ticket_audit') {
 
         // Backward compatibility: tickets that existed before audit logging
         if (count($items) === 0) {
-            $currentStatus = isset($ownRow['Status_Request']) ? (string)$ownRow['Status_Request'] : 'Open';
+            $currentStatus = isset($ownRow['Status_Request']) ? (string) $ownRow['Status_Request'] : 'Open';
             $items[] = [
                 'status_from' => null,
                 'status_to' => $currentStatus,
-                'changed_at' => isset($ownRow['Create_User']) ? (string)$ownRow['Create_User'] : date('Y-m-d H:i:s'),
+                'changed_at' => isset($ownRow['Create_User']) ? (string) $ownRow['Create_User'] : date('Y-m-d H:i:s'),
                 'changed_by' => $Nama_Lengkap,
                 'changed_by_role' => 'user',
                 'note' => 'Ticket dibuat',
@@ -1428,8 +1457,8 @@ try {
             $resStatus = $stmtStatusCounts->get_result();
             if ($resStatus) {
                 while ($r = $resStatus->fetch_assoc()) {
-                    $st = isset($r['Status_Request']) ? (string)$r['Status_Request'] : '';
-                    $cnt = (int)($r['total'] ?? 0);
+                    $st = isset($r['Status_Request']) ? (string) $r['Status_Request'] : '';
+                    $cnt = (int) ($r['total'] ?? 0);
                     $totalAllRecords += $cnt;
                     if ($st !== '' && ticket_user_is_allowed_status($st)) {
                         $statusCounts[$st] = $cnt;
@@ -1491,7 +1520,7 @@ try {
     if ($stmtCount->execute()) {
         $resCount = $stmtCount->get_result();
         $rowCount = $resCount ? $resCount->fetch_assoc() : null;
-        $totalRecords = $rowCount ? (int)($rowCount['total'] ?? 0) : 0;
+        $totalRecords = $rowCount ? (int) ($rowCount['total'] ?? 0) : 0;
     }
     $stmtCount->close();
 
@@ -1523,7 +1552,7 @@ try {
             if ($stmtAll->execute()) {
                 $resAll = $stmtAll->get_result();
                 $rowAll = $resAll ? $resAll->fetch_assoc() : null;
-                $totalAllRecords = $rowAll ? (int)($rowAll['total'] ?? 0) : 0;
+                $totalAllRecords = $rowAll ? (int) ($rowAll['total'] ?? 0) : 0;
             }
             $stmtAll->close();
         }
@@ -1533,7 +1562,7 @@ try {
         $totalAllRecords = $totalRecords;
     }
 
-    $totalPages = $totalRecords > 0 ? (int)ceil($totalRecords / $limit) : 1;
+    $totalPages = $totalRecords > 0 ? (int) ceil($totalRecords / $limit) : 1;
     if ($page > $totalPages) {
         $page = $totalPages;
         $offset = ($page - 1) * $limit;
@@ -1631,8 +1660,8 @@ try {
             $resDashStatus = $stmtDashStatus->get_result();
             if ($resDashStatus) {
                 while ($r = $resDashStatus->fetch_assoc()) {
-                    $st = isset($r['Status_Request']) ? (string)$r['Status_Request'] : '';
-                    $cnt = (int)($r['total'] ?? 0);
+                    $st = isset($r['Status_Request']) ? (string) $r['Status_Request'] : '';
+                    $cnt = (int) ($r['total'] ?? 0);
                     $dashTotalTickets += $cnt;
                     if ($st !== '' && ticket_user_is_allowed_status($st)) {
                         $dashStatusCounts[$st] = $cnt;
@@ -1655,12 +1684,16 @@ try {
             $resDashPr = $stmtDashPr->get_result();
             if ($resDashPr) {
                 while ($r = $resDashPr->fetch_assoc()) {
-                    $p = isset($r['Priority']) ? strtolower(trim((string)$r['Priority'])) : '';
-                    $cnt = (int)($r['total'] ?? 0);
-                    if ($p === 'low') $dashPriorityCounts['Low'] += $cnt;
-                    elseif ($p === 'medium') $dashPriorityCounts['Medium'] += $cnt;
-                    elseif ($p === 'high') $dashPriorityCounts['High'] += $cnt;
-                    elseif ($p === 'urgent') $dashPriorityCounts['Urgent'] += $cnt;
+                    $p = isset($r['Priority']) ? strtolower(trim((string) $r['Priority'])) : '';
+                    $cnt = (int) ($r['total'] ?? 0);
+                    if ($p === 'low')
+                        $dashPriorityCounts['Low'] += $cnt;
+                    elseif ($p === 'medium')
+                        $dashPriorityCounts['Medium'] += $cnt;
+                    elseif ($p === 'high')
+                        $dashPriorityCounts['High'] += $cnt;
+                    elseif ($p === 'urgent')
+                        $dashPriorityCounts['Urgent'] += $cnt;
                 }
             }
         }
@@ -1712,14 +1745,14 @@ try {
                 $resAvg = $stmtAvg->get_result();
                 if ($resAvg) {
                     $avgRow = $resAvg->fetch_assoc();
-                    $avgSec = isset($avgRow['avg_sec']) ? (float)$avgRow['avg_sec'] : 0.0;
+                    $avgSec = isset($avgRow['avg_sec']) ? (float) $avgRow['avg_sec'] : 0.0;
                     if ($avgSec > 0) {
                         if ($avgSec >= 3600) {
                             $dashAvgResponseTime = number_format($avgSec / 3600, 1) . 'h';
                         } elseif ($avgSec >= 60) {
-                            $dashAvgResponseTime = (string)round($avgSec / 60) . 'm';
+                            $dashAvgResponseTime = (string) round($avgSec / 60) . 'm';
                         } else {
-                            $dashAvgResponseTime = (string)round($avgSec) . 's';
+                            $dashAvgResponseTime = (string) round($avgSec) . 's';
                         }
                     }
                 }
@@ -1731,27 +1764,28 @@ try {
     // best-effort
 }
 
-$dashOpenTickets = (int)($dashStatusCounts['Open'] ?? 0);
-$dashInProgressTickets = (int)($dashStatusCounts['In Progress'] ?? 0);
-$dashReviewTickets = (int)($dashStatusCounts['Review'] ?? 0);
-$dashDoneTickets = (int)($dashStatusCounts['Done'] ?? 0);
-$dashRejectedTickets = (int)($dashStatusCounts['Reject'] ?? 0);
-$dashClosedTickets = (int)($dashStatusCounts['Closed'] ?? 0);
+$dashOpenTickets = (int) ($dashStatusCounts['Open'] ?? 0);
+$dashInProgressTickets = (int) ($dashStatusCounts['In Progress'] ?? 0);
+$dashReviewTickets = (int) ($dashStatusCounts['Review'] ?? 0);
+$dashDoneTickets = (int) ($dashStatusCounts['Done'] ?? 0);
+$dashRejectedTickets = (int) ($dashStatusCounts['Reject'] ?? 0);
+$dashClosedTickets = (int) ($dashStatusCounts['Closed'] ?? 0);
 
 $dashStatusData = [];
 foreach (ticket_user_status_list() as $st) {
-    $dashStatusData[] = ['name' => $st, 'value' => (int)($dashStatusCounts[$st] ?? 0)];
+    $dashStatusData[] = ['name' => $st, 'value' => (int) ($dashStatusCounts[$st] ?? 0)];
 }
 
 $dashPriorityData = [
-    ['name' => 'Low', 'value' => (int)($dashPriorityCounts['Low'] ?? 0)],
-    ['name' => 'Medium', 'value' => (int)($dashPriorityCounts['Medium'] ?? 0)],
-    ['name' => 'High', 'value' => (int)($dashPriorityCounts['High'] ?? 0)],
-    ['name' => 'Urgent', 'value' => (int)($dashPriorityCounts['Urgent'] ?? 0)],
+    ['name' => 'Low', 'value' => (int) ($dashPriorityCounts['Low'] ?? 0)],
+    ['name' => 'Medium', 'value' => (int) ($dashPriorityCounts['Medium'] ?? 0)],
+    ['name' => 'High', 'value' => (int) ($dashPriorityCounts['High'] ?? 0)],
+    ['name' => 'Urgent', 'value' => (int) ($dashPriorityCounts['Urgent'] ?? 0)],
 ];
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1760,28 +1794,35 @@ $dashPriorityData = [
     <link rel="stylesheet" href="../global_dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
     <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
         /* Modal animation helpers (no extra dependencies) */
         .modal-overlay {
             opacity: 0;
             transition: opacity 180ms ease;
         }
+
         .modal-panel {
             opacity: 0;
             transform: scale(0.96);
             transition: opacity 180ms ease, transform 180ms ease;
             will-change: transform, opacity;
         }
+
         .modal-open .modal-overlay {
             opacity: 1;
         }
+
         .modal-open .modal-panel {
             opacity: 1;
             transform: scale(1);
         }
+
         @media (prefers-reduced-motion: reduce) {
+
             .modal-overlay,
             .modal-panel {
                 transition: none !important;
@@ -1810,25 +1851,26 @@ $dashPriorityData = [
         </div>
     </div>
 
-    <?php $activePage = 'ticket'; require_once __DIR__ . '/sidebar_user_include.php'; ?>
+    <?php $activePage = 'ticket';
+    require_once __DIR__ . '/sidebar_user_include.php'; ?>
 
     <div id="main-content-wrapper" class="lg:ml-60 transition-all duration-300">
-<script>
-(function(){
-    var el = document.getElementById('main-content-wrapper');
-    if (!el) return;
-    function apply(collapsed) {
-        if (collapsed) { el.style.marginLeft = '0'; }
-        else { el.style.marginLeft = ''; }
-    }
-    if (window.innerWidth >= 1024 && localStorage.getItem('sidebarCollapsed') === '1') { apply(true); }
-    window.addEventListener('sidebarToggled', function(e) { if (window.innerWidth >= 1024) apply(e.detail.collapsed); });
-    window.addEventListener('resize', function() {
-        if (window.innerWidth >= 1024) { apply(localStorage.getItem('sidebarCollapsed') === '1'); }
-        else { apply(false); }
-    });
-})();
-</script>
+        <script>
+            (function () {
+                var el = document.getElementById('main-content-wrapper');
+                if (!el) return;
+                function apply(collapsed) {
+                    if (collapsed) { el.style.marginLeft = '0'; }
+                    else { el.style.marginLeft = ''; }
+                }
+                if (window.innerWidth >= 1024 && localStorage.getItem('sidebarCollapsed') === '1') { apply(true); }
+                window.addEventListener('sidebarToggled', function (e) { if (window.innerWidth >= 1024) apply(e.detail.collapsed); });
+                window.addEventListener('resize', function () {
+                    if (window.innerWidth >= 1024) { apply(localStorage.getItem('sidebarCollapsed') === '1'); }
+                    else { apply(false); }
+                });
+            })();
+        </script>
         <main class="p-6 lg:p-8">
             <div class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-900 mb-2 mt-16">Ticket</h1>
@@ -1836,12 +1878,14 @@ $dashPriorityData = [
             </div>
 
             <?php if ($flashSuccess): ?>
-                <div data-flash="1" class="mb-6 bg-green-50 border border-green-200 text-green-700 rounded-lg p-4 transition-opacity duration-300">
+                <div data-flash="1"
+                    class="mb-6 bg-green-50 border border-green-200 text-green-700 rounded-lg p-4 transition-opacity duration-300">
                     <?php echo htmlspecialchars($flashSuccess); ?>
                 </div>
             <?php endif; ?>
             <?php if ($flashError): ?>
-                <div data-flash="1" class="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 transition-opacity duration-300">
+                <div data-flash="1"
+                    class="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 transition-opacity duration-300">
                     <?php echo htmlspecialchars($flashError); ?>
                 </div>
             <?php endif; ?>
@@ -1856,11 +1900,9 @@ $dashPriorityData = [
                         <p class="text-gray-700 mt-1">Ticket akan tercatat dengan ID Karyawan & nama user.</p>
 
                         <div class="mt-4">
-                            <button
-                                type="button"
+                            <button type="button"
                                 class="inline-flex items-center gap-2 px-5 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all duration-200 font-medium transform hover:scale-105 active:scale-95"
-                                data-action="openCreateTicket"
-                            >
+                                data-action="openCreateTicket">
                                 <i class="fas fa-plus" aria-hidden="true"></i>
                                 Buat Ticket
                             </button>
@@ -1872,7 +1914,8 @@ $dashPriorityData = [
             <!-- Create Ticket Modal -->
             <div id="createTicketModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="modal-overlay absolute inset-0 bg-black/50" data-modal-close="create"></div>
-                <div class="modal-panel relative w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
+                <div
+                    class="modal-panel relative w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
                     <div class="flex items-center justify-between px-6 py-4 border-b">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900">Buat Ticket</h3>
@@ -1890,34 +1933,46 @@ $dashPriorityData = [
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">ID Karyawan</label>
-                                    <input type="text" value="<?php echo htmlspecialchars($Id_Karyawan); ?>" readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
+                                    <input type="text" value="<?php echo htmlspecialchars($Id_Karyawan); ?>" readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                                    <input type="text" value="<?php echo htmlspecialchars($Nama_Lengkap); ?>" readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
+                                    <input type="text" value="<?php echo htmlspecialchars($Nama_Lengkap); ?>" readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Jabatan</label>
-                                    <input type="text" value="<?php echo htmlspecialchars($Jabatan_Auto !== '' ? $Jabatan_Auto : ($Jabatan_Level !== '' ? $Jabatan_Level : 'User')); ?>" readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
+                                    <input type="text"
+                                        value="<?php echo htmlspecialchars($Jabatan_Auto !== '' ? $Jabatan_Auto : ($Jabatan_Level !== '' ? $Jabatan_Level : 'User')); ?>"
+                                        readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
                                     <p class="text-xs text-gray-500 mt-1">Otomatis dari data akun</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
-                                    <input name="Divisi_User" type="text" value="<?php echo htmlspecialchars($Divisi_Auto); ?>" readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
+                                    <input name="Divisi_User" type="text"
+                                        value="<?php echo htmlspecialchars($Divisi_Auto); ?>" readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
                                     <p class="text-xs text-gray-500 mt-1">Otomatis dari data akun</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
-                                    <input name="Region" type="text" value="<?php echo htmlspecialchars($Region_Auto); ?>" readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
+                                    <input name="Region" type="text"
+                                        value="<?php echo htmlspecialchars($Region_Auto); ?>" readonly
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" />
                                     <p class="text-xs text-gray-500 mt-1">Otomatis dari data akun</p>
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                                    <input name="Subject" type="text" required maxlength="250" class="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="Judul singkat masalah" />
+                                    <input name="Subject" type="text" required maxlength="250"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg"
+                                        placeholder="Judul singkat masalah" />
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Masalah</label>
-                                    <select name="Kategori_Masalah" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                                    <select name="Kategori_Masalah" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg">
                                         <option value="">Pilih kategori</option>
                                         <option value="Aplikasi">Aplikasi</option>
                                         <option value="Email">Email</option>
@@ -1929,7 +1984,8 @@ $dashPriorityData = [
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                                    <select name="Priority" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                                    <select name="Priority" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg">
                                         <option value="">Pilih priority</option>
                                         <option value="Low">Low</option>
                                         <option value="Medium">Medium</option>
@@ -1938,28 +1994,42 @@ $dashPriorityData = [
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Masalah</label>
-                                    <textarea name="Deskripsi_Masalah" required maxlength="255" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="Jelaskan masalah secara singkat (maks 255 karakter)"></textarea>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi
+                                        Masalah</label>
+                                    <textarea name="Deskripsi_Masalah" required maxlength="255" rows="4"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg"
+                                        placeholder="Jelaskan masalah secara singkat (maks 255 karakter)"></textarea>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Foto Evidence (opsional)</label>
-                                    <input id="Foto_Ticket_Create" name="Foto_Ticket" type="file" accept="image/*" capture="environment" class="w-full text-sm js-ticket-photo-input" />
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Foto Evidence
+                                        (opsional)</label>
+                                    <input id="Foto_Ticket_Create" name="Foto_Ticket" type="file" accept="image/*"
+                                        capture="environment" class="w-full text-sm js-ticket-photo-input" />
                                     <div class="mt-2">
-                                        <button type="button" class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm js-ticket-camera-btn" data-target-input="Foto_Ticket_Create">
+                                        <button type="button"
+                                            class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm js-ticket-camera-btn"
+                                            data-target-input="Foto_Ticket_Create">
                                             <i class="fas fa-camera" aria-hidden="true"></i>
                                             Gunakan Kamera
                                         </button>
                                     </div>
-                                    <div id="ticketCameraBox_Create" class="mt-3 hidden p-3 bg-orange-50 rounded-lg border border-orange-200">
-                                        <video id="ticketCameraVideo_Create" playsinline autoplay class="w-full max-w-sm rounded-lg shadow-md mx-auto"></video>
-                                        <div id="ticketCameraGeo_Create" class="mt-2 text-[11px] text-gray-700 text-center">
+                                    <div id="ticketCameraBox_Create"
+                                        class="mt-3 hidden p-3 bg-orange-50 rounded-lg border border-orange-200">
+                                        <video id="ticketCameraVideo_Create" playsinline autoplay
+                                            class="w-full max-w-sm rounded-lg shadow-md mx-auto"></video>
+                                        <div id="ticketCameraGeo_Create"
+                                            class="mt-2 text-[11px] text-gray-700 text-center">
                                             Menunggu lokasi...
                                         </div>
                                         <div class="mt-3 flex gap-2 justify-center">
-                                            <button type="button" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm js-ticket-camera-capture" data-camera-scope="Create" data-target-input="Foto_Ticket_Create">
+                                            <button type="button"
+                                                class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm js-ticket-camera-capture"
+                                                data-camera-scope="Create" data-target-input="Foto_Ticket_Create">
                                                 <i class="fas fa-circle-dot mr-2" aria-hidden="true"></i>Capture
                                             </button>
-                                            <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm js-ticket-camera-close" data-camera-scope="Create">
+                                            <button type="button"
+                                                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm js-ticket-camera-close"
+                                                data-camera-scope="Create">
                                                 <i class="fas fa-xmark mr-2" aria-hidden="true"></i>Tutup
                                             </button>
                                         </div>
@@ -1967,15 +2037,19 @@ $dashPriorityData = [
                                     <p class="text-xs text-gray-500 mt-1">JPG/PNG/GIF/WEBP</p>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Document (opsional)</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Document
+                                        (opsional)</label>
                                     <input name="Document" type="file" class="w-full text-sm" />
                                     <p class="text-xs text-gray-500 mt-1">PDF/DOC/DOCX/XLS/XLSX</p>
                                 </div>
                             </div>
 
                             <div class="pt-2 flex justify-end gap-2">
-                                <button type="button" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50" data-modal-close="create">Batal</button>
-                                <button id="createTicketSubmitBtn" type="submit" class="px-5 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all duration-200 font-medium inline-flex items-center gap-2 transform hover:scale-105 active:scale-95">
+                                <button type="button"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    data-modal-close="create">Batal</button>
+                                <button id="createTicketSubmitBtn" type="submit"
+                                    class="px-5 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all duration-200 font-medium inline-flex items-center gap-2 transform hover:scale-105 active:scale-95">
                                     <i class="fas fa-paper-plane" aria-hidden="true"></i>
                                     Kirim Request
                                 </button>
@@ -1998,15 +2072,25 @@ $dashPriorityData = [
                                 <p class="text-sm text-gray-600">Ringkasan ticket dan insight cepat</p>
                             </div>
                         </div>
+                        <span id="urt-live-badge"
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-700"
+                            title="Menghubungkan ke real-time..." style="transition:all 0.4s ease;">
+                            <span id="urt-live-dot" class="inline-block w-2 h-2 rounded-full bg-amber-400"
+                                style="transition:background-color 0.4s ease, transform 0.3s ease;"></span>
+                            LIVE
+                        </span>
                     </div>
 
                     <!-- Stats Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Total Tickets</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashTotalTickets); ?></div>
+                                    <div id="urt-total" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashTotalTickets); ?></div>
                                     <p class="text-xs text-gray-500 mt-1">All time</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-blue-100 text-blue-600">
@@ -2015,11 +2099,14 @@ $dashPriorityData = [
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Open Tickets</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashOpenTickets); ?></div>
+                                    <div id="urt-open" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashOpenTickets); ?></div>
                                     <p class="text-xs text-gray-500 mt-1">Need action</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-orange-100 text-orange-600">
@@ -2028,11 +2115,14 @@ $dashPriorityData = [
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">In Progress</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashInProgressTickets); ?></div>
+                                    <div id="urt-inprogress" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashInProgressTickets); ?></div>
                                     <p class="text-xs text-gray-500 mt-1">Being processed</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-yellow-100 text-yellow-700">
@@ -2041,11 +2131,14 @@ $dashPriorityData = [
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Completed (Done)</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashDoneTickets); ?></div>
+                                    <div id="urt-done" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashDoneTickets); ?></div>
                                     <p class="text-xs text-gray-500 mt-1">Resolved</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-green-100 text-green-600">
@@ -2057,11 +2150,14 @@ $dashPriorityData = [
 
                     <!-- Additional Stats -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Review</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashReviewTickets); ?></div>
+                                    <div id="urt-review" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashReviewTickets); ?></div>
                                     <p class="text-xs text-gray-500 mt-1">Waiting validation</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-yellow-100 text-yellow-700">
@@ -2070,11 +2166,14 @@ $dashPriorityData = [
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Closed</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashClosedTickets); ?></div>
+                                    <div id="urt-closed" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashClosedTickets); ?></div>
                                     <p class="text-xs text-gray-500 mt-1">Finalized by user</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-gray-200 text-gray-600">
@@ -2083,11 +2182,14 @@ $dashPriorityData = [
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Rejected</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashRejectedTickets); ?></div>
+                                    <div id="urt-rejected" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashRejectedTickets); ?></div>
                                     <p class="text-xs text-gray-500 mt-1">Need review</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-red-100 text-red-600">
@@ -2096,11 +2198,14 @@ $dashPriorityData = [
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Average Response Time</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashAvgResponseTime); ?></div>
+                                    <div id="urt-avgtime" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashAvgResponseTime); ?></div>
                                     <p class="text-xs text-gray-500 mt-1">Based on first status change</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-gray-200 text-gray-600">
@@ -2112,13 +2217,15 @@ $dashPriorityData = [
 
                     <!-- Charts -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/20 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/20 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <h3 class="text-lg font-semibold text-gray-900 mb-4">Ticket Status Distribution</h3>
                             <div class="relative" style="height: 300px;">
                                 <canvas id="userTicketStatusChart"></canvas>
                             </div>
                         </div>
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/20 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/20 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <h3 class="text-lg font-semibold text-gray-900 mb-4">Tickets by Priority</h3>
                             <div class="relative" style="height: 300px;">
                                 <canvas id="userTicketPriorityChart"></canvas>
@@ -2135,47 +2242,75 @@ $dashPriorityData = [
                             <table class="min-w-full">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ticket Code</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">User</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Divisi</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Subject</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Priority</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Ticket Code</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            User</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Divisi</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Subject</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Category</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Priority</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Status</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Created</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-100">
+                                <tbody id="user-dash-recent-tbody" class="bg-white divide-y divide-gray-100">
                                     <?php if (count($dashRecentTickets) === 0): ?>
                                         <tr>
-                                            <td class="px-5 py-4 text-sm text-gray-600" colspan="8">Belum ada data ticket.</td>
+                                            <td class="px-5 py-4 text-sm text-gray-600" colspan="8">Belum ada data ticket.
+                                            </td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($dashRecentTickets as $rt): ?>
                                             <?php
-                                                $rtCodeInt = (int)($rt['Ticket_code'] ?? 0);
-                                                $rtCodeDisplay = ticket_user_format_code($rtCodeInt, isset($rt['Create_User']) ? (string)$rt['Create_User'] : null);
-                                                $rtStatus = isset($rt['Status_Request']) ? (string)$rt['Status_Request'] : '';
-                                                $rtStatusClass = ticket_badge_status_class($rtStatus);
-                                                $rtPriority = isset($rt['Priority']) ? (string)$rt['Priority'] : '';
-                                                $rtPriorityClass = ticket_badge_priority_class($rtPriority);
+                                            $rtCodeInt = (int) ($rt['Ticket_code'] ?? 0);
+                                            $rtCodeDisplay = ticket_user_format_code($rtCodeInt, isset($rt['Create_User']) ? (string) $rt['Create_User'] : null);
+                                            $rtStatus = isset($rt['Status_Request']) ? (string) $rt['Status_Request'] : '';
+                                            $rtStatusClass = ticket_badge_status_class($rtStatus);
+                                            $rtPriority = isset($rt['Priority']) ? (string) $rt['Priority'] : '';
+                                            $rtPriorityClass = ticket_badge_priority_class($rtPriority);
                                             ?>
                                             <tr class="hover:bg-orange-50/40 transition-colors">
                                                 <td class="px-5 py-4 whitespace-nowrap">
-                                                    <div class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($rtCodeDisplay); ?></div>
-                                                    <div class="text-xs text-gray-500">#<?php echo htmlspecialchars((string)$rtCodeInt); ?></div>
+                                                    <div class="text-sm font-semibold text-gray-900">
+                                                        <?php echo htmlspecialchars($rtCodeDisplay); ?></div>
+                                                    <div class="text-xs text-gray-500">
+                                                        #<?php echo htmlspecialchars((string) $rtCodeInt); ?></div>
                                                 </td>
-                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo htmlspecialchars((string)($rt['Nama_User'] ?? $Nama_Lengkap)); ?></td>
-                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600"><?php echo htmlspecialchars((string)($rt['Divisi_User'] ?? '')); ?></td>
-                                                <td class="px-5 py-4 text-sm text-gray-900"><?php echo htmlspecialchars((string)($rt['Subject'] ?? '')); ?></td>
-                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600"><?php echo htmlspecialchars((string)($rt['Kategori_Masalah'] ?? '')); ?></td>
+                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <?php echo htmlspecialchars((string) ($rt['Nama_User'] ?? $Nama_Lengkap)); ?>
+                                                </td>
+                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <?php echo htmlspecialchars((string) ($rt['Divisi_User'] ?? '')); ?></td>
+                                                <td class="px-5 py-4 text-sm text-gray-900">
+                                                    <?php echo htmlspecialchars((string) ($rt['Subject'] ?? '')); ?></td>
+                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <?php echo htmlspecialchars((string) ($rt['Kategori_Masalah'] ?? '')); ?>
+                                                </td>
                                                 <td class="px-5 py-4 whitespace-nowrap">
-                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($rtPriorityClass); ?>"><?php echo htmlspecialchars($rtPriority); ?></span>
+                                                    <span
+                                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($rtPriorityClass); ?>"><?php echo htmlspecialchars($rtPriority); ?></span>
                                                 </td>
                                                 <td class="px-5 py-4 whitespace-nowrap">
-                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($rtStatusClass); ?>"><?php echo htmlspecialchars($rtStatus); ?></span>
+                                                    <span
+                                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($rtStatusClass); ?>"><?php echo htmlspecialchars($rtStatus); ?></span>
                                                 </td>
-                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600"><?php echo htmlspecialchars((string)($rt['Create_User'] ?? '')); ?></td>
+                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <?php echo htmlspecialchars((string) ($rt['Create_User'] ?? '')); ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -2186,59 +2321,83 @@ $dashPriorityData = [
                 </div>
             </div>
 
+            <!-- ===== IT TEAM STATUS BANNER ===== -->
+            <div id="it-status-banner" class="mb-4 rounded-xl border transition-all duration-500"
+                style="display:none; overflow:hidden;">
+                <div class="flex items-center gap-4 px-5 py-3.5">
+                    <!-- Pulsing icon -->
+                    <div id="it-status-icon" class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg">
+                        <span id="it-status-emoji">⚙️</span>
+                    </div>
+                    <!-- Text content -->
+                    <div class="flex-1 min-w-0">
+                        <p id="it-status-title" class="text-sm font-semibold leading-tight"></p>
+                        <p id="it-status-sub" class="text-xs mt-0.5 opacity-80"></p>
+                    </div>
+                    <!-- Stats pills -->
+                    <div id="it-status-pills" class="hidden sm:flex items-center gap-2 flex-shrink-0"></div>
+                    <!-- Live dot -->
+                    <div class="flex-shrink-0 flex items-center gap-1.5">
+                        <span class="relative flex h-2 w-2">
+                            <span id="it-live-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                            <span id="it-live-dot" class="relative inline-flex rounded-full h-2 w-2"></span>
+                        </span>
+                        <span class="text-[10px] font-medium opacity-60">LIVE</span>
+                    </div>
+                </div>
+            </div>
+            <!-- ===== END IT TEAM STATUS BANNER ===== -->
+
             <div class="bg-white rounded-xl shadow-lg p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Ticket Saya</h2>
 
                 <form id="ticketSearchForm" method="GET" class="mb-4">
                     <?php if ($statusFilter !== ''): ?>
-                        <input type="hidden" name="status" value="<?php echo htmlspecialchars($statusFilter, ENT_QUOTES); ?>" />
+                        <input type="hidden" name="status"
+                            value="<?php echo htmlspecialchars($statusFilter, ENT_QUOTES); ?>" />
                     <?php endif; ?>
                     <?php
-                        $downloadParams = [];
-                        if ($statusFilter !== '') {
-                            $downloadParams['status'] = $statusFilter;
-                        }
-                        if ($searchQuery !== '') {
-                            $downloadParams['q'] = $searchQuery;
-                        }
-                        $downloadUrl = 'download_ticket_report.php';
-                        if (!empty($downloadParams)) {
-                            $downloadUrl .= '?' . http_build_query($downloadParams);
-                        }
+                    $downloadParams = [];
+                    if ($statusFilter !== '') {
+                        $downloadParams['status'] = $statusFilter;
+                    }
+                    if ($searchQuery !== '') {
+                        $downloadParams['q'] = $searchQuery;
+                    }
+                    $downloadUrl = 'download_ticket_report.php';
+                    if (!empty($downloadParams)) {
+                        $downloadUrl .= '?' . http_build_query($downloadParams);
+                    }
                     ?>
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div class="max-w-md w-full">
                             <div class="relative">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                     <i class="fas fa-search" aria-hidden="true"></i>
                                 </div>
-                                <input
-                                    id="ticketSearchInput"
-                                    name="q"
-                                    type="text"
-                                    value="<?php echo htmlspecialchars($searchQuery); ?>"
-                                    placeholder="Search ticket..."
-                                    class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400"
-                                />
+                                <input id="ticketSearchInput" name="q" type="text"
+                                    value="<?php echo htmlspecialchars($searchQuery); ?>" placeholder="Search ticket..."
+                                    class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400" />
                             </div>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
-                            <?php $approvalCloseCount = isset($statusCounts['Done']) ? (int)$statusCounts['Done'] : 0; ?>
-                            <button
-                                id="ticketApprovalCloseBtn"
-                                type="button"
+                        <div
+                            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
+                            <?php $approvalCloseCount = isset($statusCounts['Done']) ? (int) $statusCounts['Done'] : 0; ?>
+                            <button id="ticketApprovalCloseBtn" type="button"
                                 class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap <?php echo ($approvalCloseCount > 0) ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'; ?>"
-                                <?php echo ($approvalCloseCount > 0) ? '' : 'disabled'; ?>
-                            >
+                                <?php echo ($approvalCloseCount > 0) ? '' : 'disabled'; ?>>
                                 <i class="fas fa-circle-check" aria-hidden="true"></i>
                                 Approval Close
-                                <span id="ticketApprovalCloseCount" class="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full text-xs font-bold <?php echo ($approvalCloseCount > 0) ? 'bg-white/20 text-white' : 'bg-white text-gray-600'; ?>">
-                                    <?php echo htmlspecialchars((string)$approvalCloseCount); ?>
+                                <span id="ticketApprovalCloseCount"
+                                    class="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full text-xs font-bold <?php echo ($approvalCloseCount > 0) ? 'bg-white/20 text-white' : 'bg-white text-gray-600'; ?>">
+                                    <?php echo htmlspecialchars((string) $approvalCloseCount); ?>
                                 </span>
                             </button>
 
-                            <a id="ticketDownloadReportBtn" href="<?php echo htmlspecialchars($downloadUrl); ?>" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm font-semibold whitespace-nowrap">
+                            <a id="ticketDownloadReportBtn" href="<?php echo htmlspecialchars($downloadUrl); ?>"
+                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm font-semibold whitespace-nowrap">
                                 <i class="fas fa-download" aria-hidden="true"></i>
                                 Download Report
                             </a>
@@ -2262,15 +2421,16 @@ $dashPriorityData = [
                 <div class="mb-5">
                     <div class="flex flex-wrap items-center gap-2">
                         <a href="<?php echo htmlspecialchars($allTabUrl); ?>"
-                           class="<?php echo ($activeTabStatus === '') ? $tabClassActive : $tabClassInactive; ?>"
-                           data-status=""
-                           data-class-active="<?php echo htmlspecialchars($tabClassActive, ENT_QUOTES); ?>"
-                           data-class-inactive="<?php echo htmlspecialchars($tabClassInactive, ENT_QUOTES); ?>">
+                            class="<?php echo ($activeTabStatus === '') ? $tabClassActive : $tabClassInactive; ?>"
+                            data-status=""
+                            data-class-active="<?php echo htmlspecialchars($tabClassActive, ENT_QUOTES); ?>"
+                            data-class-inactive="<?php echo htmlspecialchars($tabClassInactive, ENT_QUOTES); ?>">
                             <span>All</span>
-                            <span class="<?php echo ($activeTabStatus === '') ? $countClassActive : $countClassInactive; ?>"
-                                  data-class-active="<?php echo htmlspecialchars($countClassActive, ENT_QUOTES); ?>"
-                                  data-class-inactive="<?php echo htmlspecialchars($countClassInactive, ENT_QUOTES); ?>">
-                                <?php echo htmlspecialchars((string)($totalAllRecords ?? 0)); ?>
+                            <span
+                                class="<?php echo ($activeTabStatus === '') ? $countClassActive : $countClassInactive; ?>"
+                                data-class-active="<?php echo htmlspecialchars($countClassActive, ENT_QUOTES); ?>"
+                                data-class-inactive="<?php echo htmlspecialchars($countClassInactive, ENT_QUOTES); ?>">
+                                <?php echo htmlspecialchars((string) ($totalAllRecords ?? 0)); ?>
                             </span>
                         </a>
 
@@ -2278,18 +2438,18 @@ $dashPriorityData = [
                             <?php
                             $isActive = ($activeTabStatus === $st);
                             $tabUrl = '?' . http_build_query(array_merge($tabBaseParams ?? [], ['status' => $st]));
-                            $countVal = isset($statusCounts[$st]) ? (int)$statusCounts[$st] : 0;
+                            $countVal = isset($statusCounts[$st]) ? (int) $statusCounts[$st] : 0;
                             ?>
                             <a href="<?php echo htmlspecialchars($tabUrl); ?>"
-                               class="<?php echo $isActive ? $tabClassActive : $tabClassInactive; ?>"
-                               data-status="<?php echo htmlspecialchars($st, ENT_QUOTES); ?>"
-                               data-class-active="<?php echo htmlspecialchars($tabClassActive, ENT_QUOTES); ?>"
-                               data-class-inactive="<?php echo htmlspecialchars($tabClassInactive, ENT_QUOTES); ?>">
+                                class="<?php echo $isActive ? $tabClassActive : $tabClassInactive; ?>"
+                                data-status="<?php echo htmlspecialchars($st, ENT_QUOTES); ?>"
+                                data-class-active="<?php echo htmlspecialchars($tabClassActive, ENT_QUOTES); ?>"
+                                data-class-inactive="<?php echo htmlspecialchars($tabClassInactive, ENT_QUOTES); ?>">
                                 <span><?php echo htmlspecialchars($st); ?></span>
                                 <span class="<?php echo $isActive ? $countClassActive : $countClassInactive; ?>"
-                                      data-class-active="<?php echo htmlspecialchars($countClassActive, ENT_QUOTES); ?>"
-                                      data-class-inactive="<?php echo htmlspecialchars($countClassInactive, ENT_QUOTES); ?>">
-                                    <?php echo htmlspecialchars((string)$countVal); ?>
+                                    data-class-active="<?php echo htmlspecialchars($countClassActive, ENT_QUOTES); ?>"
+                                    data-class-inactive="<?php echo htmlspecialchars($countClassInactive, ENT_QUOTES); ?>">
+                                    <?php echo htmlspecialchars((string) $countVal); ?>
                                 </span>
                             </a>
                         <?php endforeach; ?>
@@ -2304,7 +2464,8 @@ $dashPriorityData = [
                     <?php elseif (count($userTickets) === 0): ?>
                         <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg p-4">
                             <?php if ($statusFilter !== ''): ?>
-                                Tidak ada ticket untuk status: <span class="font-semibold"><?php echo htmlspecialchars($statusFilter); ?></span>.
+                                Tidak ada ticket untuk status: <span
+                                    class="font-semibold"><?php echo htmlspecialchars($statusFilter); ?></span>.
                             <?php else: ?>
                                 Belum ada ticket untuk user ini.
                             <?php endif; ?>
@@ -2313,73 +2474,112 @@ $dashPriorityData = [
                         <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">No</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Ticket Code</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Subject</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Kategori</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Priority</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Status</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Type Pekerjaan</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Created</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">File User</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Respon IT</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">File IT</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Aksi</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        No</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Ticket Code</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Subject</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Kategori</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Priority</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Status</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Type Pekerjaan</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Created</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        File User</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Respon IT</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        File IT</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">
-                                <?php $rowNo = $offset; foreach ($userTickets as $t): $rowNo++; ?>
+                                <?php $rowNo = $offset;
+                                foreach ($userTickets as $t):
+                                    $rowNo++; ?>
                                     <?php
-                                    $codeInt = (int)$t['Ticket_code'];
-                                    $codeDisplay = ticket_user_format_code($codeInt, isset($t['Create_User']) ? (string)$t['Create_User'] : null);
-                                    $hasFoto = isset($t['Foto_Ticket']) && (string)$t['Foto_Ticket'] !== '';
-                                    $hasDoc = isset($t['Document']) && (string)$t['Document'] !== '';
-                                    $canEdit = isset($t['Status_Request']) && (string)$t['Status_Request'] === 'Open';
-                                    $canApproveClose = isset($t['Status_Request']) && (string)$t['Status_Request'] === 'Done';
+                                    $codeInt = (int) $t['Ticket_code'];
+                                    $codeDisplay = ticket_user_format_code($codeInt, isset($t['Create_User']) ? (string) $t['Create_User'] : null);
+                                    $hasFoto = isset($t['Foto_Ticket']) && (string) $t['Foto_Ticket'] !== '';
+                                    $hasDoc = isset($t['Document']) && (string) $t['Document'] !== '';
+                                    $canEdit = isset($t['Status_Request']) && (string) $t['Status_Request'] === 'Open';
+                                    $canApproveClose = isset($t['Status_Request']) && (string) $t['Status_Request'] === 'Done';
                                     ?>
                                     <tr class="hover:bg-orange-50/40 transition-colors">
-                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap"><?php echo htmlspecialchars((string)$rowNo); ?></td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
-                                            <div class="font-semibold text-gray-900"><?php echo htmlspecialchars($codeDisplay); ?></div>
-                                            <div class="text-xs text-gray-500">#<?php echo htmlspecialchars((string)$codeInt); ?></div>
+                                            <?php echo htmlspecialchars((string) $rowNo); ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
+                                            <div class="font-semibold text-gray-900">
+                                                <?php echo htmlspecialchars($codeDisplay); ?></div>
+                                            <div class="text-xs text-gray-500">
+                                                #<?php echo htmlspecialchars((string) $codeInt); ?></div>
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-800"><?php echo htmlspecialchars((string)$t['Subject']); ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-800"><?php echo htmlspecialchars((string)$t['Kategori_Masalah']); ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            <?php echo htmlspecialchars((string) $t['Subject']); ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            <?php echo htmlspecialchars((string) $t['Kategori_Masalah']); ?></td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
-                                            <?php $priorityText = (string)($t['Priority'] ?? ''); ?>
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo ticket_badge_priority_class($priorityText); ?>">
+                                            <?php $priorityText = (string) ($t['Priority'] ?? ''); ?>
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo ticket_badge_priority_class($priorityText); ?>">
                                                 <?php echo htmlspecialchars($priorityText); ?>
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
-                                            <?php $statusText = (string)($t['Status_Request'] ?? ''); ?>
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo ticket_badge_status_class($statusText); ?>">
+                                            <?php $statusText = (string) ($t['Status_Request'] ?? ''); ?>
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo ticket_badge_status_class($statusText); ?>">
                                                 <?php echo htmlspecialchars($statusText); ?>
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
-                                            <?php $typePekerjaanText = trim((string)($t['Type_Pekerjaan'] ?? '')); ?>
+                                            <?php $typePekerjaanText = trim((string) ($t['Type_Pekerjaan'] ?? '')); ?>
                                             <?php if ($typePekerjaanText !== ''): ?>
-                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo ticket_badge_type_pekerjaan_class($typePekerjaanText); ?>">
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo ticket_badge_type_pekerjaan_class($typePekerjaanText); ?>">
                                                     <?php echo htmlspecialchars($typePekerjaanText); ?>
                                                 </span>
                                             <?php else: ?>
                                                 <span class="text-gray-400">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap"><?php echo htmlspecialchars((string)($t['Create_User'] ?? '')); ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
+                                            <?php echo htmlspecialchars((string) ($t['Create_User'] ?? '')); ?></td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <?php
                                             // (sudah dihitung di atas)
                                             ?>
                                             <?php if ($hasFoto): ?>
-                                                <a class="text-orange-700 hover:underline" href="../uploads/ticket/<?php echo rawurlencode((string)$t['Foto_Ticket']); ?>" target="_blank" rel="noopener">Foto</a>
+                                                <a class="text-orange-700 hover:underline"
+                                                    href="../uploads/ticket/<?php echo rawurlencode((string) $t['Foto_Ticket']); ?>"
+                                                    target="_blank" rel="noopener">Foto</a>
                                             <?php endif; ?>
                                             <?php if ($hasFoto && $hasDoc): ?>
                                                 <span class="text-gray-400">|</span>
                                             <?php endif; ?>
                                             <?php if ($hasDoc): ?>
-                                                <a class="text-orange-700 hover:underline" href="../uploads/ticket/<?php echo rawurlencode((string)$t['Document']); ?>" target="_blank" rel="noopener">Doc</a>
+                                                <a class="text-orange-700 hover:underline"
+                                                    href="../uploads/ticket/<?php echo rawurlencode((string) $t['Document']); ?>"
+                                                    target="_blank" rel="noopener">Doc</a>
                                             <?php endif; ?>
                                             <?php if (!$hasFoto && !$hasDoc): ?>
                                                 <span class="text-gray-400">-</span>
@@ -2387,16 +2587,16 @@ $dashPriorityData = [
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 min-w-[220px]">
                                             <?php
-                                            $jawabanItText = isset($t['Jawaban_IT']) ? trim((string)$t['Jawaban_IT']) : '';
+                                            $jawabanItText = isset($t['Jawaban_IT']) ? trim((string) $t['Jawaban_IT']) : '';
                                             $jawabanItDisplay = ($jawabanItText !== '') ? $jawabanItText : 'Menunggu respon IT';
-                                            echo htmlspecialchars((string)$jawabanItDisplay);
+                                            echo htmlspecialchars((string) $jawabanItDisplay);
                                             ?>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <?php
-                                            $itFileName = isset($t['Photo_IT']) ? trim((string)$t['Photo_IT']) : '';
+                                            $itFileName = isset($t['Photo_IT']) ? trim((string) $t['Photo_IT']) : '';
                                             if ($itFileName !== '') {
-                                                echo '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string)$itFileName) . '" target="_blank" rel="noopener">File IT</a>';
+                                                echo '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string) $itFileName) . '" target="_blank" rel="noopener">File IT</a>';
                                             } else {
                                                 echo '<span class="text-gray-500">Menunggu update dari IT</span>';
                                             }
@@ -2407,80 +2607,72 @@ $dashPriorityData = [
                                                 <?php if ($canApproveClose): ?>
                                                     <form method="POST" class="inline" data-action="approveClose">
                                                         <input type="hidden" name="action" value="approve_close" />
-                                                        <input type="hidden" name="Ticket_code" value="<?php echo htmlspecialchars((string)$codeInt, ENT_QUOTES); ?>" />
-                                                        <button
-                                                            type="submit"
-                                                            class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-all duration-150 transform hover:scale-105 active:scale-95"
-                                                        >
+                                                        <input type="hidden" name="Ticket_code"
+                                                            value="<?php echo htmlspecialchars((string) $codeInt, ENT_QUOTES); ?>" />
+                                                        <button type="submit"
+                                                            class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-all duration-150 transform hover:scale-105 active:scale-95">
                                                             <i class="fas fa-circle-check" aria-hidden="true"></i>
                                                             Approve Close
                                                         </button>
                                                     </form>
                                                 <?php endif; ?>
 
-                                                <button
-                                                    type="button"
+                                                <button type="button"
                                                     class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all duration-150 transform hover:scale-105 active:scale-95"
                                                     data-action="auditTicket"
-                                                    data-ticket-code="<?php echo htmlspecialchars((string)$codeInt, ENT_QUOTES); ?>"
-                                                    data-code-display="<?php echo htmlspecialchars($codeDisplay, ENT_QUOTES); ?>"
-                                                >
+                                                    data-ticket-code="<?php echo htmlspecialchars((string) $codeInt, ENT_QUOTES); ?>"
+                                                    data-code-display="<?php echo htmlspecialchars($codeDisplay, ENT_QUOTES); ?>">
                                                     <i class="fas fa-clock-rotate-left" aria-hidden="true"></i>
                                                     Audit
                                                 </button>
 
-                                                <button
-                                                    type="button"
+                                                <button type="button"
                                                     class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200 transition-all duration-150 transform hover:scale-105 active:scale-95"
                                                     data-action="viewTicket"
-                                                    data-ticket-code="<?php echo htmlspecialchars((string)$codeInt, ENT_QUOTES); ?>"
+                                                    data-ticket-code="<?php echo htmlspecialchars((string) $codeInt, ENT_QUOTES); ?>"
                                                     data-code-display="<?php echo htmlspecialchars($codeDisplay, ENT_QUOTES); ?>"
-                                                    data-created="<?php echo htmlspecialchars((string)($t['Create_User'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-status="<?php echo htmlspecialchars((string)($t['Status_Request'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-subject="<?php echo htmlspecialchars((string)($t['Subject'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-kategori="<?php echo htmlspecialchars((string)($t['Kategori_Masalah'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-priority="<?php echo htmlspecialchars((string)($t['Priority'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-type-pekerjaan="<?php echo htmlspecialchars((string)($t['Type_Pekerjaan'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-divisi="<?php echo htmlspecialchars((string)($t['Divisi_User'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-jabatan="<?php echo htmlspecialchars((string)($t['Jabatan_User'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-region="<?php echo htmlspecialchars((string)($t['Region'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-deskripsi="<?php echo htmlspecialchars((string)($t['Deskripsi_Masalah'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-foto="<?php echo htmlspecialchars((string)($t['Foto_Ticket'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-doc="<?php echo htmlspecialchars((string)($t['Document'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-jawaban-it="<?php echo htmlspecialchars((string)($t['Jawaban_IT'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-file-it="<?php echo htmlspecialchars((string)($t['Photo_IT'] ?? ''), ENT_QUOTES); ?>"
-                                                >
+                                                    data-created="<?php echo htmlspecialchars((string) ($t['Create_User'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-status="<?php echo htmlspecialchars((string) ($t['Status_Request'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-subject="<?php echo htmlspecialchars((string) ($t['Subject'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-kategori="<?php echo htmlspecialchars((string) ($t['Kategori_Masalah'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-priority="<?php echo htmlspecialchars((string) ($t['Priority'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-type-pekerjaan="<?php echo htmlspecialchars((string) ($t['Type_Pekerjaan'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-divisi="<?php echo htmlspecialchars((string) ($t['Divisi_User'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-jabatan="<?php echo htmlspecialchars((string) ($t['Jabatan_User'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-region="<?php echo htmlspecialchars((string) ($t['Region'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-deskripsi="<?php echo htmlspecialchars((string) ($t['Deskripsi_Masalah'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-foto="<?php echo htmlspecialchars((string) ($t['Foto_Ticket'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-doc="<?php echo htmlspecialchars((string) ($t['Document'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-jawaban-it="<?php echo htmlspecialchars((string) ($t['Jawaban_IT'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-file-it="<?php echo htmlspecialchars((string) ($t['Photo_IT'] ?? ''), ENT_QUOTES); ?>">
                                                     <i class="fas fa-eye" aria-hidden="true"></i>
                                                     View
                                                 </button>
 
-                                                <button
-                                                    type="button"
+                                                <button type="button"
                                                     class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-orange-200 bg-orange-50 text-orange-800 transition-all duration-150 transform <?php echo $canEdit ? 'hover:bg-orange-100 hover:scale-105 active:scale-95' : 'opacity-50 cursor-not-allowed'; ?>"
                                                     data-action="editTicket"
-                                                    data-ticket-code="<?php echo htmlspecialchars((string)$codeInt, ENT_QUOTES); ?>"
+                                                    data-ticket-code="<?php echo htmlspecialchars((string) $codeInt, ENT_QUOTES); ?>"
                                                     data-code-display="<?php echo htmlspecialchars($codeDisplay, ENT_QUOTES); ?>"
-                                                    data-status="<?php echo htmlspecialchars((string)($t['Status_Request'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-subject="<?php echo htmlspecialchars((string)($t['Subject'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-kategori="<?php echo htmlspecialchars((string)($t['Kategori_Masalah'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-priority="<?php echo htmlspecialchars((string)($t['Priority'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-deskripsi="<?php echo htmlspecialchars((string)($t['Deskripsi_Masalah'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-foto="<?php echo htmlspecialchars((string)($t['Foto_Ticket'] ?? ''), ENT_QUOTES); ?>"
-                                                    data-doc="<?php echo htmlspecialchars((string)($t['Document'] ?? ''), ENT_QUOTES); ?>"
-                                                    <?php echo $canEdit ? '' : 'disabled'; ?>
-                                                >
+                                                    data-status="<?php echo htmlspecialchars((string) ($t['Status_Request'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-subject="<?php echo htmlspecialchars((string) ($t['Subject'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-kategori="<?php echo htmlspecialchars((string) ($t['Kategori_Masalah'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-priority="<?php echo htmlspecialchars((string) ($t['Priority'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-deskripsi="<?php echo htmlspecialchars((string) ($t['Deskripsi_Masalah'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-foto="<?php echo htmlspecialchars((string) ($t['Foto_Ticket'] ?? ''), ENT_QUOTES); ?>"
+                                                    data-doc="<?php echo htmlspecialchars((string) ($t['Document'] ?? ''), ENT_QUOTES); ?>"
+                                                    <?php echo $canEdit ? '' : 'disabled'; ?>>
                                                     <i class="fas fa-pen" aria-hidden="true"></i>
                                                     Edit
                                                 </button>
 
                                                 <form method="POST" class="inline" data-action="deleteTicket">
                                                     <input type="hidden" name="action" value="delete_ticket" />
-                                                    <input type="hidden" name="Ticket_code" value="<?php echo htmlspecialchars((string)$codeInt, ENT_QUOTES); ?>" />
-                                                    <button
-                                                        type="submit"
+                                                    <input type="hidden" name="Ticket_code"
+                                                        value="<?php echo htmlspecialchars((string) $codeInt, ENT_QUOTES); ?>" />
+                                                    <button type="submit"
                                                         class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-red-200 bg-red-50 text-red-700 transition-all duration-150 transform <?php echo $canEdit ? 'hover:bg-red-100 hover:scale-105 active:scale-95' : 'opacity-50 cursor-not-allowed'; ?>"
-                                                        <?php echo $canEdit ? '' : 'disabled'; ?>
-                                                    >
+                                                        <?php echo $canEdit ? '' : 'disabled'; ?>>
                                                         <i class="fas fa-trash" aria-hidden="true"></i>
                                                         Hapus
                                                     </button>
@@ -2504,229 +2696,285 @@ $dashPriorityData = [
 
                 <!-- View Modal -->
                 <div id="viewTicketModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div class="modal-overlay absolute inset-0 bg-black/50" data-modal-close="view"></div>
-                        <div class="modal-panel relative w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
-                            <div class="h-1 bg-gradient-to-r from-orange-500 to-orange-300"></div>
-                            <div class="flex items-start justify-between gap-4 px-6 py-4 border-b bg-gradient-to-r from-orange-50 to-white">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900">Detail Ticket</h3>
-                                    <p class="text-sm text-gray-600 font-mono" id="viewTicketCode"></p>
-                                    <p class="text-sm text-gray-700 mt-1" id="viewSubject"></p>
-                                </div>
-                                <button type="button" class="text-gray-500 hover:text-gray-800" data-modal-close="view">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                    <div class="modal-overlay absolute inset-0 bg-black/50" data-modal-close="view"></div>
+                    <div
+                        class="modal-panel relative w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
+                        <div class="h-1 bg-gradient-to-r from-orange-500 to-orange-300"></div>
+                        <div
+                            class="flex items-start justify-between gap-4 px-6 py-4 border-b bg-gradient-to-r from-orange-50 to-white">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Detail Ticket</h3>
+                                <p class="text-sm text-gray-600 font-mono" id="viewTicketCode"></p>
+                                <p class="text-sm text-gray-700 mt-1" id="viewSubject"></p>
                             </div>
-                            <div class="p-6 overflow-y-auto flex-1">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div class="md:col-span-2 space-y-4">
-                                        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <div>
-                                                    <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Created</div>
-                                                    <div id="viewCreated" class="text-sm font-medium text-gray-900"></div>
-                                                </div>
-                                                <div>
-                                                    <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Kategori Masalah</div>
-                                                    <div id="viewKategori" class="text-sm font-medium text-gray-900"></div>
-                                                </div>
+                            <button type="button" class="text-gray-500 hover:text-gray-800" data-modal-close="view">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="p-6 overflow-y-auto flex-1">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="md:col-span-2 space-y-4">
+                                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <div
+                                                    class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                                    Created</div>
+                                                <div id="viewCreated" class="text-sm font-medium text-gray-900"></div>
                                             </div>
-                                        </div>
-
-                                        <div class="rounded-xl border border-gray-200 bg-white p-4">
-                                            <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Deskripsi Masalah</div>
-                                            <div id="viewDeskripsi" class="text-sm text-gray-800 whitespace-pre-wrap"></div>
-                                        </div>
-
-                                        <div class="rounded-xl border border-gray-200 bg-white p-4">
-                                            <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-3">Lampiran</div>
-                                            <div class="space-y-3">
-                                                <div class="flex items-start justify-between gap-4">
-                                                    <div class="text-sm font-medium text-gray-700">File User</div>
-                                                    <div id="viewFilesUser" class="text-sm text-gray-800 text-right"></div>
-                                                </div>
-                                                <div class="flex items-start justify-between gap-4">
-                                                    <div class="text-sm font-medium text-gray-700">File IT</div>
-                                                    <div id="viewFilesIt" class="text-sm text-gray-800 text-right"></div>
-                                                </div>
+                                            <div>
+                                                <div
+                                                    class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                                    Kategori Masalah</div>
+                                                <div id="viewKategori" class="text-sm font-medium text-gray-900"></div>
                                             </div>
-                                        </div>
-
-                                        <div class="rounded-xl border border-gray-200 bg-white p-4">
-                                            <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Respon IT</div>
-                                            <div id="viewJawabanIt" class="text-sm text-gray-800 whitespace-pre-wrap"></div>
                                         </div>
                                     </div>
 
-                                    <div class="space-y-4">
-                                        <div class="rounded-xl border border-gray-200 bg-white p-4">
-                                            <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-3">Ringkasan</div>
+                                    <div class="rounded-xl border border-gray-200 bg-white p-4">
+                                        <div
+                                            class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                            Deskripsi Masalah</div>
+                                        <div id="viewDeskripsi" class="text-sm text-gray-800 whitespace-pre-wrap"></div>
+                                    </div>
 
-                                            <div class="space-y-3">
-                                                <div>
-                                                    <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Status</div>
-                                                    <span id="viewStatus" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-gray-50 text-gray-700 border-gray-200">-</span>
-                                                </div>
+                                    <div class="rounded-xl border border-gray-200 bg-white p-4">
+                                        <div
+                                            class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                                            Lampiran</div>
+                                        <div class="space-y-3">
+                                            <div class="flex items-start justify-between gap-4">
+                                                <div class="text-sm font-medium text-gray-700">File User</div>
+                                                <div id="viewFilesUser" class="text-sm text-gray-800 text-right"></div>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-4">
+                                                <div class="text-sm font-medium text-gray-700">File IT</div>
+                                                <div id="viewFilesIt" class="text-sm text-gray-800 text-right"></div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                                <div>
-                                                    <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Priority</div>
-                                                    <span id="viewPriority" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-gray-50 text-gray-700 border-gray-200">-</span>
-                                                </div>
+                                    <div class="rounded-xl border border-gray-200 bg-white p-4">
+                                        <div
+                                            class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                            Respon IT</div>
+                                        <div id="viewJawabanIt" class="text-sm text-gray-800 whitespace-pre-wrap"></div>
+                                    </div>
+                                </div>
 
-                                                <div>
-                                                    <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Type Pekerjaan</div>
-                                                    <span id="viewTypePekerjaan" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-gray-50 text-gray-700 border-gray-200">-</span>
-                                                </div>
+                                <div class="space-y-4">
+                                    <div class="rounded-xl border border-gray-200 bg-white p-4">
+                                        <div
+                                            class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                                            Ringkasan</div>
 
-                                                <div class="pt-2 border-t border-gray-100"></div>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <div
+                                                    class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                                    Status</div>
+                                                <span id="viewStatus"
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-gray-50 text-gray-700 border-gray-200">-</span>
+                                            </div>
 
-                                                <div>
-                                                    <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Divisi</div>
-                                                    <div id="viewDivisi" class="text-sm font-medium text-gray-900">-</div>
-                                                </div>
-                                                <div>
-                                                    <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Jabatan</div>
-                                                    <div id="viewJabatan" class="text-sm font-medium text-gray-900">-</div>
-                                                </div>
-                                                <div>
-                                                    <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Region</div>
-                                                    <div id="viewRegion" class="text-sm font-medium text-gray-900">-</div>
-                                                </div>
+                                            <div>
+                                                <div
+                                                    class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                                    Priority</div>
+                                                <span id="viewPriority"
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-gray-50 text-gray-700 border-gray-200">-</span>
+                                            </div>
+
+                                            <div>
+                                                <div
+                                                    class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                                    Type Pekerjaan</div>
+                                                <span id="viewTypePekerjaan"
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-gray-50 text-gray-700 border-gray-200">-</span>
+                                            </div>
+
+                                            <div class="pt-2 border-t border-gray-100"></div>
+
+                                            <div>
+                                                <div
+                                                    class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                                    Divisi</div>
+                                                <div id="viewDivisi" class="text-sm font-medium text-gray-900">-</div>
+                                            </div>
+                                            <div>
+                                                <div
+                                                    class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                                    Jabatan</div>
+                                                <div id="viewJabatan" class="text-sm font-medium text-gray-900">-</div>
+                                            </div>
+                                            <div>
+                                                <div
+                                                    class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                                    Region</div>
+                                                <div id="viewRegion" class="text-sm font-medium text-gray-900">-</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="px-6 py-4 border-t flex justify-end">
-                                <button type="button" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50" data-modal-close="view">Tutup</button>
                             </div>
                         </div>
+                        <div class="px-6 py-4 border-t flex justify-end">
+                            <button type="button"
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                data-modal-close="view">Tutup</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Audit Modal -->
                 <div id="auditTicketModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div class="modal-overlay absolute inset-0 bg-black/50" data-modal-close="audit"></div>
-                        <div class="modal-panel relative w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
-                            <div class="h-1 bg-gradient-to-r from-blue-600 to-blue-300"></div>
-                            <div class="flex items-start justify-between gap-4 px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-white">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900">Audit Status Ticket</h3>
-                                    <p class="text-sm text-gray-600 font-mono" id="auditTicketCode"></p>
-                                </div>
-                                <button type="button" class="text-gray-500 hover:text-gray-800" data-modal-close="audit">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                    <div class="modal-overlay absolute inset-0 bg-black/50" data-modal-close="audit"></div>
+                    <div
+                        class="modal-panel relative w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
+                        <div class="h-1 bg-gradient-to-r from-blue-600 to-blue-300"></div>
+                        <div
+                            class="flex items-start justify-between gap-4 px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-white">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Audit Status Ticket</h3>
+                                <p class="text-sm text-gray-600 font-mono" id="auditTicketCode"></p>
                             </div>
-                            <div class="p-6 overflow-y-auto flex-1">
-                                <div id="auditTimelineContainer" class="space-y-4"></div>
-                            </div>
-                            <div class="px-6 py-4 border-t bg-gray-50 flex items-center justify-end">
-                                <button type="button" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50" data-modal-close="audit">Tutup</button>
-                            </div>
+                            <button type="button" class="text-gray-500 hover:text-gray-800" data-modal-close="audit">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
+                        <div class="p-6 overflow-y-auto flex-1">
+                            <div id="auditTimelineContainer" class="space-y-4"></div>
+                        </div>
+                        <div class="px-6 py-4 border-t bg-gray-50 flex items-center justify-end">
+                            <button type="button"
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                data-modal-close="audit">Tutup</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Edit Modal -->
                 <div id="editTicketModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div class="modal-overlay absolute inset-0 bg-black/50" data-modal-close="edit"></div>
-                        <div class="modal-panel relative w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
-                            <div class="flex items-center justify-between px-6 py-4 border-b">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900">Edit Ticket</h3>
-                                    <p class="text-sm text-gray-600" id="editTicketCode"></p>
-                                </div>
-                                <button type="button" class="text-gray-500 hover:text-gray-800" data-modal-close="edit">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                    <div class="modal-overlay absolute inset-0 bg-black/50" data-modal-close="edit"></div>
+                    <div
+                        class="modal-panel relative w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
+                        <div class="flex items-center justify-between px-6 py-4 border-b">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Edit Ticket</h3>
+                                <p class="text-sm text-gray-600" id="editTicketCode"></p>
+                            </div>
+                            <button type="button" class="text-gray-500 hover:text-gray-800" data-modal-close="edit">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <form id="editTicketForm" method="POST" enctype="multipart/form-data"
+                            class="p-6 space-y-3 overflow-y-auto flex-1">
+                            <input type="hidden" name="action" value="update_ticket" />
+                            <input type="hidden" name="Ticket_code" id="editTicketCodeValue" value="" />
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                                <input name="Subject" id="editSubject" type="text" required maxlength="250"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg" />
                             </div>
 
-                            <form id="editTicketForm" method="POST" enctype="multipart/form-data" class="p-6 space-y-3 overflow-y-auto flex-1">
-                                <input type="hidden" name="action" value="update_ticket" />
-                                <input type="hidden" name="Ticket_code" id="editTicketCodeValue" value="" />
-
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                                    <input name="Subject" id="editSubject" type="text" required maxlength="250" class="w-full px-4 py-3 border border-gray-300 rounded-lg" />
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Masalah</label>
+                                    <select name="Kategori_Masalah" id="editKategori" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                                        <option value="">Pilih kategori</option>
+                                        <option value="Aplikasi">Aplikasi</option>
+                                        <option value="Email">Email</option>
+                                        <option value="Jaringan">Jaringan</option>
+                                        <option value="Hardware">Hardware</option>
+                                        <option value="Akun/Access">Akun/Access</option>
+                                        <option value="Lainnya">Lainnya</option>
+                                    </select>
                                 </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Masalah</label>
-                                        <select name="Kategori_Masalah" id="editKategori" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
-                                            <option value="">Pilih kategori</option>
-                                            <option value="Aplikasi">Aplikasi</option>
-                                            <option value="Email">Email</option>
-                                            <option value="Jaringan">Jaringan</option>
-                                            <option value="Hardware">Hardware</option>
-                                            <option value="Akun/Access">Akun/Access</option>
-                                            <option value="Lainnya">Lainnya</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                                        <select name="Priority" id="editPriority" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
-                                            <option value="">Pilih priority</option>
-                                            <option value="Low">Low</option>
-                                            <option value="Medium">Medium</option>
-                                            <option value="High">High</option>
-                                            <option value="Urgent">Urgent</option>
-                                        </select>
-                                    </div>
-                                </div>
-
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Masalah</label>
-                                    <textarea name="Deskripsi_Masalah" id="editDeskripsi" required maxlength="255" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg"></textarea>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                                    <select name="Priority" id="editPriority" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                                        <option value="">Pilih priority</option>
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Urgent">Urgent</option>
+                                    </select>
                                 </div>
+                            </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Foto Ticket (opsional)</label>
-                                        <input id="Foto_Ticket_Edit" name="Foto_Ticket" type="file" accept="image/*" capture="environment" class="w-full text-sm js-ticket-photo-input" />
-                                        <div class="mt-2">
-                                            <button type="button" class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm js-ticket-camera-btn" data-target-input="Foto_Ticket_Edit">
-                                                <i class="fas fa-camera" aria-hidden="true"></i>
-                                                Gunakan Kamera
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Masalah</label>
+                                <textarea name="Deskripsi_Masalah" id="editDeskripsi" required maxlength="255" rows="4"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Foto Ticket
+                                        (opsional)</label>
+                                    <input id="Foto_Ticket_Edit" name="Foto_Ticket" type="file" accept="image/*"
+                                        capture="environment" class="w-full text-sm js-ticket-photo-input" />
+                                    <div class="mt-2">
+                                        <button type="button"
+                                            class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm js-ticket-camera-btn"
+                                            data-target-input="Foto_Ticket_Edit">
+                                            <i class="fas fa-camera" aria-hidden="true"></i>
+                                            Gunakan Kamera
+                                        </button>
+                                    </div>
+                                    <div id="ticketCameraBox_Edit"
+                                        class="mt-3 hidden p-3 bg-orange-50 rounded-lg border border-orange-200">
+                                        <video id="ticketCameraVideo_Edit" playsinline autoplay
+                                            class="w-full max-w-sm rounded-lg shadow-md mx-auto"></video>
+                                        <div id="ticketCameraGeo_Edit"
+                                            class="mt-2 text-[11px] text-gray-700 text-center">
+                                            Menunggu lokasi...
+                                        </div>
+                                        <div class="mt-3 flex gap-2 justify-center">
+                                            <button type="button"
+                                                class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm js-ticket-camera-capture"
+                                                data-camera-scope="Edit" data-target-input="Foto_Ticket_Edit">
+                                                <i class="fas fa-circle-dot mr-2" aria-hidden="true"></i>Capture
+                                            </button>
+                                            <button type="button"
+                                                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm js-ticket-camera-close"
+                                                data-camera-scope="Edit">
+                                                <i class="fas fa-xmark mr-2" aria-hidden="true"></i>Tutup
                                             </button>
                                         </div>
-                                        <div id="ticketCameraBox_Edit" class="mt-3 hidden p-3 bg-orange-50 rounded-lg border border-orange-200">
-                                            <video id="ticketCameraVideo_Edit" playsinline autoplay class="w-full max-w-sm rounded-lg shadow-md mx-auto"></video>
-                                            <div id="ticketCameraGeo_Edit" class="mt-2 text-[11px] text-gray-700 text-center">
-                                                Menunggu lokasi...
-                                            </div>
-                                            <div class="mt-3 flex gap-2 justify-center">
-                                                <button type="button" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm js-ticket-camera-capture" data-camera-scope="Edit" data-target-input="Foto_Ticket_Edit">
-                                                    <i class="fas fa-circle-dot mr-2" aria-hidden="true"></i>Capture
-                                                </button>
-                                                <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm js-ticket-camera-close" data-camera-scope="Edit">
-                                                    <i class="fas fa-xmark mr-2" aria-hidden="true"></i>Tutup
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-1" id="editFotoInfo"></p>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Document (opsional)</label>
-                                        <input name="Document" type="file" class="w-full text-sm" />
-                                        <p class="text-xs text-gray-500 mt-1" id="editDocInfo"></p>
-                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1" id="editFotoInfo"></p>
                                 </div>
-
-                                <div class="text-xs text-gray-500">Edit hanya bisa saat status Open.</div>
-
-                                <div class="pt-2 flex justify-end gap-2">
-                                    <button type="button" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50" data-modal-close="edit">Batal</button>
-                                    <button type="submit" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">Simpan</button>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Document
+                                        (opsional)</label>
+                                    <input name="Document" type="file" class="w-full text-sm" />
+                                    <p class="text-xs text-gray-500 mt-1" id="editDocInfo"></p>
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+
+                            <div class="text-xs text-gray-500">Edit hanya bisa saat status Open.</div>
+
+                            <div class="pt-2 flex justify-end gap-2">
+                                <button type="button"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    data-modal-close="edit">Batal</button>
+                                <button type="submit"
+                                    class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">Simpan</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Ticket dashboard charts
             if (typeof Chart !== 'undefined') {
                 if (typeof ChartDataLabels !== 'undefined') {
@@ -2851,7 +3099,7 @@ $dashPriorityData = [
 
             const loadingOverlay = document.getElementById('loadingOverlay');
             if (loadingOverlay) {
-                setTimeout(function() {
+                setTimeout(function () {
                     loadingOverlay.style.display = 'none';
                 }, 300);
             }
@@ -2903,7 +3151,7 @@ $dashPriorityData = [
             }
 
             if (hamburgerBtn) {
-                hamburgerBtn.addEventListener('click', function(e) {
+                hamburgerBtn.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     toggleSidebar();
@@ -2911,7 +3159,7 @@ $dashPriorityData = [
             }
 
             if (closeSidebarBtn) {
-                closeSidebarBtn.addEventListener('click', function(e) {
+                closeSidebarBtn.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     closeSidebar();
@@ -2919,13 +3167,13 @@ $dashPriorityData = [
             }
 
             if (mobileOverlay) {
-                mobileOverlay.addEventListener('click', function(e) {
+                mobileOverlay.addEventListener('click', function (e) {
                     e.preventDefault();
                     closeSidebar();
                 });
             }
 
-            window.addEventListener('resize', function() {
+            window.addEventListener('resize', function () {
                 if (window.innerWidth >= 1024) {
                     closeSidebar();
                 }
@@ -3150,7 +3398,7 @@ $dashPriorityData = [
                         }
 
                         const isLast = idx === list.length - 1;
-                        html += '<div class="relative pl-10 ' + (isLast ? '' : 'pb-6') + '">' 
+                        html += '<div class="relative pl-10 ' + (isLast ? '' : 'pb-6') + '">'
                             + '<span class="absolute left-1.5 top-0.5 w-7 h-7 ' + statusMarker.bg + ' rounded-full ring-4 ' + statusMarker.ring + ' flex items-center justify-center text-white">'
                             + '<i class="' + statusMarker.icon + '" aria-hidden="true"></i>'
                             + '</span>'
@@ -3463,6 +3711,40 @@ $dashPriorityData = [
             }
 
             // AJAX pagination (progressive enhancement)
+            function showTableLoading() {
+                const container = document.getElementById('tickets-table-container');
+                if (!container) return;
+                container.style.opacity = '0.4';
+                container.style.pointerEvents = 'none';
+                container.style.transition = 'opacity 0.15s ease';
+                let spinner = document.getElementById('tickets-table-spinner');
+                if (!spinner) {
+                    spinner = document.createElement('div');
+                    spinner.id = 'tickets-table-spinner';
+                    spinner.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;pointer-events:none;';
+                    spinner.innerHTML = '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.9);border-radius:10px;padding:12px 20px;box-shadow:0 2px 12px rgba(0,0,0,0.12);font-size:14px;color:#374151;font-weight:500;">'
+                        + '<svg style="animation:spin 0.8s linear infinite;width:20px;height:20px;color:#ea580c;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>'
+                        + 'Memuat data...</div>';
+                    const wrap = container.parentElement;
+                    if (wrap) {
+                        const pos = window.getComputedStyle(wrap).position;
+                        if (pos === 'static') wrap.style.position = 'relative';
+                        wrap.appendChild(spinner);
+                    }
+                }
+                spinner.style.display = 'flex';
+            }
+
+            function hideTableLoading() {
+                const container = document.getElementById('tickets-table-container');
+                if (container) {
+                    container.style.opacity = '';
+                    container.style.pointerEvents = '';
+                }
+                const spinner = document.getElementById('tickets-table-spinner');
+                if (spinner) spinner.style.display = 'none';
+            }
+
             function loadPage(pageNum, statusValue) {
                 const url = new URL(window.location.href);
 
@@ -3489,6 +3771,8 @@ $dashPriorityData = [
                 fetchParams.set('action', 'ajax_get_tickets');
                 const fetchUrl = `${window.location.pathname}?${fetchParams.toString()}`;
 
+                showTableLoading();
+
                 fetch(fetchUrl)
                     .then((response) => {
                         if (!response.ok) {
@@ -3497,6 +3781,7 @@ $dashPriorityData = [
                         return response.json();
                     })
                     .then((data) => {
+                        hideTableLoading();
                         if (data.error) {
                             alert('Error: ' + data.error);
                             return;
@@ -3528,10 +3813,12 @@ $dashPriorityData = [
                         tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     })
                     .catch((err) => {
+                        hideTableLoading();
                         console.error('Fetch error:', err);
                         // fallback: allow normal navigation if needed
                     });
             }
+
 
             function attachTabListeners() {
                 const tabs = document.querySelectorAll('a.status-tab');
@@ -3539,7 +3826,7 @@ $dashPriorityData = [
                     if (tab.dataset.boundTab === '1') return;
                     tab.dataset.boundTab = '1';
 
-                    tab.addEventListener('click', function(e) {
+                    tab.addEventListener('click', function (e) {
                         e.preventDefault();
                         const statusValue = this.dataset.status || '';
                         setActiveTab(statusValue);
@@ -3557,7 +3844,7 @@ $dashPriorityData = [
                     if (link.dataset.boundPagination === '1') return;
                     link.dataset.boundPagination = '1';
 
-                    link.addEventListener('click', function(e) {
+                    link.addEventListener('click', function (e) {
                         e.preventDefault();
                         const href = this.getAttribute('href') || '';
                         const qPos = href.indexOf('?');
@@ -3593,6 +3880,154 @@ $dashPriorityData = [
 
             updateApprovalCloseButton(null);
 
+            // Expose loadPage globally so the real-time module can refresh the ticket list
+            window.urtLoadPage = loadPage;
+
+            // ===== IT TEAM STATUS BANNER (v2 — contextual personalized) =====
+            (function itStatusBanner() {
+                const banner = document.getElementById('it-status-banner');
+                const icon   = document.getElementById('it-status-icon');
+                const emoji  = document.getElementById('it-status-emoji');
+                const title  = document.getElementById('it-status-title');
+                const sub    = document.getElementById('it-status-sub');
+                const pills  = document.getElementById('it-status-pills');
+                const ping   = document.getElementById('it-live-ping');
+                const dot    = document.getElementById('it-live-dot');
+                if (!banner) return;
+
+                const THEMES = {
+                    mine: {
+                        banner: 'bg-emerald-50 border-emerald-300',
+                        icon:   'bg-emerald-100 text-emerald-700',
+                        title:  'text-emerald-900',
+                        sub:    'text-emerald-700',
+                        dot:    'bg-emerald-500',
+                        ping:   'bg-emerald-400',
+                        pill:   'bg-emerald-100 text-emerald-800',
+                        emoji:  '🛠️',
+                    },
+                    active: {
+                        banner: 'bg-emerald-50 border-emerald-200',
+                        icon:   'bg-emerald-100 text-emerald-700',
+                        title:  'text-emerald-900',
+                        sub:    'text-emerald-700',
+                        dot:    'bg-emerald-500',
+                        ping:   'bg-emerald-400',
+                        pill:   'bg-emerald-100 text-emerald-800',
+                        emoji:  '⚙️',
+                    },
+                    queued: {
+                        banner: 'bg-amber-50 border-amber-200',
+                        icon:   'bg-amber-100 text-amber-700',
+                        title:  'text-amber-900',
+                        sub:    'text-amber-700',
+                        dot:    'bg-amber-500',
+                        ping:   'bg-amber-400',
+                        pill:   'bg-amber-100 text-amber-800',
+                        emoji:  '📋',
+                    },
+                    idle: {
+                        banner: 'bg-blue-50 border-blue-200',
+                        icon:   'bg-blue-100 text-blue-700',
+                        title:  'text-blue-900',
+                        sub:    'text-blue-700',
+                        dot:    'bg-blue-400',
+                        ping:   'bg-blue-300',
+                        pill:   'bg-blue-100 text-blue-800',
+                        emoji:  '✅',
+                    },
+                };
+
+                function applyTheme(level) {
+                    const t = THEMES[level] || THEMES.idle;
+                    Object.keys(THEMES).forEach(l => {
+                        const th = THEMES[l];
+                        banner.classList.remove(...th.banner.split(' '));
+                        icon.classList.remove(...th.icon.split(' '));
+                        title.classList.remove(...th.title.split(' '));
+                        sub.classList.remove(...th.sub.split(' '));
+                    });
+                    banner.classList.add(...t.banner.split(' '));
+                    icon.classList.add(...t.icon.split(' '));
+                    title.classList.add(...t.title.split(' '));
+                    sub.classList.add(...t.sub.split(' '));
+                    dot.className  = 'relative inline-flex rounded-full h-2 w-2 ' + t.dot;
+                    ping.className = 'animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ' + t.ping;
+                    emoji.textContent = t.emoji;
+                    return t;
+                }
+
+                function pill(text, cls) {
+                    return `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold ${cls}">${text}</span>`;
+                }
+
+                function updateBanner(data) {
+                    if (!data || !data.ok) return;
+                    const level = data.status_level || 'idle';
+
+                    if (level === 'mine') {
+                        // Tiket user ini sedang dikerjakan — banner disembunyikan,
+                        // badge "Sedang ditangani" di baris tiket sudah cukup informatif.
+                        banner.style.display = 'none';
+                        return;
+                    }
+
+                    // Untuk level selain 'mine', terapkan tema dan tampilkan banner
+                    const t = applyTheme(level);
+
+                    if (level === 'active') {
+                        // ── GENERAL: ada tiket lain yang dikerjakan ──
+
+                        title.textContent = `Tim IT sedang aktif mengerjakan ${data.active_count} tiket`;
+                        const parts = [];
+                        if (data.open_count > 0) parts.push(`${data.open_count} tiket menunggu`);
+                        if (data.avg_response)   parts.push(`Rata-rata respons: ${data.avg_response}`);
+                        sub.textContent = parts.join(' · ') || 'Tim IT siap membantu Anda';
+                        let p = '';
+                        if (data.active_count > 0) p += pill(`🔧 ${data.active_count} dikerjakan`, t.pill);
+                        if (data.open_count > 0)   p += pill(`📋 ${data.open_count} antrian`, t.pill);
+                        if (data.avg_response)     p += pill(`⏱ ${data.avg_response}`, t.pill);
+                        pills.innerHTML = p;
+
+                    } else if (level === 'queued') {
+                        // ── Ada antrian tapi belum ada yang diambil admin ──
+                        title.textContent = `${data.open_count} tiket sedang menunggu diproses`;
+                        sub.textContent   = data.avg_response
+                            ? `Rata-rata respons: ${data.avg_response} · Tim IT akan segera merespons`
+                            : 'Tim IT akan segera merespons tiket Anda';
+                        let p = pill(`📋 ${data.open_count} antrian`, t.pill);
+                        if (data.avg_response) p += pill(`⏱ ${data.avg_response}`, t.pill);
+                        pills.innerHTML = p;
+
+                    } else {
+                        // ── IDLE: tidak ada tiket aktif ──
+                        title.textContent = 'Tim IT siap melayani';
+                        sub.textContent   = data.avg_response
+                            ? `Rata-rata respons: ${data.avg_response} · Tidak ada antrian`
+                            : 'Tidak ada antrian saat ini';
+                        pills.innerHTML   = data.avg_response
+                            ? pill(`⏱ ${data.avg_response}`, t.pill) : '';
+                    }
+
+                    banner.style.display = '';
+                    banner.style.opacity = '1';
+                }
+
+                function fetchStatus() {
+                    if (document.hidden) return;
+                    fetch('api_it_status.php?_=' + Date.now(), { credentials: 'same-origin' })
+                        .then(r => r.ok ? r.json() : null)
+                        .then(data => { if (data) updateBanner(data); })
+                        .catch(() => {});
+                }
+
+                fetchStatus();
+                setInterval(fetchStatus, 30000);
+            })();
+            // ===== END IT TEAM STATUS BANNER =====
+
+
+
             // Realtime search (debounced). Non-AJAX still works by submitting the form.
             (function attachSearchListeners() {
                 const form = document.getElementById('ticketSearchForm');
@@ -3608,7 +4043,7 @@ $dashPriorityData = [
                 };
 
                 input.addEventListener('input', trigger);
-                form.addEventListener('submit', function(e) {
+                form.addEventListener('submit', function (e) {
                     e.preventDefault();
                     loadPage(1);
                 });
@@ -3646,7 +4081,7 @@ $dashPriorityData = [
             function ticketStopGeoWatchSoon() {
                 if (ticketGeoWatchId === null) return;
                 window.setTimeout(() => {
-                    try { navigator.geolocation.clearWatch(ticketGeoWatchId); } catch (e) {}
+                    try { navigator.geolocation.clearWatch(ticketGeoWatchId); } catch (e) { }
                     ticketGeoWatchId = null;
                 }, 30000);
             }
@@ -3754,7 +4189,7 @@ $dashPriorityData = [
                 }
 
                 if (!(bitmap instanceof ImageBitmap) && bitmap && bitmap.src && bitmap.src.startsWith('blob:')) {
-                    try { URL.revokeObjectURL(bitmap.src); } catch (e) {}
+                    try { URL.revokeObjectURL(bitmap.src); } catch (e) { }
                 }
 
                 if (!bestBlob) return file;
@@ -3821,7 +4256,7 @@ $dashPriorityData = [
                 const stampedBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
 
                 if (!(bitmap instanceof ImageBitmap) && bitmap && bitmap.src && bitmap.src.startsWith('blob:')) {
-                    try { URL.revokeObjectURL(bitmap.src); } catch (e) {}
+                    try { URL.revokeObjectURL(bitmap.src); } catch (e) { }
                 }
 
                 if (!stampedBlob) return file;
@@ -3892,11 +4327,11 @@ $dashPriorityData = [
                 const { box, video } = ticketGetElsByScope(scope);
                 if (box) box.classList.add('hidden');
                 if (video) {
-                    try { video.pause(); } catch (e) {}
+                    try { video.pause(); } catch (e) { }
                     video.srcObject = null;
                 }
                 if (ticketCameraState.stream) {
-                    try { ticketCameraState.stream.getTracks().forEach((t) => t.stop()); } catch (e) {}
+                    try { ticketCameraState.stream.getTracks().forEach((t) => t.stop()); } catch (e) { }
                 }
                 ticketCameraState.stream = null;
                 ticketCameraState.scope = null;
@@ -4020,6 +4455,250 @@ $dashPriorityData = [
             initTicketPhotoInputs();
         });
     </script>
-</body>
-</html>
 
+    <!-- ===== Real-Time Dashboard (User) ===== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            'use strict';
+
+            var STATS_API = 'api_ticket_stats.php';
+            var STREAM_URL = 'ticket_stream.php';
+            var POLL_MS = 20000;
+
+            var _sse = null;
+            var _sseOk = false;
+            var _pollTimer = null;
+
+            // --- Live indicator ---
+            function setLive(ok) {
+                var badge = document.getElementById('urt-live-badge');
+                var dot = document.getElementById('urt-live-dot');
+                if (badge) {
+                    badge.style.backgroundColor = ok ? '#f0fdf4' : '#fffbeb';
+                    badge.style.borderColor = ok ? '#bbf7d0' : '#fde68a';
+                    badge.style.color = ok ? '#15803d' : '#b45309';
+                    badge.title = ok ? 'Real-time aktif (SSE)' : 'Polling mode (20s)';
+                }
+                if (dot) {
+                    dot.style.backgroundColor = ok ? '#22c55e' : '#fbbf24';
+                }
+                _sseOk = ok;
+            }
+
+            // --- Animated number counter ---
+            function animateNum(el, target) {
+                if (!el) return;
+                var from = parseInt(el.textContent, 10) || 0;
+                target = parseInt(target, 10) || 0;
+                if (from === target) return;
+                var dur = 650;
+                var diff = target - from;
+                var t0 = performance.now();
+                function step(ts) {
+                    var p = Math.min((ts - t0) / dur, 1);
+                    var ease = 1 - Math.pow(1 - p, 3);
+                    el.textContent = Math.round(from + diff * ease);
+                    if (p < 1) requestAnimationFrame(step);
+                    else el.textContent = target;
+                }
+                requestAnimationFrame(step);
+            }
+
+            // --- Ticket code formatter (mirrors PHP) ---
+            function fmtCode(code, createUser) {
+                var year = new Date().getFullYear().toString();
+                if (createUser) {
+                    var d = new Date(createUser);
+                    if (!isNaN(d.getTime())) year = d.getFullYear().toString();
+                }
+                var pad = ('000000' + code).slice(-6);
+                return 'ITCKT-' + year + '-' + pad;
+            }
+
+            // --- HTML escape ---
+            function escH(s) {
+                return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            // --- Status badge class (mirrors PHP) ---
+            function statusBadgeClass(s) {
+                var k = (s || '').toLowerCase().trim().replace(/[-_]/g, ' ');
+                if (k === 'open') return 'bg-blue-50 text-blue-700 border-blue-200';
+                if (k === 'in progress') return 'bg-orange-50 text-orange-700 border-orange-200';
+                if (k === 'review') return 'bg-yellow-50 text-yellow-800 border-yellow-200';
+                if (k === 'done') return 'bg-green-50 text-green-700 border-green-200';
+                if (k === 'reject' || k === 'rejected') return 'bg-red-50 text-red-700 border-red-200';
+                if (k === 'closed') return 'bg-gray-100 text-gray-700 border-gray-200';
+                return 'bg-gray-50 text-gray-700 border-gray-200';
+            }
+
+            // --- Priority badge class (mirrors PHP) ---
+            function priorityBadgeClass(p) {
+                var k = (p || '').toLowerCase().trim();
+                if (k === 'low') return 'bg-gray-100 text-gray-700 border-gray-200';
+                if (k === 'medium') return 'bg-yellow-50 text-yellow-800 border-yellow-200';
+                if (k === 'high') return 'bg-orange-50 text-orange-700 border-orange-200';
+                if (k === 'urgent') return 'bg-red-50 text-red-700 border-red-200';
+                return 'bg-gray-50 text-gray-700 border-gray-200';
+            }
+
+            // --- Update Chart.js charts ---
+            function updateCharts(data) {
+                if (!data || !data.ok) return;
+                var sc = data.status_counts || {};
+                var pc = data.priority_counts || {};
+
+                var statusOrder = ['Open', 'In Progress', 'Review', 'Done', 'Reject', 'Closed'];
+                var statusValues = statusOrder.map(function (s) { return sc[s] || 0; });
+                var priorityOrder = ['Low', 'Medium', 'High', 'Urgent'];
+                var priorityValues = priorityOrder.map(function (p) { return pc[p] || 0; });
+
+                // Status chart
+                var chartSt = (typeof Chart !== 'undefined' && typeof Chart.getChart === 'function')
+                    ? Chart.getChart('userTicketStatusChart') : null;
+                if (chartSt && chartSt.data && chartSt.data.datasets && chartSt.data.datasets[0]) {
+                    chartSt.data.datasets[0].data = statusValues;
+                    chartSt.update('active');
+                }
+
+                // Priority chart
+                var chartPr = (typeof Chart !== 'undefined' && typeof Chart.getChart === 'function')
+                    ? Chart.getChart('userTicketPriorityChart') : null;
+                if (chartPr && chartPr.data && chartPr.data.datasets && chartPr.data.datasets[0]) {
+                    chartPr.data.datasets[0].data = priorityValues;
+                    chartPr.update('active');
+                }
+            }
+
+            // --- Apply fetched stats to DOM ---
+            function applyData(data) {
+                if (!data || !data.ok) return;
+                var sc = data.status_counts || {};
+                var pc = data.priority_counts || {};
+
+                animateNum(document.getElementById('urt-total'), data.total || 0);
+                animateNum(document.getElementById('urt-open'), sc['Open'] || 0);
+                animateNum(document.getElementById('urt-inprogress'), sc['In Progress'] || 0);
+                animateNum(document.getElementById('urt-done'), sc['Done'] || 0);
+                animateNum(document.getElementById('urt-review'), sc['Review'] || 0);
+                animateNum(document.getElementById('urt-closed'), sc['Closed'] || 0);
+                animateNum(document.getElementById('urt-rejected'), sc['Reject'] || 0);
+
+                var avgEl = document.getElementById('urt-avgtime');
+                if (avgEl && data.avg_response_time && avgEl.textContent !== data.avg_response_time) {
+                    avgEl.textContent = data.avg_response_time;
+                }
+
+                // Charts
+                updateCharts(data);
+
+                // Recent tickets table
+                var tbody = document.getElementById('user-dash-recent-tbody');
+                if (!tbody) return;
+                var rows = data.recent_tickets || [];
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td class="px-5 py-4 text-sm text-gray-600" colspan="8">Belum ada data ticket.</td></tr>';
+                } else {
+                    var html = '';
+                    for (var i = 0; i < rows.length; i++) {
+                        var rt = rows[i];
+                        var code = parseInt(rt.Ticket_code, 10) || 0;
+                        var cd = fmtCode(code, rt.Create_User || '');
+                        var st = rt.Status_Request || '';
+                        var pr = rt.Priority || '';
+                        html +=
+                            '<tr class="hover:bg-orange-50/40 transition-colors">' +
+                            '<td class="px-5 py-4 whitespace-nowrap"><div class="text-sm font-semibold text-gray-900">' + escH(cd) + '</div><div class="text-xs text-gray-500">#' + code + '</div></td>' +
+                            '<td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">' + escH(rt.Nama_User || '') + '</td>' +
+                            '<td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">' + escH(rt.Divisi_User || '') + '</td>' +
+                            '<td class="px-5 py-4 text-sm text-gray-900">' + escH(rt.Subject || '') + '</td>' +
+                            '<td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">' + escH(rt.Kategori_Masalah || '') + '</td>' +
+                            '<td class="px-5 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' + priorityBadgeClass(pr) + '">' + escH(pr) + '</span></td>' +
+                            '<td class="px-5 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' + statusBadgeClass(st) + '">' + escH(st) + '</span></td>' +
+                            '<td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">' + escH(rt.Create_User || '') + '</td>' +
+                            '</tr>';
+                    }
+                    tbody.innerHTML = html;
+                }
+            }
+
+            // --- Debounced ticket list reload ---
+            var _listReloadTimer = null;
+            function scheduleListReload() {
+                if (_listReloadTimer) clearTimeout(_listReloadTimer);
+                _listReloadTimer = setTimeout(function () {
+                    _listReloadTimer = null;
+                    if (typeof window.urtLoadPage === 'function') {
+                        // Reload current page (preserve active tab & search)
+                        var url = new URL(window.location.href);
+                        var pageNum = parseInt(url.searchParams.get('page') || '1', 10) || 1;
+                        window.urtLoadPage(pageNum);
+                    }
+                }, 600);
+            }
+
+            // --- Fetch stats from API ---
+            function fetchStats() {
+                fetch(STATS_API + '?_t=' + Date.now(), { credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (data) {
+                            applyData(data);
+                            scheduleListReload();
+                        }
+                    })
+                    .catch(function () { });
+            }
+
+            // --- Polling fallback ---
+            function startPolling() {
+                if (_pollTimer) clearInterval(_pollTimer);
+                _pollTimer = setInterval(fetchStats, POLL_MS);
+            }
+
+            // --- SSE connection ---
+            function connectSSE() {
+                if (_sse) {
+                    try { _sse.close(); } catch (e) { }
+                    _sse = null;
+                }
+                if (typeof EventSource === 'undefined') {
+                    setLive(false);
+                    startPolling();
+                    return;
+                }
+
+                _sse = new EventSource(STREAM_URL);
+
+                _sse.addEventListener('connected', function () {
+                    setLive(true);
+                    if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
+                    fetchStats();
+                });
+
+                _sse.addEventListener('dashboard_update', function () {
+                    fetchStats();
+                });
+
+                _sse.addEventListener('ping', function () {
+                    // Server timed out, reconnect
+                    if (_sse) { try { _sse.close(); } catch (e) { } _sse = null; }
+                    setTimeout(connectSSE, 500);
+                });
+
+                _sse.onerror = function () {
+                    setLive(false);
+                    if (_sse) { try { _sse.close(); } catch (e) { } _sse = null; }
+                    startPolling();
+                    setTimeout(connectSSE, 8000);
+                };
+            }
+
+            // Boot
+            fetchStats();
+            connectSSE();
+        });
+    </script>
+</body>
+
+</html>

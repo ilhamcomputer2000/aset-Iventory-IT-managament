@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['action'])) {
     $Region = $_POST['Region'] ?? '';
     $role = $_POST['role'] ?? '';
     $Email = $_POST['Email'] ?? '';
+    $No_Telp_WA = trim($_POST['No_Telp_WA'] ?? '');
     $Status_Akun = $_POST['Status_Akun'] ?? 'Aktif';
 
     // Cek duplikat Nama_Lengkap atau username
@@ -64,9 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['action'])) {
         $password = password_hash($_POST['password'] ?? '', PASSWORD_DEFAULT);
         $Create_by = $_SESSION['Nama_Lengkap'] ?? 'System';
         $Create_datetime = date('Y-m-d H:i:s');
-        $sql = "INSERT INTO users (Nama_Lengkap, username, Jabatan_Level, Divisi, Region, role, Email, password, Status_Akun, Create_by, Create_datetime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO users (Nama_Lengkap, username, Jabatan_Level, Divisi, Region, role, Email, No_Telp_WA, password, Status_Akun, Create_by, Create_datetime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssssssss", $Nama_Lengkap, $username, $Jabatan_Level, $Divisi, $Region, $role, $Email, $password, $Status_Akun, $Create_by, $Create_datetime);
+        $stmt->bind_param("ssssssssssss", $Nama_Lengkap, $username, $Jabatan_Level, $Divisi, $Region, $role, $Email, $No_Telp_WA, $password, $Status_Akun, $Create_by, $Create_datetime);
         if ($stmt->execute()) {
             header("Location: add_akun.php?success=added");
             exit();
@@ -94,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $Region = $_POST['Region'] ?? '';
         $role = $_POST['role'] ?? '';
         $Email = $_POST['Email'] ?? '';
+        $No_Telp_WA = trim($_POST['No_Telp_WA'] ?? '');
         $Status_Akun = $_POST['Status_Akun'] ?? '';
 
         if (empty($Nama_Lengkap) || empty($username) || empty($Jabatan_Level) || empty($Divisi) || empty($Region) || empty($role) || empty($Email) || empty($Status_Akun)) {
@@ -104,13 +106,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
         // Gunakan koneksi utama ($conn), jangan buat baru!
         if ($password) {
-            $sql = "UPDATE users SET Nama_Lengkap = ?, username = ?, Jabatan_Level = ?, Divisi = ?, Region = ?, role = ?, Email = ?, password = ?, Status_Akun = ? WHERE id = ?";
+            $sql = "UPDATE users SET Nama_Lengkap = ?, username = ?, Jabatan_Level = ?, Divisi = ?, Region = ?, role = ?, Email = ?, No_Telp_WA = ?, password = ?, Status_Akun = ? WHERE id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssssssssi", $Nama_Lengkap, $username, $Jabatan_Level, $Divisi, $Region, $role, $Email, $password, $Status_Akun, $id);
+            $stmt->bind_param("ssssssssssi", $Nama_Lengkap, $username, $Jabatan_Level, $Divisi, $Region, $role, $Email, $No_Telp_WA, $password, $Status_Akun, $id);
         } else {
-            $sql = "UPDATE users SET Nama_Lengkap = ?, username = ?, Jabatan_Level = ?, Divisi = ?, Region = ?, role = ?, Email = ?, Status_Akun = ? WHERE id = ?";
+            $sql = "UPDATE users SET Nama_Lengkap = ?, username = ?, Jabatan_Level = ?, Divisi = ?, Region = ?, role = ?, Email = ?, No_Telp_WA = ?, Status_Akun = ? WHERE id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssssssi", $Nama_Lengkap, $username, $Jabatan_Level, $Divisi, $Region, $role, $Email, $Status_Akun, $id);
+            $stmt->bind_param("sssssssssi", $Nama_Lengkap, $username, $Jabatan_Level, $Divisi, $Region, $role, $Email, $No_Telp_WA, $Status_Akun, $id);
         }
 
         if ($stmt->execute()) {
@@ -198,7 +200,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_users') {
     // Data
     $allParams = array_merge($params, [$per_page, $offset_ajax]);
     $allTypes = $types . 'ii';
-    $stmtD = $conn->prepare("SELECT id, Nama_Lengkap, username, Jabatan_Level, Divisi, Region, role, Email, Status_Akun, Create_datetime, Create_by FROM users WHERE $where ORDER BY id DESC LIMIT ? OFFSET ?");
+    $stmtD = $conn->prepare("SELECT id, Nama_Lengkap, username, Jabatan_Level, Divisi, Region, role, Email, No_Telp_WA, Status_Akun, Create_datetime, Create_by FROM users WHERE $where ORDER BY id DESC LIMIT ? OFFSET ?");
     $rows = [];
     if ($stmtD) {
         if ($allTypes)
@@ -220,17 +222,21 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_users') {
         $region = htmlspecialchars($user['Region'] ?? '');
         $role_v = $user['role'];
         $email = htmlspecialchars($user['Email']);
+        $no_telp_wa = htmlspecialchars($user['No_Telp_WA'] ?? '');
         $status = $user['Status_Akun'];
         $createBy = !empty($user['Create_by']) ? htmlspecialchars($user['Create_by']) : '<span class="text-gray-400">—</span>';
         $createDt = !empty($user['Create_datetime']) ? date('d M Y H:i', strtotime($user['Create_datetime'])) : '<span class="text-gray-400">—</span>';
         $roleBadge = in_array($role_v, ['super_admin', 'admin']) ? 'role-super_admin' : 'role-user';
         $roleLabel = ucfirst(str_replace('_', ' ', $role_v));
         $statusBadge = ($status === 'Aktif') ? 'status-active' : 'status-inactive';
+        $waDisplay = $no_telp_wa !== '' ? "<a href='https://wa.me/" . preg_replace('/[^0-9]/', '', $no_telp_wa) . "' target='_blank' class='text-green-600 hover:text-green-800 flex items-center gap-1'><i class='fab fa-whatsapp'></i>$no_telp_wa</a>" : '<span class="text-gray-400">—</span>';
 
-        $tbody .= "<tr class='table-row' data-id='$id' data-nama='$nama' data-username='$uname' data-jabatan='$jabatan' data-divisi='$divisi' data-region='$region' data-role='$role_v' data-email='$email' data-status='$status'>
+        $tbody .= "<tr class='table-row' data-id='$id' data-nama='$nama' data-username='$uname' data-jabatan='$jabatan' data-divisi='$divisi' data-region='$region' data-role='$role_v' data-email='$email' data-no-telp-wa='$no_telp_wa' data-status='$status'>
             <td class='px-7 py-4 whitespace-nowrap text-sm text-gray-500'>$createDt</td>
             <td class='px-7 py-4 whitespace-nowrap text-sm text-gray-500'>$createBy</td>
             <td class='px-7 py-4 whitespace-nowrap text-sm font-medium text-gray-900'>$nama</td>
+            <td class='px-7 py-4 whitespace-nowrap text-sm text-gray-500'>$email</td>
+            <td class='px-7 py-4 text-sm min-w-[160px]'>$waDisplay</td>
             <td class='px-7 py-4 whitespace-nowrap text-sm text-gray-500'>$uname</td>
             <td class='px-7 py-4 whitespace-nowrap text-sm text-gray-500'>$jabatan</td>
             <td class='px-7 py-4 whitespace-nowrap text-sm text-gray-500'>$divisi</td>
@@ -246,7 +252,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_users') {
         $no++;
     }
     if (empty($rows)) {
-        $tbody = "<tr><td colspan='11' class='px-4 py-16 text-center text-gray-400'><i class='fas fa-users text-4xl mb-3 text-gray-200 block'></i>Tidak ada data akun ditemukan</td></tr>";
+        $tbody = "<tr><td colspan='13' class='px-4 py-16 text-center text-gray-400'><i class='fas fa-users text-4xl mb-3 text-gray-200 block'></i>Tidak ada data akun ditemukan</td></tr>";
     }
 
     // Build pagination HTML
@@ -1624,7 +1630,8 @@ $conn->close();
                         class="fas fa-user-plus mr-2 text-green-500"></i>Tambah Akun Baru</h2>
                 <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Nama Lengkap *</label>
+                        <label class="block text-sm font-medium text-gray-700"><i
+                                class="fas fa-user text-orange-400 mr-1"></i>Nama Lengkap *</label>
                         <div class="relative">
                             <input type="text" name="Nama_Lengkap" id="Nama_Lengkap" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1635,7 +1642,8 @@ $conn->close();
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">ID Karyawan *</label>
+                        <label class="block text-sm font-medium text-gray-700"><i
+                                class="fas fa-id-card text-cyan-400 mr-1"></i>ID Karyawan *</label>
                         <div class="relative">
                             <input type="text" name="username" id="username" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1647,7 +1655,8 @@ $conn->close();
                     </div>
                     <!-- Jabatan - Searchable Combo -->
                     <div class="combo-field relative" data-combo="jabatan">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Jabatan *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><i
+                                class="fas fa-briefcase text-amber-400 mr-1"></i>Jabatan *</label>
                         <div class="relative">
                             <input type="text" name="Jabatan_Level" id="combo-jabatan" required autocomplete="off"
                                 class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
@@ -1674,7 +1683,8 @@ $conn->close();
                     </div>
                     <!-- Divisi - Searchable Combo -->
                     <div class="combo-field relative" data-combo="divisi">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Divisi *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><i
+                                class="fas fa-building text-indigo-400 mr-1"></i>Divisi *</label>
                         <div class="relative">
                             <input type="text" name="Divisi" id="combo-divisi" required autocomplete="off"
                                 class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
@@ -1701,7 +1711,8 @@ $conn->close();
                     </div>
                     <!-- Region - Searchable Combo -->
                     <div class="combo-field relative" data-combo="region">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Region *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><i
+                                class="fas fa-map-marker-alt text-red-400 mr-1"></i>Region *</label>
                         <div class="relative">
                             <input type="text" name="Region" id="combo-region" required autocomplete="off"
                                 class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
@@ -1727,7 +1738,8 @@ $conn->close();
                         </ul>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><i
+                                class="fas fa-user-shield text-violet-400 mr-1"></i>Role *</label>
                         <select name="role" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Pilih Role</option>
@@ -1737,7 +1749,8 @@ $conn->close();
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status Akun *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><i
+                                class="fas fa-toggle-on text-green-400 mr-1"></i>Status Akun *</label>
                         <select name="Status_Akun" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Pilih Status Akun</option>
@@ -1745,14 +1758,29 @@ $conn->close();
                             <option value="Tidak Aktif">Tidak Aktif</option>
                         </select>
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fab fa-whatsapp text-green-500 mr-1"></i>No. Telp WA
+                            <span class="text-gray-400 font-normal text-xs">(opsional)</span>
+                        </label>
+                        <div class="relative">
+                            <span
+                                class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm">+62</span>
+                            <input type="tel" name="No_Telp_WA" id="No_Telp_WA"
+                                class="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                placeholder="8xx-xxxx-xxxx" pattern="[0-9\s\-\+\(\)]*" maxlength="20">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><i
+                                class="fas fa-envelope text-blue-400 mr-1"></i>Email *</label>
                         <input type="Email" name="Email" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="example@company.com">
                     </div>
-                    <div class="md:col-span-2 relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><i
+                                class="fas fa-lock text-gray-400 mr-1"></i>Password *</label>
                         <div class="relative">
                             <input type="password" name="password" id="password" required
                                 class="w-full px-3 py-2 pl-4 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1771,6 +1799,7 @@ $conn->close();
                     </div>
                 </form>
             </div>
+
 
             <!-- Tabel Data Akses (AJAX Pagination - Activity Log Pattern) -->
             <div class="form-card">
@@ -1809,42 +1838,61 @@ $conn->close();
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Create Time</th>
+                                    <i class="fas fa-clock text-blue-400 mr-1"></i>Create Time
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Create By</th>
+                                    <i class="fas fa-user-edit text-purple-400 mr-1"></i>Create By
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Nama Lengkap</th>
+                                    <i class="fas fa-user text-orange-400 mr-1"></i>Nama Lengkap
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    ID Karyawan</th>
+                                    <i class="fas fa-envelope text-blue-400 mr-1"></i>Email
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[160px]">
+                                    <i class="fab fa-whatsapp text-green-500 mr-1"></i>No. WA
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Jabatan</th>
+                                    <i class="fas fa-id-card text-cyan-400 mr-1"></i>ID Karyawan
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Divisi</th>
+                                    <i class="fas fa-briefcase text-amber-400 mr-1"></i>Jabatan
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Region</th>
+                                    <i class="fas fa-building text-indigo-400 mr-1"></i>Divisi
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Role</th>
+                                    <i class="fas fa-map-marker-alt text-red-400 mr-1"></i>Region
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Password</th>
+                                    <i class="fas fa-user-shield text-violet-400 mr-1"></i>Role
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status</th>
+                                    <i class="fas fa-lock text-gray-400 mr-1"></i>Password
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions</th>
+                                    <i class="fas fa-toggle-on text-green-400 mr-1"></i>Status
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-ellipsis-h text-gray-400 mr-1"></i>Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="users-tbody" class="bg-white divide-y divide-gray-200">
                             <tr>
-                                <td colspan="11" class="px-4 py-10 text-center text-gray-400 text-sm">
+                                <td colspan="13" class="px-4 py-10 text-center text-gray-400 text-sm">
                                     <i class="fas fa-circle-notch fa-spin mr-2"></i>Memuat...
                                 </td>
                             </tr>
@@ -1903,6 +1951,15 @@ $conn->close();
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                                 <input type="email" id="editEmail" name="Email" required
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fab fa-whatsapp text-green-500 mr-1"></i>No. Telp WA
+                                    <span class="text-gray-400 font-normal text-xs">(opsional)</span>
+                                </label>
+                                <input type="tel" id="editNo_Telp_WA" name="No_Telp_WA"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="Contoh: 081234567890" maxlength="20">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Status Akun *</label>
@@ -2289,6 +2346,7 @@ $conn->close();
             document.getElementById('editRegion').value = row.dataset.region || '';
             document.getElementById('editRole').value = row.dataset.role;
             document.getElementById('editEmail').value = row.dataset.email;
+            document.getElementById('editNo_Telp_WA').value = row.dataset.noTelpWa || '';
             document.getElementById('editStatus_Akun').value = row.dataset.status;
             document.getElementById('editPassword').value = '';
 

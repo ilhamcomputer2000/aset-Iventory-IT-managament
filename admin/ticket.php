@@ -6,24 +6,25 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$user_role = isset($_SESSION['role']) ? (string)$_SESSION['role'] : 'user';
+$user_role = isset($_SESSION['role']) ? (string) $_SESSION['role'] : 'user';
 if ($user_role !== 'super_admin') {
     header('Location: ../user/ticket.php');
     exit();
 }
 
-$username = isset($_SESSION['username']) ? (string)$_SESSION['username'] : 'Admin';
-$Nama_Lengkap = isset($_SESSION['Nama_Lengkap']) && (string)$_SESSION['Nama_Lengkap'] !== ''
-    ? (string)$_SESSION['Nama_Lengkap']
+$username = isset($_SESSION['username']) ? (string) $_SESSION['username'] : 'Admin';
+$Nama_Lengkap = isset($_SESSION['Nama_Lengkap']) && (string) $_SESSION['Nama_Lengkap'] !== ''
+    ? (string) $_SESSION['Nama_Lengkap']
     : $username;
-$Jabatan_Level = isset($_SESSION['Jabatan_Level']) && (string)$_SESSION['Jabatan_Level'] !== ''
-    ? (string)$_SESSION['Jabatan_Level']
+$Jabatan_Level = isset($_SESSION['Jabatan_Level']) && (string) $_SESSION['Jabatan_Level'] !== ''
+    ? (string) $_SESSION['Jabatan_Level']
     : '-';
 
 require_once __DIR__ . '/../koneksi.php';
 
-function ticket_admin_redirect_self(): void {
-    $uri = isset($_SERVER['REQUEST_URI']) ? (string)$_SERVER['REQUEST_URI'] : '';
+function ticket_admin_redirect_self(): void
+{
+    $uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
     if ($uri === '' || strpos($uri, "\n") !== false || strpos($uri, "\r") !== false) {
         $uri = 'ticket.php';
     }
@@ -34,15 +35,16 @@ function ticket_admin_redirect_self(): void {
 $flashSuccess = null;
 $flashError = null;
 if (isset($_SESSION['flash_success'])) {
-    $flashSuccess = (string)$_SESSION['flash_success'];
+    $flashSuccess = (string) $_SESSION['flash_success'];
     unset($_SESSION['flash_success']);
 }
 if (isset($_SESSION['flash_error'])) {
-    $flashError = (string)$_SESSION['flash_error'];
+    $flashError = (string) $_SESSION['flash_error'];
     unset($_SESSION['flash_error']);
 }
 
-function ticket_audit_ensure_table(mysqli $kon): void {
+function ticket_audit_ensure_table(mysqli $kon): void
+{
     $sql = "CREATE TABLE IF NOT EXISTS `ticket_status_history` (\n"
         . "  `id` INT NOT NULL AUTO_INCREMENT,\n"
         . "  `Ticket_code` INT NOT NULL,\n"
@@ -97,33 +99,38 @@ function ticket_audit_insert(
     @$stmt->close();
 }
 
-function ticket_admin_format_code(int $ticketCode, ?string $createUser): string {
-    $year = (string)date('Y');
+function ticket_admin_format_code(int $ticketCode, ?string $createUser): string
+{
+    $year = (string) date('Y');
     if ($createUser) {
         $ts = strtotime($createUser);
         if ($ts !== false) {
             $year = date('Y', $ts);
         }
     }
-    return 'ITCKT-' . $year . '-' . str_pad((string)$ticketCode, 6, '0', STR_PAD_LEFT);
+    return 'ITCKT-' . $year . '-' . str_pad((string) $ticketCode, 6, '0', STR_PAD_LEFT);
 }
 
-function ticket_admin_status_list(): array {
+function ticket_admin_status_list(): array
+{
     return ['Open', 'In Progress', 'Review', 'Done', 'Reject', 'Closed'];
 }
 
-function ticket_admin_is_allowed_status(string $status): bool {
+function ticket_admin_is_allowed_status(string $status): bool
+{
     return in_array($status, ticket_admin_status_list(), true);
 }
 
-function ticket_admin_normalize_status(string $status): string {
+function ticket_admin_normalize_status(string $status): string
+{
     $key = strtolower(trim($status));
     $key = str_replace(['_', '-'], ' ', $key);
     $key = preg_replace('/\s+/', ' ', $key);
-    return trim((string)$key);
+    return trim((string) $key);
 }
 
-function ticket_admin_status_rank(string $status): int {
+function ticket_admin_status_rank(string $status): int
+{
     $k = ticket_admin_normalize_status($status);
     switch ($k) {
         case 'open':
@@ -144,7 +151,8 @@ function ticket_admin_status_rank(string $status): int {
     }
 }
 
-function ticket_admin_can_transition_status(string $fromStatus, string $toStatus): bool {
+function ticket_admin_can_transition_status(string $fromStatus, string $toStatus): bool
+{
     $from = ticket_admin_normalize_status($fromStatus);
     $to = ticket_admin_normalize_status($toStatus);
 
@@ -178,12 +186,14 @@ function ticket_admin_can_transition_status(string $fromStatus, string $toStatus
     return $toRank >= $fromRank;
 }
 
-function ticket_admin_is_locked_for_it_edits(string $status): bool {
+function ticket_admin_is_locked_for_it_edits(string $status): bool
+{
     $k = ticket_admin_normalize_status($status);
     return in_array($k, ['done', 'closed', 'reject', 'rejected'], true);
 }
 
-function ticket_admin_badge_status_class(string $status): string {
+function ticket_admin_badge_status_class(string $status): string
+{
     $key = strtolower(trim($status));
     $key = str_replace(['_', '-'], ' ', $key);
     $key = preg_replace('/\s+/', ' ', $key);
@@ -207,7 +217,8 @@ function ticket_admin_badge_status_class(string $status): string {
     }
 }
 
-function ticket_admin_badge_priority_class(string $priority): string {
+function ticket_admin_badge_priority_class(string $priority): string
+{
     $key = strtolower(trim($priority));
     $key = str_replace(['_', '-'], ' ', $key);
 
@@ -225,21 +236,23 @@ function ticket_admin_badge_priority_class(string $priority): string {
     }
 }
 
-function ticket_admin_is_allowed_type_pekerjaan(string $type): bool {
+function ticket_admin_is_allowed_type_pekerjaan(string $type): bool
+{
     $allowed = ['Remote', 'Onsite'];
     return in_array($type, $allowed, true);
 }
 
-function ticket_admin_save_upload(array $file, string $destDir, string $prefix, array $allowedExts = []): string {
+function ticket_admin_save_upload(array $file, string $destDir, string $prefix, array $allowedExts = []): string
+{
     if (!isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
         return '';
     }
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('Upload file gagal (kode: ' . (int)$file['error'] . ').');
+        throw new Exception('Upload file gagal (kode: ' . (int) $file['error'] . ').');
     }
 
-    $name = isset($file['name']) ? (string)$file['name'] : '';
-    $tmp = isset($file['tmp_name']) ? (string)$file['tmp_name'] : '';
+    $name = isset($file['name']) ? (string) $file['name'] : '';
+    $tmp = isset($file['tmp_name']) ? (string) $file['tmp_name'] : '';
     if ($tmp === '' || !is_uploaded_file($tmp)) {
         throw new Exception('Upload file tidak valid.');
     }
@@ -279,28 +292,32 @@ function ticket_admin_save_upload(array $file, string $destDir, string $prefix, 
     if ($isImageExt && function_exists('getimagesize') && function_exists('imagecreatetruecolor')) {
         $info = @getimagesize($tmp);
         if (is_array($info) && isset($info[0], $info[1], $info[2])) {
-            $srcW = (int)$info[0];
-            $srcH = (int)$info[1];
-            $imgType = (int)$info[2];
+            $srcW = (int) $info[0];
+            $srcH = (int) $info[1];
+            $imgType = (int) $info[2];
 
             if ($srcW > 0 && $srcH > 0) {
                 $scale = min(1.0, $maxDim / max($srcW, $srcH));
-                $dstW = max(1, (int)round($srcW * $scale));
-                $dstH = max(1, (int)round($srcH * $scale));
+                $dstW = max(1, (int) round($srcW * $scale));
+                $dstH = max(1, (int) round($srcH * $scale));
 
                 $srcImg = null;
                 switch ($imgType) {
                     case IMAGETYPE_JPEG:
-                        if (function_exists('imagecreatefromjpeg')) $srcImg = @imagecreatefromjpeg($tmp);
+                        if (function_exists('imagecreatefromjpeg'))
+                            $srcImg = @imagecreatefromjpeg($tmp);
                         break;
                     case IMAGETYPE_PNG:
-                        if (function_exists('imagecreatefrompng')) $srcImg = @imagecreatefrompng($tmp);
+                        if (function_exists('imagecreatefrompng'))
+                            $srcImg = @imagecreatefrompng($tmp);
                         break;
                     case IMAGETYPE_GIF:
-                        if (function_exists('imagecreatefromgif')) $srcImg = @imagecreatefromgif($tmp);
+                        if (function_exists('imagecreatefromgif'))
+                            $srcImg = @imagecreatefromgif($tmp);
                         break;
                     case IMAGETYPE_WEBP:
-                        if (function_exists('imagecreatefromwebp')) $srcImg = @imagecreatefromwebp($tmp);
+                        if (function_exists('imagecreatefromwebp'))
+                            $srcImg = @imagecreatefromwebp($tmp);
                         break;
                     default:
                         $srcImg = null;
@@ -376,7 +393,8 @@ function ticket_admin_save_upload(array $file, string $destDir, string $prefix, 
     return $safe;
 }
 
-function ticket_admin_column_exists(mysqli $kon, string $columnName): bool {
+function ticket_admin_column_exists(mysqli $kon, string $columnName): bool
+{
     $col = $kon->real_escape_string($columnName);
     $res = $kon->query("SHOW COLUMNS FROM `ticket` LIKE '{$col}'");
     if ($res === false) {
@@ -389,8 +407,51 @@ function ticket_admin_column_exists(mysqli $kon, string $columnName): bool {
 
 $hasPhotoItColumn = ticket_admin_column_exists($kon, 'Photo_IT');
 
+// === AUTO-MIGRATE: tambah kolom assigned_to dan assigned_at jika belum ada ===
+$hasAssignedColumn = ticket_admin_column_exists($kon, 'assigned_to');
+if (!$hasAssignedColumn) {
+    $kon->query("ALTER TABLE `ticket`
+        ADD COLUMN `assigned_to`  VARCHAR(150) NULL DEFAULT NULL COMMENT 'Nama IT staff yg sedang mengerjakan',
+        ADD COLUMN `assigned_at`  DATETIME     NULL DEFAULT NULL COMMENT 'Waktu admin ambil ticket'");
+    $hasAssignedColumn = ($kon->errno === 0);
+}
+
+// === AJAX: assign_ticket (admin ambil / lepas ticket) ===
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'assign_ticket') {
+    header('Content-Type: application/json; charset=utf-8');
+    session_write_close();
+    try {
+        if (!$hasAssignedColumn)
+            throw new Exception('Kolom assigned_to belum tersedia.');
+        $ticketCode = isset($_POST['ticket_code']) ? (int) $_POST['ticket_code'] : 0;
+        if ($ticketCode <= 0)
+            throw new Exception('Ticket code tidak valid.');
+        $mode = isset($_POST['mode']) ? trim($_POST['mode']) : 'assign'; // 'assign' or 'unassign'
+
+        if ($mode === 'unassign') {
+            $stmt = $kon->prepare('UPDATE `ticket` SET `assigned_to` = NULL, `assigned_at` = NULL WHERE `Ticket_code` = ?');
+            $stmt->bind_param('i', $ticketCode);
+            $stmt->execute();
+            $stmt->close();
+            echo json_encode(['ok' => true, 'mode' => 'unassign', 'assigned_to' => null]);
+        } else {
+            // assign ke admin saat ini
+            $adminName = $Nama_Lengkap !== '' ? $Nama_Lengkap : $username;
+            $now = date('Y-m-d H:i:s');
+            $stmt = $kon->prepare('UPDATE `ticket` SET `assigned_to` = ?, `assigned_at` = ? WHERE `Ticket_code` = ?');
+            $stmt->bind_param('ssi', $adminName, $now, $ticketCode);
+            $stmt->execute();
+            $stmt->close();
+            echo json_encode(['ok' => true, 'mode' => 'assign', 'assigned_to' => $adminName]);
+        }
+    } catch (Throwable $e) {
+        echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
 // Pagination setup (template: user/dashboard_user.php)
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $page = max(1, $page);
 $limit = 10;
 $offset = ($page - 1) * $limit;
@@ -398,7 +459,7 @@ $offset = ($page - 1) * $limit;
 // Status filter (tabs)
 $statusFilter = '';
 if (isset($_GET['status'])) {
-    $requestedStatus = trim((string)$_GET['status']);
+    $requestedStatus = trim((string) $_GET['status']);
     if ($requestedStatus !== '' && strcasecmp($requestedStatus, 'all') !== 0 && ticket_admin_is_allowed_status($requestedStatus)) {
         $statusFilter = $requestedStatus;
     }
@@ -407,7 +468,7 @@ if (isset($_GET['status'])) {
 // Search query (progressive enhancement: works with non-AJAX submit, realtime with AJAX)
 $searchQuery = '';
 if (isset($_GET['q'])) {
-    $searchQuery = trim((string)$_GET['q']);
+    $searchQuery = trim((string) $_GET['q']);
     if ($searchQuery !== '') {
         if (function_exists('mb_substr')) {
             $searchQuery = mb_substr($searchQuery, 0, 120);
@@ -432,24 +493,26 @@ if ($searchQuery !== '') {
 $searchLikeText = '%' . $searchQuery . '%';
 $searchLikeTicketCode = '%' . $searchTicketCodeTerm . '%';
 
-function ticket_admin_parse_ymd($raw): string {
-    $raw = trim((string)$raw);
+function ticket_admin_parse_ymd($raw): string
+{
+    $raw = trim((string) $raw);
     if ($raw === '') {
         return '';
     }
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
         return '';
     }
-    $y = (int)substr($raw, 0, 4);
-    $m = (int)substr($raw, 5, 2);
-    $d = (int)substr($raw, 8, 2);
+    $y = (int) substr($raw, 0, 4);
+    $m = (int) substr($raw, 5, 2);
+    $d = (int) substr($raw, 8, 2);
     if (!checkdate($m, $d, $y)) {
         return '';
     }
     return sprintf('%04d-%02d-%02d', $y, $m, $d);
 }
 
-function ticket_admin_stmt_bind(mysqli_stmt $stmt, string $types, array $params): void {
+function ticket_admin_stmt_bind(mysqli_stmt $stmt, string $types, array $params): void
+{
     if ($types === '') {
         return;
     }
@@ -546,7 +609,8 @@ $ticketAdminSearchWhereSql = '('
     . 'OR `Deskripsi_Masalah` LIKE ?'
     . ')';
 
-function ticket_admin_build_pagination_html(int $page, int $totalPages, int $totalRecords, int $offset, int $limit, array $baseParams = []): string {
+function ticket_admin_build_pagination_html(int $page, int $totalPages, int $totalRecords, int $offset, int $limit, array $baseParams = []): string
+{
     $paginationHtml = '';
     if ($totalPages <= 1) {
         return $paginationHtml;
@@ -611,8 +675,8 @@ function ticket_admin_build_pagination_html(int $page, int $totalPages, int $tot
 // Handle update status (respon ticket)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_status') {
     try {
-        $ticketCode = isset($_POST['Ticket_code']) ? (int)$_POST['Ticket_code'] : 0;
-        $newStatus = isset($_POST['Status_Request']) ? trim((string)$_POST['Status_Request']) : '';
+        $ticketCode = isset($_POST['Ticket_code']) ? (int) $_POST['Ticket_code'] : 0;
+        $newStatus = isset($_POST['Status_Request']) ? trim((string) $_POST['Status_Request']) : '';
 
         if ($ticketCode <= 0) {
             throw new Exception('Ticket code tidak valid.');
@@ -643,11 +707,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             throw new Exception('Ticket tidak ditemukan.');
         }
 
-        $oldStatus = isset($rowGet['Status_Request']) ? (string)$rowGet['Status_Request'] : '';
-        $currentType = isset($rowGet['Type_Pekerjaan']) ? trim((string)$rowGet['Type_Pekerjaan']) : '';
-        $currentJawaban = isset($rowGet['Jawaban_IT']) ? trim((string)$rowGet['Jawaban_IT']) : '';
+        $oldStatus = isset($rowGet['Status_Request']) ? (string) $rowGet['Status_Request'] : '';
+        $currentType = isset($rowGet['Type_Pekerjaan']) ? trim((string) $rowGet['Type_Pekerjaan']) : '';
+        $currentJawaban = isset($rowGet['Jawaban_IT']) ? trim((string) $rowGet['Jawaban_IT']) : '';
         if ($hasPhotoItColumn && isset($rowGet['Photo_IT'])) {
-            $currentPhotoIt = trim((string)$rowGet['Photo_IT']);
+            $currentPhotoIt = trim((string) $rowGet['Photo_IT']);
         }
 
         // Closed must be approved by user
@@ -695,7 +759,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         $ownerRes = $stmtOwner->get_result();
                         $ownerRow = $ownerRes ? $ownerRes->fetch_assoc() : null;
                         if ($ownerRow && !empty($ownerRow['id'])) {
-                            $targetUserId = (int)$ownerRow['id'];
+                            $targetUserId = (int) $ownerRow['id'];
                             $ticketSubject = $ownerRow['Subject'] ?? '#' . $ticketCode;
 
                             // Special notification for Done status - needs user approval to close
@@ -736,8 +800,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // Handle update type pekerjaan (Remote/Onsite)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_type_pekerjaan') {
     try {
-        $ticketCode = isset($_POST['Ticket_code']) ? (int)$_POST['Ticket_code'] : 0;
-        $newType = isset($_POST['Type_Pekerjaan']) ? trim((string)$_POST['Type_Pekerjaan']) : '';
+        $ticketCode = isset($_POST['Ticket_code']) ? (int) $_POST['Ticket_code'] : 0;
+        $newType = isset($_POST['Type_Pekerjaan']) ? trim((string) $_POST['Type_Pekerjaan']) : '';
 
         if ($ticketCode <= 0) {
             throw new Exception('Ticket code tidak valid.');
@@ -753,7 +817,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if ($stmtLock->execute()) {
                 $resLock = $stmtLock->get_result();
                 $rowLock = $resLock ? $resLock->fetch_assoc() : null;
-                $curStatus = $rowLock && isset($rowLock['Status_Request']) ? (string)$rowLock['Status_Request'] : '';
+                $curStatus = $rowLock && isset($rowLock['Status_Request']) ? (string) $rowLock['Status_Request'] : '';
                 if ($curStatus !== '' && ticket_admin_is_locked_for_it_edits($curStatus)) {
                     $stmtLock->close();
                     throw new Exception('Tidak bisa mengubah Type Pekerjaan setelah status Done/Closed/Reject.');
@@ -784,8 +848,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // Handle update jawaban IT (Jawaban_IT)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_jawaban_it') {
     try {
-        $ticketCode = isset($_POST['Ticket_code']) ? (int)$_POST['Ticket_code'] : 0;
-        $jawabanIt = isset($_POST['Jawaban_IT']) ? trim((string)$_POST['Jawaban_IT']) : '';
+        $ticketCode = isset($_POST['Ticket_code']) ? (int) $_POST['Ticket_code'] : 0;
+        $jawabanIt = isset($_POST['Jawaban_IT']) ? trim((string) $_POST['Jawaban_IT']) : '';
 
         if ($ticketCode <= 0) {
             throw new Exception('Ticket code tidak valid.');
@@ -798,7 +862,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if ($stmtLock->execute()) {
                 $resLock = $stmtLock->get_result();
                 $rowLock = $resLock ? $resLock->fetch_assoc() : null;
-                $curStatus = $rowLock && isset($rowLock['Status_Request']) ? (string)$rowLock['Status_Request'] : '';
+                $curStatus = $rowLock && isset($rowLock['Status_Request']) ? (string) $rowLock['Status_Request'] : '';
                 if ($curStatus !== '' && ticket_admin_is_locked_for_it_edits($curStatus)) {
                     $stmtLock->close();
                     throw new Exception('Tidak bisa mengubah Respon IT setelah status Done/Closed/Reject.');
@@ -833,7 +897,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             throw new Exception('Kolom Photo_IT belum tersedia di tabel ticket.');
         }
 
-        $ticketCode = isset($_POST['Ticket_code']) ? (int)$_POST['Ticket_code'] : 0;
+        $ticketCode = isset($_POST['Ticket_code']) ? (int) $_POST['Ticket_code'] : 0;
         if ($ticketCode <= 0) {
             throw new Exception('Ticket code tidak valid.');
         }
@@ -845,7 +909,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if ($stmtLock->execute()) {
                 $resLock = $stmtLock->get_result();
                 $rowLock = $resLock ? $resLock->fetch_assoc() : null;
-                $curStatus = $rowLock && isset($rowLock['Status_Request']) ? (string)$rowLock['Status_Request'] : '';
+                $curStatus = $rowLock && isset($rowLock['Status_Request']) ? (string) $rowLock['Status_Request'] : '';
                 if ($curStatus !== '' && ticket_admin_is_locked_for_it_edits($curStatus)) {
                     $stmtLock->close();
                     throw new Exception('Tidak bisa upload File IT setelah status Done/Closed/Reject.');
@@ -897,6 +961,8 @@ $tabBaseParams = [];
 // Handle AJAX request untuk pagination (template: user/dashboard_user.php)
 if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_admin_tickets') {
     header('Content-Type: application/json; charset=utf-8');
+    // Release session lock so concurrent requests (SSE/polling) don't block us
+    session_write_close();
 
     try {
         // Build base params (preserve other query params except action)
@@ -923,8 +989,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_admin_tickets') {
                 $resStatus = $stmtStatusCounts->get_result();
                 if ($resStatus) {
                     while ($r = $resStatus->fetch_assoc()) {
-                        $st = isset($r['Status_Request']) ? (string)$r['Status_Request'] : '';
-                        $cnt = (int)($r['total'] ?? 0);
+                        $st = isset($r['Status_Request']) ? (string) $r['Status_Request'] : '';
+                        $cnt = (int) ($r['total'] ?? 0);
                         $ajaxTotalAllRecords += $cnt;
                         if ($st !== '' && ticket_admin_is_allowed_status($st)) {
                             $ajaxStatusCounts[$st] = $cnt;
@@ -956,17 +1022,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_admin_tickets') {
         }
         $resCount = $stmtCount->get_result();
         $rowCount = $resCount ? $resCount->fetch_assoc() : null;
-        $totalRecords = $rowCount ? (int)($rowCount['total'] ?? 0) : 0;
+        $totalRecords = $rowCount ? (int) ($rowCount['total'] ?? 0) : 0;
         $stmtCount->close();
 
-        $totalPages = $totalRecords > 0 ? (int)ceil($totalRecords / $limit) : 1;
+        $totalPages = $totalRecords > 0 ? (int) ceil($totalRecords / $limit) : 1;
         $page = min($page, $totalPages);
         $offset = ($page - 1) * $limit;
 
         // Data
         $tickets = [];
         $photoItSelect = $hasPhotoItColumn ? ', `Photo_IT`' : '';
-        $selectCols = '`No`, `Ticket_code`, `Id_Karyawan`, `Nama_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Create_By_User`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`' . $photoItSelect;
+        $assignedSelect = $hasAssignedColumn ? ', `assigned_to`, `assigned_at`' : '';
+        $selectCols = '`No`, `Ticket_code`, `Id_Karyawan`, `Nama_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Create_By_User`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`' . $photoItSelect . $assignedSelect;
 
         [$whereList, $typesListBase, $paramsListBase] = ticket_admin_build_ticket_where(
             $statusFilter,
@@ -1002,6 +1069,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_admin_tickets') {
         $tableHtml = '<thead class="bg-gray-50">'
             . '<tr>'
             . '<th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">No</th>'
+            . ($hasAssignedColumn ? '<th class="text-left text-xs font-semibold text-orange-600 uppercase tracking-wider px-3 py-3 border-b">Kerjakan</th>' : '')
             . '<th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Ticket Code</th>'
             . '<th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Created</th>'
             . '<th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">ID Karyawan</th>'
@@ -1025,43 +1093,72 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_admin_tickets') {
         $rowNo = $offset;
         foreach ($tickets as $t) {
             $rowNo++;
-            $codeInt = (int)($t['Ticket_code'] ?? 0);
-            $codeDisplay = ticket_admin_format_code($codeInt, isset($t['Create_User']) ? (string)$t['Create_User'] : null);
-            $hasFoto = isset($t['Foto_Ticket']) && (string)$t['Foto_Ticket'] !== '';
-            $hasDoc = isset($t['Document']) && (string)$t['Document'] !== '';
-            $itFile = ($hasPhotoItColumn && isset($t['Photo_IT'])) ? trim((string)$t['Photo_IT']) : '';
-            $currentStatus = isset($t['Status_Request']) ? (string)$t['Status_Request'] : '';
+            $codeInt = (int) ($t['Ticket_code'] ?? 0);
+            $codeDisplay = ticket_admin_format_code($codeInt, isset($t['Create_User']) ? (string) $t['Create_User'] : null);
+            $hasFoto = isset($t['Foto_Ticket']) && (string) $t['Foto_Ticket'] !== '';
+            $hasDoc = isset($t['Document']) && (string) $t['Document'] !== '';
+            $itFile = ($hasPhotoItColumn && isset($t['Photo_IT'])) ? trim((string) $t['Photo_IT']) : '';
+            $currentStatus = isset($t['Status_Request']) ? (string) $t['Status_Request'] : '';
             $statusClass = ticket_admin_badge_status_class($currentStatus);
-            $priorityText = (string)($t['Priority'] ?? '');
+            $priorityText = (string) ($t['Priority'] ?? '');
             $priorityClass = ticket_admin_badge_priority_class($priorityText);
-            $currentType = isset($t['Type_Pekerjaan']) ? trim((string)$t['Type_Pekerjaan']) : '';
+            $currentType = isset($t['Type_Pekerjaan']) ? trim((string) $t['Type_Pekerjaan']) : '';
             if (!ticket_admin_is_allowed_type_pekerjaan($currentType)) {
                 $currentType = '';
             }
 
+            $assignedToAjax = ($hasAssignedColumn && isset($t['assigned_to'])) ? trim((string) $t['assigned_to']) : '';
+            $adminNameAjax = $Nama_Lengkap !== '' ? $Nama_Lengkap : $username;
+            $isMineAjax = $assignedToAjax !== '' && $assignedToAjax === $adminNameAjax;
+            $isOthersAjax = $assignedToAjax !== '' && !$isMineAjax;
+
+            if ($hasAssignedColumn) {
+                if ($isMineAjax) {
+                    $assignedTd = '<td class="px-3 py-3 whitespace-nowrap">'
+                        . '<button onclick="assignTicket(' . $codeInt . ',\'unassign\',this)" title="Klik untuk lepas"'
+                        . ' class="assign-btn mine inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all group">'
+                        . '<span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>'
+                        . '<span class="group-hover:hidden">Saya</span><span class="hidden group-hover:inline">Lepas</span>'
+                        . '</button></td>';
+                } elseif ($isOthersAjax) {
+                    $assignedTd = '<td class="px-3 py-3 whitespace-nowrap">'
+                        . '<span class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">'
+                        . '<span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>'
+                        . htmlspecialchars($assignedToAjax) . '</span></td>';
+                } else {
+                    $assignedTd = '<td class="px-3 py-3 whitespace-nowrap">'
+                        . '<button onclick="assignTicket(' . $codeInt . ',\'assign\',this)"'
+                        . ' class="assign-btn inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-50 text-gray-500 border border-gray-200 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300 transition-all">'
+                        . '<i class="fas fa-hand-pointer text-[10px]"></i> Kerjakan</button></td>';
+                }
+            } else {
+                $assignedTd = '';
+            }
+
             $tableHtml .= '<tr class="hover:bg-orange-50/40 transition-colors">'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string)$rowNo) . '</td>'
+                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string) $rowNo) . '</td>'
+                . $assignedTd
                 . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
                 . '<div class="font-semibold text-gray-900">' . htmlspecialchars($codeDisplay) . '</div>'
-                . '<div class="text-xs text-gray-500">#' . htmlspecialchars((string)$codeInt) . '</div>'
+                . '<div class="text-xs text-gray-500">#' . htmlspecialchars((string) $codeInt) . '</div>'
                 . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string)($t['Create_User'] ?? '')) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string)($t['Id_Karyawan'] ?? '')) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string)($t['Nama_User'] ?? '')) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string)($t['Divisi_User'] ?? '')) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string)($t['Region'] ?? '')) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string)($t['Subject'] ?? '')) . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string)($t['Kategori_Masalah'] ?? '')) . '</td>'
+                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string) ($t['Create_User'] ?? '')) . '</td>'
+                . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string) ($t['Id_Karyawan'] ?? '')) . '</td>'
+                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string) ($t['Nama_User'] ?? '')) . '</td>'
+                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string) ($t['Divisi_User'] ?? '')) . '</td>'
+                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string) ($t['Region'] ?? '')) . '</td>'
+                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string) ($t['Subject'] ?? '')) . '</td>'
+                . '<td class="px-4 py-3 text-sm text-gray-800">' . htmlspecialchars((string) ($t['Kategori_Masalah'] ?? '')) . '</td>'
                 . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
                 . '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' . htmlspecialchars($priorityClass) . '">' . htmlspecialchars($priorityText) . '</span>'
                 . '</td>'
                 . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
-                . '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' . htmlspecialchars($statusClass) . '">' . htmlspecialchars((string)$currentStatus) . '</span>'
+                . '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' . htmlspecialchars($statusClass) . '">' . htmlspecialchars((string) $currentStatus) . '</span>'
                 . '</td>'
                 . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
                 . '<form method="POST" class="flex items-center gap-2">'
                 . '<input type="hidden" name="action" value="update_type_pekerjaan" />'
-                . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string)$codeInt, ENT_QUOTES) . '" />'
+                . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '" />'
                 . '<select name="Type_Pekerjaan" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">';
 
             $typeOpts = ['Remote', 'Onsite'];
@@ -1074,35 +1171,35 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_admin_tickets') {
                 . '<button type="submit" class="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm">Set</button>'
                 . '</form>'
                 . '</td>'
-                . '<td class="px-4 py-3 text-sm text-gray-800 min-w-[220px]">' . htmlspecialchars((string)($t['Deskripsi_Masalah'] ?? '')) . '</td>'
+                . '<td class="px-4 py-3 text-sm text-gray-800 min-w-[220px]">' . htmlspecialchars((string) ($t['Deskripsi_Masalah'] ?? '')) . '</td>'
                 . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">';
 
             if ($hasFoto) {
-                $tableHtml .= '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string)$t['Foto_Ticket']) . '" target="_blank" rel="noopener">Foto</a>';
+                $tableHtml .= '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string) $t['Foto_Ticket']) . '" target="_blank" rel="noopener">Foto</a>';
             }
             if ($hasFoto && $hasDoc) {
                 $tableHtml .= '<span class="text-gray-400">|</span>';
             }
             if ($hasDoc) {
-                $tableHtml .= '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string)$t['Document']) . '" target="_blank" rel="noopener">Doc</a>';
+                $tableHtml .= '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string) $t['Document']) . '" target="_blank" rel="noopener">Doc</a>';
             }
             if (!$hasFoto && !$hasDoc) {
                 $tableHtml .= '<span class="text-gray-400">-</span>';
             }
 
-            $jawabanItVal = isset($t['Jawaban_IT']) ? trim((string)$t['Jawaban_IT']) : '';
+            $jawabanItVal = isset($t['Jawaban_IT']) ? trim((string) $t['Jawaban_IT']) : '';
             $photoItInputId = 'Photo_IT_' . $codeInt;
 
             $tableHtml .= '</td>'
                 . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
                 . '<div class="flex items-center gap-2">'
                 . ($itFile !== ''
-                    ? '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string)$itFile) . '" target="_blank" rel="noopener">File IT</a>'
+                    ? '<a class="text-orange-700 hover:underline" href="../uploads/ticket/' . rawurlencode((string) $itFile) . '" target="_blank" rel="noopener">File IT</a>'
                     : '<span class="text-gray-400">-</span>')
                 . '</div>'
                 . '<form method="POST" enctype="multipart/form-data" class="mt-2 flex items-center gap-2">'
                 . '<input type="hidden" name="action" value="update_file_it" />'
-                . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string)$codeInt, ENT_QUOTES) . '" />'
+                . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '" />'
                 . '<input type="file" id="' . htmlspecialchars($photoItInputId, ENT_QUOTES) . '" name="Photo_IT" accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx" capture="environment" class="text-sm js-it-photo-input" />'
                 . '<button type="button" class="px-2.5 py-2 border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-50 js-it-camera-btn whitespace-nowrap" data-target-input="' . htmlspecialchars($photoItInputId, ENT_QUOTES) . '"><i class="fas fa-camera"></i> Kamera</button>'
                 . '<button type="submit" class="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm whitespace-nowrap">Upload</button>'
@@ -1111,21 +1208,21 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_admin_tickets') {
                 . '<td class="px-4 py-3 text-sm text-gray-800 min-w-[260px]">'
                 . '<form method="POST" class="flex items-start gap-2">'
                 . '<input type="hidden" name="action" value="update_jawaban_it" />'
-                . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string)$codeInt, ENT_QUOTES) . '" />'
-                . '<textarea name="Jawaban_IT" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Tulis jawaban IT...">' . htmlspecialchars((string)$jawabanItVal) . '</textarea>'
+                . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '" />'
+                . '<textarea name="Jawaban_IT" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Tulis jawaban IT...">' . htmlspecialchars((string) $jawabanItVal) . '</textarea>'
                 . '<button type="submit" class="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm whitespace-nowrap">Simpan</button>'
                 . '</form>'
                 . '</td>'
                 . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
                 . '<form method="POST" class="flex items-center gap-2">'
                 . '<input type="hidden" name="action" value="update_status" />'
-                . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string)$codeInt, ENT_QUOTES) . '" />'
+                . '<input type="hidden" name="Ticket_code" value="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '" />'
                 . '<select name="Status_Request" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">';
 
             $opts = ['Open', 'Reject', 'Review', 'In Progress', 'Done'];
             foreach ($opts as $opt) {
                 $sel = ($opt === $currentStatus) ? 'selected' : '';
-                $disabled = ($sel === '') && !ticket_admin_can_transition_status((string)$currentStatus, (string)$opt);
+                $disabled = ($sel === '') && !ticket_admin_can_transition_status((string) $currentStatus, (string) $opt);
                 $label = ($disabled ? '🔒 ' : '') . $opt;
                 $tableHtml .= '<option value="' . htmlspecialchars($opt, ENT_QUOTES) . '" ' . $sel . ' ' . ($disabled ? 'disabled' : '') . '>' . htmlspecialchars($label) . '</option>';
             }
@@ -1176,8 +1273,8 @@ try {
             $resStatus = $stmtStatusCounts->get_result();
             if ($resStatus) {
                 while ($r = $resStatus->fetch_assoc()) {
-                    $st = isset($r['Status_Request']) ? (string)$r['Status_Request'] : '';
-                    $cnt = (int)($r['total'] ?? 0);
+                    $st = isset($r['Status_Request']) ? (string) $r['Status_Request'] : '';
+                    $cnt = (int) ($r['total'] ?? 0);
                     $totalAllRecords += $cnt;
                     if ($st !== '' && ticket_admin_is_allowed_status($st)) {
                         $statusCounts[$st] = $cnt;
@@ -1209,7 +1306,7 @@ try {
     if ($stmtCount->execute()) {
         $resCount = $stmtCount->get_result();
         $rowCount = $resCount ? $resCount->fetch_assoc() : null;
-        $totalRecords = $rowCount ? (int)($rowCount['total'] ?? 0) : 0;
+        $totalRecords = $rowCount ? (int) ($rowCount['total'] ?? 0) : 0;
     }
     $stmtCount->close();
 
@@ -1217,7 +1314,7 @@ try {
         $totalAllRecords = $totalRecords;
     }
 
-    $totalPages = $totalRecords > 0 ? (int)ceil($totalRecords / $limit) : 1;
+    $totalPages = $totalRecords > 0 ? (int) ceil($totalRecords / $limit) : 1;
     if ($page > $totalPages) {
         $page = $totalPages;
         $offset = ($page - 1) * $limit;
@@ -1225,7 +1322,8 @@ try {
 
     // Data
     $photoItSelect = $hasPhotoItColumn ? ', `Photo_IT`' : '';
-    $selectCols = '`No`, `Ticket_code`, `Id_Karyawan`, `Nama_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Create_By_User`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`' . $photoItSelect;
+    $assignedSelect = $hasAssignedColumn ? ', `assigned_to`, `assigned_at`' : '';
+    $selectCols = '`No`, `Ticket_code`, `Id_Karyawan`, `Nama_User`, `Divisi_User`, `Jabatan_User`, `Region`, `Subject`, `Kategori_Masalah`, `Priority`, `Status_Request`, `Type_Pekerjaan`, `Create_User`, `Create_By_User`, `Deskripsi_Masalah`, `Foto_Ticket`, `Document`, `Jawaban_IT`' . $photoItSelect . $assignedSelect;
     [$whereList, $typesListBase, $paramsListBase] = ticket_admin_build_ticket_where(
         $statusFilter,
         $hasSearch,
@@ -1317,8 +1415,8 @@ try {
         $resDashStatus = $stmtDashStatus->get_result();
         if ($resDashStatus) {
             while ($r = $resDashStatus->fetch_assoc()) {
-                $st = isset($r['Status_Request']) ? (string)$r['Status_Request'] : '';
-                $cnt = (int)($r['total'] ?? 0);
+                $st = isset($r['Status_Request']) ? (string) $r['Status_Request'] : '';
+                $cnt = (int) ($r['total'] ?? 0);
                 $dashTotalTickets += $cnt;
                 if ($st !== '' && ticket_admin_is_allowed_status($st)) {
                     $dashStatusCounts[$st] = $cnt;
@@ -1343,12 +1441,16 @@ try {
         $resDashPr = $stmtDashPr->get_result();
         if ($resDashPr) {
             while ($r = $resDashPr->fetch_assoc()) {
-                $p = isset($r['Priority']) ? strtolower(trim((string)$r['Priority'])) : '';
-                $cnt = (int)($r['total'] ?? 0);
-                if ($p === 'low') $dashPriorityCounts['Low'] += $cnt;
-                elseif ($p === 'medium') $dashPriorityCounts['Medium'] += $cnt;
-                elseif ($p === 'high') $dashPriorityCounts['High'] += $cnt;
-                elseif ($p === 'urgent') $dashPriorityCounts['Urgent'] += $cnt;
+                $p = isset($r['Priority']) ? strtolower(trim((string) $r['Priority'])) : '';
+                $cnt = (int) ($r['total'] ?? 0);
+                if ($p === 'low')
+                    $dashPriorityCounts['Low'] += $cnt;
+                elseif ($p === 'medium')
+                    $dashPriorityCounts['Medium'] += $cnt;
+                elseif ($p === 'high')
+                    $dashPriorityCounts['High'] += $cnt;
+                elseif ($p === 'urgent')
+                    $dashPriorityCounts['Urgent'] += $cnt;
             }
         }
     }
@@ -1416,14 +1518,14 @@ try {
                 $resAvg = $stmtAvg->get_result();
                 if ($resAvg) {
                     $avgRow = $resAvg->fetch_assoc();
-                    $avgSec = isset($avgRow['avg_sec']) ? (float)$avgRow['avg_sec'] : 0.0;
+                    $avgSec = isset($avgRow['avg_sec']) ? (float) $avgRow['avg_sec'] : 0.0;
                     if ($avgSec > 0) {
                         if ($avgSec >= 3600) {
                             $dashAvgResponseTime = number_format($avgSec / 3600, 1) . 'h';
                         } elseif ($avgSec >= 60) {
-                            $dashAvgResponseTime = (string)round($avgSec / 60) . 'm';
+                            $dashAvgResponseTime = (string) round($avgSec / 60) . 'm';
                         } else {
-                            $dashAvgResponseTime = (string)round($avgSec) . 's';
+                            $dashAvgResponseTime = (string) round($avgSec) . 's';
                         }
                     }
                 }
@@ -1435,25 +1537,26 @@ try {
     // best-effort
 }
 
-$dashOpenTickets = (int)($dashStatusCounts['Open'] ?? 0);
-$dashInProgressTickets = (int)($dashStatusCounts['In Progress'] ?? 0);
-$dashReviewTickets = (int)($dashStatusCounts['Review'] ?? 0);
-$dashDoneTickets = (int)($dashStatusCounts['Done'] ?? 0);
-$dashRejectedTickets = (int)($dashStatusCounts['Reject'] ?? 0);
-$dashClosedTickets = (int)($dashStatusCounts['Closed'] ?? 0);
+$dashOpenTickets = (int) ($dashStatusCounts['Open'] ?? 0);
+$dashInProgressTickets = (int) ($dashStatusCounts['In Progress'] ?? 0);
+$dashReviewTickets = (int) ($dashStatusCounts['Review'] ?? 0);
+$dashDoneTickets = (int) ($dashStatusCounts['Done'] ?? 0);
+$dashRejectedTickets = (int) ($dashStatusCounts['Reject'] ?? 0);
+$dashClosedTickets = (int) ($dashStatusCounts['Closed'] ?? 0);
 
 $dashStatusData = [];
 foreach (ticket_admin_status_list() as $st) {
-    $dashStatusData[] = ['name' => $st, 'value' => (int)($dashStatusCounts[$st] ?? 0)];
+    $dashStatusData[] = ['name' => $st, 'value' => (int) ($dashStatusCounts[$st] ?? 0)];
 }
 
 $dashPriorityData = [];
 foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
-    $dashPriorityData[] = ['name' => $p, 'value' => (int)($dashPriorityCounts[$p] ?? 0)];
+    $dashPriorityData[] = ['name' => $p, 'value' => (int) ($dashPriorityCounts[$p] ?? 0)];
 }
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1462,7 +1565,15 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
     <link rel="stylesheet" href="../global_dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-gray-50">
@@ -1492,23 +1603,23 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
     ?>
 
     <div id="main-content-wrapper" class="lg:ml-60 transition-all duration-300 ease-in-out">
-    <script>
-        (function() {
-            var wrapper = document.getElementById('main-content-wrapper');
-            if (!wrapper) return;
-            function applyState() {
-                if (window.innerWidth >= 1024) {
-                    var collapsed = localStorage.getItem('sidebarCollapsed') === '1';
-                    wrapper.style.marginLeft = collapsed ? '0' : '';
-                } else {
-                    wrapper.style.marginLeft = '0';
+        <script>
+            (function () {
+                var wrapper = document.getElementById('main-content-wrapper');
+                if (!wrapper) return;
+                function applyState() {
+                    if (window.innerWidth >= 1024) {
+                        var collapsed = localStorage.getItem('sidebarCollapsed') === '1';
+                        wrapper.style.marginLeft = collapsed ? '0' : '';
+                    } else {
+                        wrapper.style.marginLeft = '0';
+                    }
                 }
-            }
-            applyState();
-            window.addEventListener('sidebarToggled', function(e) { applyState(); });
-            window.addEventListener('resize', function() { applyState(); });
-        })();
-    </script>
+                applyState();
+                window.addEventListener('sidebarToggled', function (e) { applyState(); });
+                window.addEventListener('resize', function () { applyState(); });
+            })();
+        </script>
         <main class="p-6 lg:p-8">
             <div class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-900 mb-2 mt-16">Ticket</h1>
@@ -1527,33 +1638,48 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                                 <h2 class="text-lg font-semibold text-gray-900">Dashboard Ticket</h2>
                                 <p class="text-sm text-gray-600">Ringkasan ticket dan insight cepat</p>
                             </div>
+                            <span id="rt-live-badge"
+                                class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-700"
+                                title="Menghubungkan ke real-time..." style="transition:all 0.4s ease;">
+                                <span id="rt-live-dot" class="inline-block w-2 h-2 rounded-full bg-amber-400"
+                                    style="transition:background-color 0.4s ease, transform 0.3s ease;"></span>
+                                LIVE
+                            </span>
                         </div>
 
                         <form method="GET" class="flex flex-wrap items-end justify-end gap-3">
                             <?php if ($statusFilter !== ''): ?>
-                                <input type="hidden" name="status" value="<?php echo htmlspecialchars($statusFilter, ENT_QUOTES); ?>" />
+                                <input type="hidden" name="status"
+                                    value="<?php echo htmlspecialchars($statusFilter, ENT_QUOTES); ?>" />
                             <?php endif; ?>
                             <?php if ($searchQuery !== ''): ?>
-                                <input type="hidden" name="q" value="<?php echo htmlspecialchars($searchQuery, ENT_QUOTES); ?>" />
+                                <input type="hidden" name="q"
+                                    value="<?php echo htmlspecialchars($searchQuery, ENT_QUOTES); ?>" />
                             <?php endif; ?>
 
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Dari</label>
-                                <input type="date" name="date_from" value="<?php echo htmlspecialchars($filterDateFrom, ENT_QUOTES); ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                                <input type="date" name="date_from"
+                                    value="<?php echo htmlspecialchars($filterDateFrom, ENT_QUOTES); ?>"
+                                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Sampai</label>
-                                <input type="date" name="date_to" value="<?php echo htmlspecialchars($filterDateTo, ENT_QUOTES); ?>" class="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                                <input type="date" name="date_to"
+                                    value="<?php echo htmlspecialchars($filterDateTo, ENT_QUOTES); ?>"
+                                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                             </div>
                             <div class="flex items-center gap-2">
-                                <button type="submit" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-semibold whitespace-nowrap">Filter</button>
+                                <button type="submit"
+                                    class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-semibold whitespace-nowrap">Filter</button>
                                 <?php if ($hasDateFilter): ?>
                                     <?php
-                                        $resetParams = $_GET;
-                                        unset($resetParams['date_from'], $resetParams['date_to'], $resetParams['from'], $resetParams['to'], $resetParams['page'], $resetParams['action']);
-                                        $resetUrl = '?' . http_build_query($resetParams);
+                                    $resetParams = $_GET;
+                                    unset($resetParams['date_from'], $resetParams['date_to'], $resetParams['from'], $resetParams['to'], $resetParams['page'], $resetParams['action']);
+                                    $resetUrl = '?' . http_build_query($resetParams);
                                     ?>
-                                    <a href="<?php echo htmlspecialchars($resetUrl); ?>" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 whitespace-nowrap">Reset</a>
+                                    <a href="<?php echo htmlspecialchars($resetUrl); ?>"
+                                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 whitespace-nowrap">Reset</a>
                                 <?php endif; ?>
                             </div>
                         </form>
@@ -1561,12 +1687,18 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
 
                     <!-- Stats Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Total Tickets</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashTotalTickets); ?></div>
-                                    <p class="text-xs text-gray-500 mt-1"><?php echo htmlspecialchars($dashRangeLabel); ?></p>
+                                    <div id="rt-total" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashTotalTickets); ?>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        <?php echo htmlspecialchars($dashRangeLabel); ?>
+                                    </p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-blue-100 text-blue-600">
                                     <i class="fas fa-ticket-alt" aria-hidden="true"></i>
@@ -1574,11 +1706,15 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Open Tickets</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashOpenTickets); ?></div>
+                                    <div id="rt-open" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashOpenTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Need action</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-orange-100 text-orange-600">
@@ -1587,11 +1723,15 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">In Progress</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashInProgressTickets); ?></div>
+                                    <div id="rt-inprogress" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashInProgressTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Being processed</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-yellow-100 text-yellow-700">
@@ -1600,11 +1740,15 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Completed (Done)</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashDoneTickets); ?></div>
+                                    <div id="rt-done" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashDoneTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Resolved</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-green-100 text-green-600">
@@ -1616,11 +1760,15 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
 
                     <!-- Additional Stats -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Review</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashReviewTickets); ?></div>
+                                    <div id="rt-review" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashReviewTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Waiting validation</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-yellow-100 text-yellow-700">
@@ -1629,11 +1777,15 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Closed</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashClosedTickets); ?></div>
+                                    <div id="rt-closed" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashClosedTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Finalized by user</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-gray-200 text-gray-600">
@@ -1642,11 +1794,15 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Rejected</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashRejectedTickets); ?></div>
+                                    <div id="rt-rejected" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashRejectedTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Need review</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-red-100 text-red-600">
@@ -1655,11 +1811,15 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                             </div>
                         </div>
 
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <p class="text-sm text-gray-600 mb-1">Average Response Time</p>
-                                    <div class="text-3xl font-semibold text-gray-900"><?php echo htmlspecialchars((string)$dashAvgResponseTime); ?></div>
+                                    <div id="rt-avgtime" class="text-3xl font-semibold text-gray-900"
+                                        style="transition:color 0.3s;">
+                                        <?php echo htmlspecialchars((string) $dashAvgResponseTime); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Based on first status change</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-gray-200 text-gray-600">
@@ -1671,13 +1831,15 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
 
                     <!-- Charts -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/20 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/20 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <h3 class="text-lg font-semibold text-gray-900 mb-4">Ticket Status Distribution</h3>
                             <div class="relative" style="height: 300px;">
                                 <canvas id="adminTicketStatusChart"></canvas>
                             </div>
                         </div>
-                        <div tabindex="0" class="pressable bg-white rounded-lg border border-gray-200 p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/20 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
+                        <div tabindex="0"
+                            class="pressable bg-white rounded-lg border border-gray-200 p-5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/20 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <h3 class="text-lg font-semibold text-gray-900 mb-4">Tickets by Priority</h3>
                             <div class="relative" style="height: 300px;">
                                 <canvas id="adminTicketPriorityChart"></canvas>
@@ -1694,47 +1856,79 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                             <table class="min-w-full">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ticket Code</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">User</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Divisi</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Subject</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Priority</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Ticket Code</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            User</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Divisi</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Subject</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Category</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Priority</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Status</th>
+                                        <th
+                                            class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                            Created</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-100">
+                                <tbody id="dash-recent-tbody" class="bg-white divide-y divide-gray-100">
                                     <?php if (count($dashRecentTickets) === 0): ?>
                                         <tr>
-                                            <td class="px-5 py-4 text-sm text-gray-600" colspan="8">Belum ada data ticket.</td>
+                                            <td class="px-5 py-4 text-sm text-gray-600" colspan="8">Belum ada data ticket.
+                                            </td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($dashRecentTickets as $rt): ?>
                                             <?php
-                                                $rtCodeInt = (int)($rt['Ticket_code'] ?? 0);
-                                                $rtCodeDisplay = ticket_admin_format_code($rtCodeInt, isset($rt['Create_User']) ? (string)$rt['Create_User'] : null);
-                                                $rtStatus = isset($rt['Status_Request']) ? (string)$rt['Status_Request'] : '';
-                                                $rtStatusClass = ticket_admin_badge_status_class($rtStatus);
-                                                $rtPriority = isset($rt['Priority']) ? (string)$rt['Priority'] : '';
-                                                $rtPriorityClass = ticket_admin_badge_priority_class($rtPriority);
+                                            $rtCodeInt = (int) ($rt['Ticket_code'] ?? 0);
+                                            $rtCodeDisplay = ticket_admin_format_code($rtCodeInt, isset($rt['Create_User']) ? (string) $rt['Create_User'] : null);
+                                            $rtStatus = isset($rt['Status_Request']) ? (string) $rt['Status_Request'] : '';
+                                            $rtStatusClass = ticket_admin_badge_status_class($rtStatus);
+                                            $rtPriority = isset($rt['Priority']) ? (string) $rt['Priority'] : '';
+                                            $rtPriorityClass = ticket_admin_badge_priority_class($rtPriority);
                                             ?>
                                             <tr class="hover:bg-orange-50/40 transition-colors">
                                                 <td class="px-5 py-4 whitespace-nowrap">
-                                                    <div class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($rtCodeDisplay); ?></div>
-                                                    <div class="text-xs text-gray-500">#<?php echo htmlspecialchars((string)$rtCodeInt); ?></div>
+                                                    <div class="text-sm font-semibold text-gray-900">
+                                                        <?php echo htmlspecialchars($rtCodeDisplay); ?>
+                                                    </div>
+                                                    <div class="text-xs text-gray-500">
+                                                        #<?php echo htmlspecialchars((string) $rtCodeInt); ?></div>
                                                 </td>
-                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo htmlspecialchars((string)($rt['Nama_User'] ?? '')); ?></td>
-                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600"><?php echo htmlspecialchars((string)($rt['Divisi_User'] ?? '')); ?></td>
-                                                <td class="px-5 py-4 text-sm text-gray-900"><?php echo htmlspecialchars((string)($rt['Subject'] ?? '')); ?></td>
-                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600"><?php echo htmlspecialchars((string)($rt['Kategori_Masalah'] ?? '')); ?></td>
+                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <?php echo htmlspecialchars((string) ($rt['Nama_User'] ?? '')); ?>
+                                                </td>
+                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <?php echo htmlspecialchars((string) ($rt['Divisi_User'] ?? '')); ?>
+                                                </td>
+                                                <td class="px-5 py-4 text-sm text-gray-900">
+                                                    <?php echo htmlspecialchars((string) ($rt['Subject'] ?? '')); ?>
+                                                </td>
+                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <?php echo htmlspecialchars((string) ($rt['Kategori_Masalah'] ?? '')); ?>
+                                                </td>
                                                 <td class="px-5 py-4 whitespace-nowrap">
-                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($rtPriorityClass); ?>"><?php echo htmlspecialchars($rtPriority); ?></span>
+                                                    <span
+                                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($rtPriorityClass); ?>"><?php echo htmlspecialchars($rtPriority); ?></span>
                                                 </td>
                                                 <td class="px-5 py-4 whitespace-nowrap">
-                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($rtStatusClass); ?>"><?php echo htmlspecialchars($rtStatus); ?></span>
+                                                    <span
+                                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($rtStatusClass); ?>"><?php echo htmlspecialchars($rtStatus); ?></span>
                                                 </td>
-                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600"><?php echo htmlspecialchars((string)($rt['Create_User'] ?? '')); ?></td>
+                                                <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <?php echo htmlspecialchars((string) ($rt['Create_User'] ?? '')); ?>
+                                                </td>
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -1760,51 +1954,51 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
 
                 <form id="ticketSearchForm" method="GET" class="mb-4">
                     <?php if ($statusFilter !== ''): ?>
-                        <input type="hidden" name="status" value="<?php echo htmlspecialchars($statusFilter, ENT_QUOTES); ?>" />
+                        <input type="hidden" name="status"
+                            value="<?php echo htmlspecialchars($statusFilter, ENT_QUOTES); ?>" />
                     <?php endif; ?>
                     <?php if ($filterDateFrom !== ''): ?>
-                        <input type="hidden" name="date_from" value="<?php echo htmlspecialchars($filterDateFrom, ENT_QUOTES); ?>" />
+                        <input type="hidden" name="date_from"
+                            value="<?php echo htmlspecialchars($filterDateFrom, ENT_QUOTES); ?>" />
                     <?php endif; ?>
                     <?php if ($filterDateTo !== ''): ?>
-                        <input type="hidden" name="date_to" value="<?php echo htmlspecialchars($filterDateTo, ENT_QUOTES); ?>" />
+                        <input type="hidden" name="date_to"
+                            value="<?php echo htmlspecialchars($filterDateTo, ENT_QUOTES); ?>" />
                     <?php endif; ?>
                     <?php
-                        $downloadParams = [];
-                        if ($statusFilter !== '') {
-                            $downloadParams['status'] = $statusFilter;
-                        }
-                        if ($searchQuery !== '') {
-                            $downloadParams['q'] = $searchQuery;
-                        }
-                        if ($filterDateFrom !== '') {
-                            $downloadParams['date_from'] = $filterDateFrom;
-                        }
-                        if ($filterDateTo !== '') {
-                            $downloadParams['date_to'] = $filterDateTo;
-                        }
-                        $downloadUrl = 'download_ticket_report.php';
-                        if (!empty($downloadParams)) {
-                            $downloadUrl .= '?' . http_build_query($downloadParams);
-                        }
+                    $downloadParams = [];
+                    if ($statusFilter !== '') {
+                        $downloadParams['status'] = $statusFilter;
+                    }
+                    if ($searchQuery !== '') {
+                        $downloadParams['q'] = $searchQuery;
+                    }
+                    if ($filterDateFrom !== '') {
+                        $downloadParams['date_from'] = $filterDateFrom;
+                    }
+                    if ($filterDateTo !== '') {
+                        $downloadParams['date_to'] = $filterDateTo;
+                    }
+                    $downloadUrl = 'download_ticket_report.php';
+                    if (!empty($downloadParams)) {
+                        $downloadUrl .= '?' . http_build_query($downloadParams);
+                    }
                     ?>
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div class="max-w-md w-full">
                             <div class="relative">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                     <i class="fas fa-search" aria-hidden="true"></i>
                                 </div>
-                                <input
-                                    id="ticketSearchInput"
-                                    name="q"
-                                    type="text"
-                                    value="<?php echo htmlspecialchars($searchQuery); ?>"
-                                    placeholder="Search ticket..."
-                                    class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400"
-                                />
+                                <input id="ticketSearchInput" name="q" type="text"
+                                    value="<?php echo htmlspecialchars($searchQuery); ?>" placeholder="Search ticket..."
+                                    class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400" />
                             </div>
                         </div>
 
-                        <a id="ticketDownloadReportBtn" href="<?php echo htmlspecialchars($downloadUrl); ?>" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm font-semibold whitespace-nowrap">
+                        <a id="ticketDownloadReportBtn" href="<?php echo htmlspecialchars($downloadUrl); ?>"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm font-semibold whitespace-nowrap">
                             <i class="fas fa-download" aria-hidden="true"></i>
                             Download Report
                         </a>
@@ -1838,15 +2032,16 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 <div class="mb-5">
                     <div class="flex flex-wrap items-center gap-2">
                         <a href="<?php echo htmlspecialchars($allTabUrl); ?>"
-                           class="<?php echo ($activeTabStatus === '') ? $tabClassActive : $tabClassInactive; ?>"
-                           data-status=""
-                           data-class-active="<?php echo htmlspecialchars($tabClassActive, ENT_QUOTES); ?>"
-                           data-class-inactive="<?php echo htmlspecialchars($tabClassInactive, ENT_QUOTES); ?>">
+                            class="<?php echo ($activeTabStatus === '') ? $tabClassActive : $tabClassInactive; ?>"
+                            data-status=""
+                            data-class-active="<?php echo htmlspecialchars($tabClassActive, ENT_QUOTES); ?>"
+                            data-class-inactive="<?php echo htmlspecialchars($tabClassInactive, ENT_QUOTES); ?>">
                             <span>All</span>
-                            <span class="<?php echo ($activeTabStatus === '') ? $countClassActive : $countClassInactive; ?>"
-                                  data-class-active="<?php echo htmlspecialchars($countClassActive, ENT_QUOTES); ?>"
-                                  data-class-inactive="<?php echo htmlspecialchars($countClassInactive, ENT_QUOTES); ?>">
-                                <?php echo htmlspecialchars((string)($totalAllRecords ?? 0)); ?>
+                            <span
+                                class="<?php echo ($activeTabStatus === '') ? $countClassActive : $countClassInactive; ?>"
+                                data-class-active="<?php echo htmlspecialchars($countClassActive, ENT_QUOTES); ?>"
+                                data-class-inactive="<?php echo htmlspecialchars($countClassInactive, ENT_QUOTES); ?>">
+                                <?php echo htmlspecialchars((string) ($totalAllRecords ?? 0)); ?>
                             </span>
                         </a>
 
@@ -1854,18 +2049,18 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                             <?php
                             $isActive = ($activeTabStatus === $st);
                             $tabUrl = '?' . http_build_query(array_merge($tabBaseParams ?? [], ['status' => $st]));
-                            $countVal = isset($statusCounts[$st]) ? (int)$statusCounts[$st] : 0;
+                            $countVal = isset($statusCounts[$st]) ? (int) $statusCounts[$st] : 0;
                             ?>
                             <a href="<?php echo htmlspecialchars($tabUrl); ?>"
-                               class="<?php echo $isActive ? $tabClassActive : $tabClassInactive; ?>"
-                               data-status="<?php echo htmlspecialchars($st, ENT_QUOTES); ?>"
-                               data-class-active="<?php echo htmlspecialchars($tabClassActive, ENT_QUOTES); ?>"
-                               data-class-inactive="<?php echo htmlspecialchars($tabClassInactive, ENT_QUOTES); ?>">
+                                class="<?php echo $isActive ? $tabClassActive : $tabClassInactive; ?>"
+                                data-status="<?php echo htmlspecialchars($st, ENT_QUOTES); ?>"
+                                data-class-active="<?php echo htmlspecialchars($tabClassActive, ENT_QUOTES); ?>"
+                                data-class-inactive="<?php echo htmlspecialchars($tabClassInactive, ENT_QUOTES); ?>">
                                 <span><?php echo htmlspecialchars($st); ?></span>
                                 <span class="<?php echo $isActive ? $countClassActive : $countClassInactive; ?>"
-                                      data-class-active="<?php echo htmlspecialchars($countClassActive, ENT_QUOTES); ?>"
-                                      data-class-inactive="<?php echo htmlspecialchars($countClassInactive, ENT_QUOTES); ?>">
-                                    <?php echo htmlspecialchars((string)$countVal); ?>
+                                    data-class-active="<?php echo htmlspecialchars($countClassActive, ENT_QUOTES); ?>"
+                                    data-class-inactive="<?php echo htmlspecialchars($countClassInactive, ENT_QUOTES); ?>">
+                                    <?php echo htmlspecialchars((string) $countVal); ?>
                                 </span>
                             </a>
                         <?php endforeach; ?>
@@ -1880,7 +2075,8 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                     <?php elseif (count($tickets) === 0): ?>
                         <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg p-4">
                             <?php if ($statusFilter !== ''): ?>
-                                Tidak ada ticket untuk status: <span class="font-semibold"><?php echo htmlspecialchars($statusFilter); ?></span>.
+                                Tidak ada ticket untuk status: <span
+                                    class="font-semibold"><?php echo htmlspecialchars($statusFilter); ?></span>.
                             <?php else: ?>
                                 Belum ada request ticket dari user.
                             <?php endif; ?>
@@ -1889,72 +2085,168 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                         <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">No</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Ticket Code</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Created</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">ID Karyawan</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Nama User</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Divisi</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Region</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Subject</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Kategori</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Priority</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Status</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Type Pekerjaan</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Deskripsi</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">File</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">File IT</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Jawaban IT</th>
-                                    <th class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">Respon</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        No</th>
+                                    <?php if ($hasAssignedColumn): ?>
+                                        <th
+                                            class="text-left text-xs font-semibold text-orange-600 uppercase tracking-wider px-3 py-3 border-b">
+                                            Kerjakan</th>
+                                    <?php endif; ?>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Ticket Code</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Created</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        ID Karyawan</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Nama User</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Divisi</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Region</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Subject</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Kategori</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Priority</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Status</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Type Pekerjaan</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Deskripsi</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        File</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        File IT</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Jawaban IT</th>
+                                    <th
+                                        class="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3 border-b">
+                                        Respon</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">
-                                <?php $rowNo = $offset; foreach ($tickets as $t): $rowNo++; ?>
+                                <?php $rowNo = $offset;
+                                foreach ($tickets as $t):
+                                    $rowNo++; ?>
                                     <?php
-                                    $codeInt = (int)$t['Ticket_code'];
-                                    $codeDisplay = ticket_admin_format_code($codeInt, isset($t['Create_User']) ? (string)$t['Create_User'] : null);
-                                    $hasFoto = isset($t['Foto_Ticket']) && (string)$t['Foto_Ticket'] !== '';
-                                    $hasDoc = isset($t['Document']) && (string)$t['Document'] !== '';
-                                    $itFile = ($hasPhotoItColumn && isset($t['Photo_IT'])) ? trim((string)$t['Photo_IT']) : '';
-                                    $currentStatus = isset($t['Status_Request']) ? (string)$t['Status_Request'] : '';
+                                    $codeInt = (int) $t['Ticket_code'];
+                                    $codeDisplay = ticket_admin_format_code($codeInt, isset($t['Create_User']) ? (string) $t['Create_User'] : null);
+                                    $hasFoto = isset($t['Foto_Ticket']) && (string) $t['Foto_Ticket'] !== '';
+                                    $hasDoc = isset($t['Document']) && (string) $t['Document'] !== '';
+                                    $itFile = ($hasPhotoItColumn && isset($t['Photo_IT'])) ? trim((string) $t['Photo_IT']) : '';
+                                    $currentStatus = isset($t['Status_Request']) ? (string) $t['Status_Request'] : '';
                                     $statusClass = ticket_admin_badge_status_class($currentStatus);
-                                    $currentType = isset($t['Type_Pekerjaan']) ? trim((string)$t['Type_Pekerjaan']) : '';
+                                    $currentType = isset($t['Type_Pekerjaan']) ? trim((string) $t['Type_Pekerjaan']) : '';
                                     if (!ticket_admin_is_allowed_type_pekerjaan($currentType)) {
                                         $currentType = '';
                                     }
-                                    $priorityText = (string)($t['Priority'] ?? '');
+                                    $priorityText = (string) ($t['Priority'] ?? '');
                                     $priorityClass = ticket_admin_badge_priority_class($priorityText);
-                                    $jawabanItVal = isset($t['Jawaban_IT']) ? trim((string)$t['Jawaban_IT']) : '';
+                                    $jawabanItVal = isset($t['Jawaban_IT']) ? trim((string) $t['Jawaban_IT']) : '';
                                     $photoItInputId = 'Photo_IT_' . $codeInt;
+                                    $assignedTo = ($hasAssignedColumn && isset($t['assigned_to'])) ? trim((string) $t['assigned_to']) : '';
+                                    $adminDisplayName = $Nama_Lengkap !== '' ? $Nama_Lengkap : $username;
+                                    $isMine = $assignedTo !== '' && $assignedTo === $adminDisplayName;
+                                    $isOthers = $assignedTo !== '' && !$isMine;
                                     ?>
                                     <tr class="hover:bg-orange-50/40 transition-colors">
-                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap"><?php echo htmlspecialchars((string)$rowNo); ?></td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
-                                            <div class="font-semibold text-gray-900"><?php echo htmlspecialchars($codeDisplay); ?></div>
-                                            <div class="text-xs text-gray-500">#<?php echo htmlspecialchars((string)$codeInt); ?></div>
+                                            <?php echo htmlspecialchars((string) $rowNo); ?>
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap"><?php echo htmlspecialchars((string)($t['Create_User'] ?? '')); ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap"><?php echo htmlspecialchars((string)$t['Id_Karyawan']); ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-800"><?php echo htmlspecialchars((string)$t['Nama_User']); ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-800"><?php echo htmlspecialchars((string)$t['Divisi_User']); ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-800"><?php echo htmlspecialchars((string)$t['Region']); ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-800"><?php echo htmlspecialchars((string)$t['Subject']); ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-800"><?php echo htmlspecialchars((string)$t['Kategori_Masalah']); ?></td>
+                                        <?php if ($hasAssignedColumn): ?>
+                                            <td class="px-3 py-3 whitespace-nowrap">
+                                                <?php if ($isMine): ?>
+                                                    <button onclick="assignTicket(<?php echo $codeInt; ?>, 'unassign', this)"
+                                                        class="assign-btn mine inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all group"
+                                                        title="Klik untuk lepas">
+                                                        <span class="relative flex h-2 w-2"><span
+                                                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span
+                                                                class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+                                                        <span class="group-hover:hidden">Saya</span>
+                                                        <span class="hidden group-hover:inline">Lepas</span>
+                                                    </button>
+                                                <?php elseif ($isOthers): ?>
+                                                    <span
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                                        <span class="relative flex h-2 w-2"><span
+                                                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span
+                                                                class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+                                                        <?php echo htmlspecialchars($assignedTo); ?>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <button onclick="assignTicket(<?php echo $codeInt; ?>, 'assign', this)"
+                                                        class="assign-btn inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-50 text-gray-500 border border-gray-200 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300 transition-all">
+                                                        <i class="fas fa-hand-pointer text-[10px]"></i> Kerjakan
+                                                    </button>
+                                                <?php endif; ?>
+                                            </td>
+                                        <?php endif; ?>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($priorityClass); ?>">
+                                            <div class="font-semibold text-gray-900">
+                                                <?php echo htmlspecialchars($codeDisplay); ?>
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                #<?php echo htmlspecialchars((string) $codeInt); ?></div>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
+                                            <?php echo htmlspecialchars((string) ($t['Create_User'] ?? '')); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
+                                            <?php echo htmlspecialchars((string) $t['Id_Karyawan']); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            <?php echo htmlspecialchars((string) $t['Nama_User']); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            <?php echo htmlspecialchars((string) $t['Divisi_User']); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            <?php echo htmlspecialchars((string) $t['Region']); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            <?php echo htmlspecialchars((string) $t['Subject']); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            <?php echo htmlspecialchars((string) $t['Kategori_Masalah']); ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($priorityClass); ?>">
                                                 <?php echo htmlspecialchars($priorityText); ?>
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($statusClass); ?>">
-                                                <?php echo htmlspecialchars((string)$currentStatus); ?>
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($statusClass); ?>">
+                                                <?php echo htmlspecialchars((string) $currentStatus); ?>
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <form method="POST" class="flex items-center gap-2">
                                                 <input type="hidden" name="action" value="update_type_pekerjaan" />
-                                                <input type="hidden" name="Ticket_code" value="<?php echo htmlspecialchars((string)$codeInt); ?>" />
-                                                <select name="Type_Pekerjaan" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                                <input type="hidden" name="Ticket_code"
+                                                    value="<?php echo htmlspecialchars((string) $codeInt); ?>" />
+                                                <select name="Type_Pekerjaan"
+                                                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                                                     <?php
                                                     $typeOpts = ['Remote', 'Onsite'];
                                                     foreach ($typeOpts as $opt) {
@@ -1963,19 +2255,26 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                                                     }
                                                     ?>
                                                 </select>
-                                                <button type="submit" class="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm">Set</button>
+                                                <button type="submit"
+                                                    class="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm">Set</button>
                                             </form>
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-800 min-w-[220px]"><?php echo htmlspecialchars((string)($t['Deskripsi_Masalah'] ?? '')); ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-800 min-w-[220px]">
+                                            <?php echo htmlspecialchars((string) ($t['Deskripsi_Masalah'] ?? '')); ?>
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <?php if ($hasFoto): ?>
-                                                <a class="text-orange-700 hover:underline" href="../uploads/ticket/<?php echo rawurlencode((string)$t['Foto_Ticket']); ?>" target="_blank" rel="noopener">Foto</a>
+                                                <a class="text-orange-700 hover:underline"
+                                                    href="../uploads/ticket/<?php echo rawurlencode((string) $t['Foto_Ticket']); ?>"
+                                                    target="_blank" rel="noopener">Foto</a>
                                             <?php endif; ?>
                                             <?php if ($hasFoto && $hasDoc): ?>
                                                 <span class="text-gray-400">|</span>
                                             <?php endif; ?>
                                             <?php if ($hasDoc): ?>
-                                                <a class="text-orange-700 hover:underline" href="../uploads/ticket/<?php echo rawurlencode((string)$t['Document']); ?>" target="_blank" rel="noopener">Doc</a>
+                                                <a class="text-orange-700 hover:underline"
+                                                    href="../uploads/ticket/<?php echo rawurlencode((string) $t['Document']); ?>"
+                                                    target="_blank" rel="noopener">Doc</a>
                                             <?php endif; ?>
                                             <?php if (!$hasFoto && !$hasDoc): ?>
                                                 <span class="text-gray-400">-</span>
@@ -1984,45 +2283,64 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <div class="flex items-center gap-2">
                                                 <?php if ($itFile !== ''): ?>
-                                                    <a class="text-orange-700 hover:underline" href="../uploads/ticket/<?php echo rawurlencode((string)$itFile); ?>" target="_blank" rel="noopener">File IT</a>
+                                                    <a class="text-orange-700 hover:underline"
+                                                        href="../uploads/ticket/<?php echo rawurlencode((string) $itFile); ?>"
+                                                        target="_blank" rel="noopener">File IT</a>
                                                 <?php else: ?>
                                                     <span class="text-gray-400">-</span>
                                                 <?php endif; ?>
                                             </div>
-                                            <form method="POST" enctype="multipart/form-data" class="mt-2 flex items-center gap-2">
+                                            <form method="POST" enctype="multipart/form-data"
+                                                class="mt-2 flex items-center gap-2">
                                                 <input type="hidden" name="action" value="update_file_it" />
-                                                <input type="hidden" name="Ticket_code" value="<?php echo htmlspecialchars((string)$codeInt); ?>" />
-                                                <input type="file" id="<?php echo htmlspecialchars($photoItInputId, ENT_QUOTES); ?>" name="Photo_IT" accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx" capture="environment" class="text-sm js-it-photo-input" />
-                                                <button type="button" class="px-2.5 py-2 border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-50 js-it-camera-btn whitespace-nowrap" data-target-input="<?php echo htmlspecialchars($photoItInputId, ENT_QUOTES); ?>"><i class="fas fa-camera"></i> Kamera</button>
-                                                <button type="submit" class="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm whitespace-nowrap">Upload</button>
+                                                <input type="hidden" name="Ticket_code"
+                                                    value="<?php echo htmlspecialchars((string) $codeInt); ?>" />
+                                                <input type="file"
+                                                    id="<?php echo htmlspecialchars($photoItInputId, ENT_QUOTES); ?>"
+                                                    name="Photo_IT" accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx"
+                                                    capture="environment" class="text-sm js-it-photo-input" />
+                                                <button type="button"
+                                                    class="px-2.5 py-2 border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-50 js-it-camera-btn whitespace-nowrap"
+                                                    data-target-input="<?php echo htmlspecialchars($photoItInputId, ENT_QUOTES); ?>"><i
+                                                        class="fas fa-camera"></i> Kamera</button>
+                                                <button type="submit"
+                                                    class="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm whitespace-nowrap">Upload</button>
                                             </form>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 min-w-[260px]">
                                             <form method="POST" class="flex items-start gap-2">
                                                 <input type="hidden" name="action" value="update_jawaban_it" />
-                                                <input type="hidden" name="Ticket_code" value="<?php echo htmlspecialchars((string)$codeInt); ?>" />
-                                                <textarea name="Jawaban_IT" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Tulis jawaban IT..."><?php echo htmlspecialchars((string)$jawabanItVal); ?></textarea>
-                                                <button type="submit" class="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm whitespace-nowrap">Simpan</button>
+                                                <input type="hidden" name="Ticket_code"
+                                                    value="<?php echo htmlspecialchars((string) $codeInt); ?>" />
+                                                <textarea name="Jawaban_IT" rows="2"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                                    placeholder="Tulis jawaban IT..."><?php echo htmlspecialchars((string) $jawabanItVal); ?></textarea>
+                                                <button type="submit"
+                                                    class="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 text-sm whitespace-nowrap">Simpan</button>
                                             </form>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <form method="POST" class="flex items-center gap-2">
                                                 <input type="hidden" name="action" value="update_status" />
-                                                <input type="hidden" name="Ticket_code" value="<?php echo htmlspecialchars((string)$codeInt); ?>" />
-                                                <select name="Status_Request" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                                <input type="hidden" name="Ticket_code"
+                                                    value="<?php echo htmlspecialchars((string) $codeInt); ?>" />
+                                                <select name="Status_Request"
+                                                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                                                     <?php
                                                     $opts = ['Open', 'Reject', 'Review', 'In Progress', 'Done'];
                                                     foreach ($opts as $opt) {
                                                         $sel = ($opt === $currentStatus) ? 'selected' : '';
-                                                        $disabled = ($sel === '') && !ticket_admin_can_transition_status((string)$currentStatus, (string)$opt);
+                                                        $disabled = ($sel === '') && !ticket_admin_can_transition_status((string) $currentStatus, (string) $opt);
                                                         $label = ($disabled ? '🔒 ' : '') . $opt;
                                                         echo '<option value="' . htmlspecialchars($opt) . '" ' . $sel . ' ' . ($disabled ? 'disabled' : '') . '>' . htmlspecialchars($label) . '</option>';
                                                     }
                                                     ?>
                                                 </select>
-                                                <button type="submit" class="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm">Update</button>
+                                                <button type="submit"
+                                                    class="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm">Update</button>
                                             </form>
-                                            <div class="mt-1 text-[11px] text-red-600">Wajib isi Type Pekerjaan + Respon IT<?php echo $hasPhotoItColumn ? ' + File IT' : ''; ?> sebelum pilih Done.</div>
+                                            <div class="mt-1 text-[11px] text-red-600">Wajib isi Type Pekerjaan + Respon
+                                                IT<?php echo $hasPhotoItColumn ? ' + File IT' : ''; ?> sebelum pilih Done.</div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -2052,10 +2370,14 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                     </div>
                     <div class="p-5">
                         <video id="itCameraVideo" playsinline autoplay class="w-full rounded-lg bg-black"></video>
-                        <div id="itCameraGeo" class="mt-2 text-[11px] text-gray-700 text-center">Menunggu lokasi...</div>
+                        <div id="itCameraGeo" class="mt-2 text-[11px] text-gray-700 text-center">Menunggu lokasi...
+                        </div>
                         <div class="mt-4 flex gap-2 justify-end">
-                            <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm" data-it-camera-close="1">Tutup</button>
-                            <button type="button" id="itCameraCaptureBtn" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm">
+                            <button type="button"
+                                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm"
+                                data-it-camera-close="1">Tutup</button>
+                            <button type="button" id="itCameraCaptureBtn"
+                                class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm">
                                 <i class="fas fa-circle-dot mr-2" aria-hidden="true"></i>Capture
                             </button>
                         </div>
@@ -2190,17 +2512,260 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
             });
         });
 
+        // ====== REALTIME TICKET DASHBOARD ======
+        // Polls api_ticket_stats.php every 20s (fallback) and uses SSE via
+        // ticket_stream.php for instant notification of any change.
+        document.addEventListener('DOMContentLoaded', function () {
+            'use strict';
+
+            var STATS_API = 'api_ticket_stats.php';
+            var STREAM_URL = 'ticket_stream.php';
+            var POLL_MS = 20000;   // polling fallback interval
+
+            var _sse = null;
+            var _sseOk = false;
+            var _pollTimer = null;
+
+            // --- Live indicator ---
+            function setLiveStatus(ok) {
+                var badge = document.getElementById('rt-live-badge');
+                var dot = document.getElementById('rt-live-dot');
+                if (badge) {
+                    badge.style.backgroundColor = ok ? '#f0fdf4' : '#fffbeb';
+                    badge.style.borderColor = ok ? '#bbf7d0' : '#fde68a';
+                    badge.style.color = ok ? '#15803d' : '#b45309';
+                    badge.title = ok ? 'Real-time aktif (SSE)' : 'Polling mode (20s)';
+                }
+                if (dot) {
+                    dot.style.backgroundColor = ok ? '#22c55e' : '#f59e0b';
+                }
+                _sseOk = ok;
+            }
+
+            // --- Animated number counter ---
+            function animateNum(el, target) {
+                if (!el) return;
+                var from = parseInt(el.textContent, 10) || 0;
+                target = parseInt(target, 10) || 0;
+                if (from === target) return;
+                var dur = 650;
+                var diff = target - from;
+                var t0 = performance.now();
+                function step(ts) {
+                    var p = Math.min((ts - t0) / dur, 1);
+                    var ease = 1 - Math.pow(1 - p, 3); // cubic ease-out
+                    el.textContent = Math.round(from + diff * ease);
+                    if (p < 1) requestAnimationFrame(step);
+                    else el.textContent = target;
+                }
+                requestAnimationFrame(step);
+            }
+
+            // --- Flash a card to indicate update ---
+            function flashEl(el) {
+                if (!el) return;
+                el.style.transition = 'background-color 0.3s ease';
+                el.style.backgroundColor = 'rgba(251,146,60,0.18)';
+                setTimeout(function () { el.style.backgroundColor = ''; }, 1100);
+            }
+
+            // --- HTML escaping ---
+            function escH(s) {
+                return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            // --- Badge helpers (mirrors PHP functions) ---
+            function statusBadgeClass(s) {
+                var k = (s || '').toLowerCase().trim().replace(/[-_]/g, ' ');
+                if (k === 'open') return 'bg-blue-50 text-blue-700 border-blue-200';
+                if (k === 'in progress') return 'bg-orange-50 text-orange-700 border-orange-200';
+                if (k === 'review') return 'bg-yellow-50 text-yellow-800 border-yellow-200';
+                if (k === 'done') return 'bg-green-50 text-green-700 border-green-200';
+                if (k === 'reject' || k === 'rejected') return 'bg-red-50 text-red-700 border-red-200';
+                if (k === 'closed') return 'bg-gray-100 text-gray-700 border-gray-200';
+                return 'bg-gray-50 text-gray-700 border-gray-200';
+            }
+            function priorityBadgeClass(p) {
+                var k = (p || '').toLowerCase().trim();
+                if (k === 'low') return 'bg-gray-100 text-gray-700 border-gray-200';
+                if (k === 'medium') return 'bg-yellow-50 text-yellow-800 border-yellow-200';
+                if (k === 'high') return 'bg-orange-50 text-orange-700 border-orange-200';
+                if (k === 'urgent') return 'bg-red-50 text-red-700 border-red-200';
+                return 'bg-gray-50 text-gray-700 border-gray-200';
+            }
+            function fmtCode(code, createUser) {
+                var y = (createUser && createUser.length >= 4) ? createUser.substring(0, 4) : new Date().getFullYear().toString();
+                return 'ITCKT-' + y + '-' + String(parseInt(code, 10) || 0).padStart(6, '0');
+            }
+
+            // --- Apply fetched stats to DOM ---
+            function applyData(data) {
+                if (!data || !data.ok) return;
+                var sc = data.status_counts || {};
+                var pc = data.priority_counts || {};
+
+                // Stat cards
+                animateNum(document.getElementById('rt-total'), data.total || 0);
+                animateNum(document.getElementById('rt-open'), sc['Open'] || 0);
+                animateNum(document.getElementById('rt-inprogress'), sc['In Progress'] || 0);
+                animateNum(document.getElementById('rt-done'), sc['Done'] || 0);
+                animateNum(document.getElementById('rt-review'), sc['Review'] || 0);
+                animateNum(document.getElementById('rt-closed'), sc['Closed'] || 0);
+                animateNum(document.getElementById('rt-rejected'), sc['Reject'] || 0);
+
+                var avgEl = document.getElementById('rt-avgtime');
+                if (avgEl && data.avg_response_time && avgEl.textContent !== data.avg_response_time) {
+                    avgEl.textContent = data.avg_response_time;
+                }
+
+                // Update Chart.js charts (Chart.getChart requires Chart.js 3+)
+                if (typeof Chart !== 'undefined') {
+                    try {
+                        var sOrder = ['Open', 'In Progress', 'Review', 'Done', 'Reject', 'Closed'];
+                        var sCh = Chart.getChart('adminTicketStatusChart');
+                        if (sCh) {
+                            sCh.data.datasets[0].data = sOrder.map(function (s) { return sc[s] || 0; });
+                            sCh.update('active');
+                        }
+                        var pOrder = ['Low', 'Medium', 'High', 'Urgent'];
+                        var pCh = Chart.getChart('adminTicketPriorityChart');
+                        if (pCh) {
+                            pCh.data.datasets[0].data = pOrder.map(function (p) { return pc[p] || 0; });
+                            pCh.update('active');
+                        }
+                    } catch (e) { /* best-effort */ }
+                }
+
+                // Recent tickets table
+                var tbody = document.getElementById('dash-recent-tbody');
+                if (tbody && Array.isArray(data.recent_tickets)) {
+                    var rows = data.recent_tickets;
+                    if (!rows.length) {
+                        tbody.innerHTML = '<tr><td class="px-5 py-4 text-sm text-gray-600" colspan="8">Belum ada data ticket.</td></tr>';
+                    } else {
+                        var html = '';
+                        for (var i = 0; i < rows.length; i++) {
+                            var rt = rows[i];
+                            var code = parseInt(rt.Ticket_code, 10) || 0;
+                            var cd = fmtCode(code, rt.Create_User || '');
+                            var st = rt.Status_Request || '';
+                            var pr = rt.Priority || '';
+                            html +=
+                                '<tr class="hover:bg-orange-50/40 transition-colors">' +
+                                '<td class="px-5 py-4 whitespace-nowrap"><div class="text-sm font-semibold text-gray-900">' + escH(cd) + '</div><div class="text-xs text-gray-500">#' + code + '</div></td>' +
+                                '<td class="px-5 py-4 whitespace-nowrap text-sm text-gray-900">' + escH(rt.Nama_User || '') + '</td>' +
+                                '<td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">' + escH(rt.Divisi_User || '') + '</td>' +
+                                '<td class="px-5 py-4 text-sm text-gray-900">' + escH(rt.Subject || '') + '</td>' +
+                                '<td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">' + escH(rt.Kategori_Masalah || '') + '</td>' +
+                                '<td class="px-5 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' + priorityBadgeClass(pr) + '">' + escH(pr) + '</span></td>' +
+                                '<td class="px-5 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ' + statusBadgeClass(st) + '">' + escH(st) + '</span></td>' +
+                                '<td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">' + escH(rt.Create_User || '') + '</td>' +
+                                '</tr>';
+                        }
+                        tbody.innerHTML = html;
+                        flashEl(tbody.closest('div') || tbody);
+                    }
+                }
+            }
+
+            // --- Fetch fresh stats from API ---
+            function refresh() {
+                fetch(STATS_API + '?_=' + Date.now(), { credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (d) {
+                        if (d) {
+                            applyData(d);
+                            setLiveStatus(_sseOk);
+                        }
+                    })
+                    .catch(function () { /* silent */ });
+            }
+
+            // --- SSE connection ---
+            function connectSSE() {
+                if (_sse) {
+                    try { _sse.close(); } catch (e) { }
+                    _sse = null;
+                }
+                if (typeof EventSource === 'undefined') return;
+
+                try {
+                    var es = new EventSource(STREAM_URL);
+                    _sse = es;
+
+                    es.addEventListener('hello', function () {
+                        setLiveStatus(true);
+                    });
+
+                    es.addEventListener('dashboard_update', function () {
+                        // Something changed → get fresh stats immediately
+                        refresh();
+                        // Pulse the live dot
+                        var dot = document.getElementById('rt-live-dot');
+                        if (dot) {
+                            dot.style.transform = 'scale(2)';
+                            setTimeout(function () { dot.style.transform = ''; }, 350);
+                        }
+                        // Also refresh the main ticket table
+                        if (typeof window._refreshMainTicketTable === 'function') {
+                            window._refreshMainTicketTable();
+                        }
+                    });
+
+                    // 'timeout' → stream ended normally; browser auto-reconnects via EventSource
+                    es.addEventListener('timeout', function () {
+                        // Nothing to do — EventSource will reconnect automatically
+                    });
+
+                    es.onerror = function () {
+                        setLiveStatus(false);
+                        // Browser will auto-retry after ~3s; don't close explicitly
+                    };
+                } catch (e) {
+                    setLiveStatus(false);
+                }
+            }
+
+            // --- Boot ---
+            refresh();           // immediate data load
+            connectSSE();        // SSE for instant change detection
+            _pollTimer = setInterval(refresh, POLL_MS);  // polling fallback untuk stat cards
+        });
+
+        // ====== REALTIME MAIN TICKET TABLE (auto-refresh tabel utama) ======
+        // Dipisah dari DOMContentLoaded di atas agar loadPage sudah terdefinisi
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Expose fungsi refresh tabel utama ke scope global
+            // agar bisa dipanggil dari SSE handler maupun polling
+            window._refreshMainTicketTable = function () {
+                if (typeof loadPage === 'function') {
+                    var url = new URL(window.location.href);
+                    var currentPage = parseInt(url.searchParams.get('page') || '1', 10);
+                    var currentStatus = url.searchParams.get('status') || '';
+                    loadPage(currentPage, currentStatus);
+                }
+            };
+
+            // Polling fallback setiap 15 detik untuk tabel utama
+            setInterval(function () {
+                if (!document.hidden) {
+                    window._refreshMainTicketTable();
+                }
+            }, 15000);
+        });
+
         // Hide loading overlay (prevent stuck overlay)
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const loadingOverlay = document.getElementById('loadingOverlay');
             if (!loadingOverlay) return;
-            setTimeout(function() {
+            setTimeout(function () {
                 loadingOverlay.style.display = 'none';
             }, 300);
         });
 
         // AJAX pagination (progressive enhancement)
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             function setActiveTab(statusValue) {
                 const tabs = document.querySelectorAll('a.status-tab');
                 tabs.forEach((tab) => {
@@ -2252,6 +2817,41 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 btn.setAttribute('href', 'download_ticket_report.php' + (qs ? ('?' + qs) : ''));
             }
 
+            function showTableLoading() {
+                const container = document.getElementById('tickets-table-container');
+                if (!container) return;
+                container.style.opacity = '0.4';
+                container.style.pointerEvents = 'none';
+                container.style.transition = 'opacity 0.15s ease';
+                // Show spinner overlay
+                let spinner = document.getElementById('tickets-table-spinner');
+                if (!spinner) {
+                    spinner = document.createElement('div');
+                    spinner.id = 'tickets-table-spinner';
+                    spinner.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;pointer-events:none;';
+                    spinner.innerHTML = '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.9);border-radius:10px;padding:12px 20px;box-shadow:0 2px 12px rgba(0,0,0,0.12);font-size:14px;color:#374151;font-weight:500;">'
+                        + '<svg style="animation:spin 0.8s linear infinite;width:20px;height:20px;color:#ea580c;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>'
+                        + 'Memuat data...</div>';
+                    const wrap = container.parentElement;
+                    if (wrap) {
+                        const pos = window.getComputedStyle(wrap).position;
+                        if (pos === 'static') wrap.style.position = 'relative';
+                        wrap.appendChild(spinner);
+                    }
+                }
+                spinner.style.display = 'flex';
+            }
+
+            function hideTableLoading() {
+                const container = document.getElementById('tickets-table-container');
+                if (container) {
+                    container.style.opacity = '';
+                    container.style.pointerEvents = '';
+                }
+                const spinner = document.getElementById('tickets-table-spinner');
+                if (spinner) spinner.style.display = 'none';
+            }
+
             function loadPage(pageNum, statusValue) {
                 const url = new URL(window.location.href);
 
@@ -2278,6 +2878,8 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 fetchParams.set('action', 'ajax_get_admin_tickets');
                 const fetchUrl = `${window.location.pathname}?${fetchParams.toString()}`;
 
+                showTableLoading();
+
                 fetch(fetchUrl)
                     .then((response) => {
                         if (!response.ok) {
@@ -2286,6 +2888,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                         return response.json();
                     })
                     .then((data) => {
+                        hideTableLoading();
                         if (data.error) {
                             alert('Error: ' + data.error);
                             return;
@@ -2314,9 +2917,11 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                         tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     })
                     .catch((err) => {
+                        hideTableLoading();
                         console.error('Fetch error:', err);
                     });
             }
+
 
             function attachTabListeners() {
                 const tabs = document.querySelectorAll('a.status-tab');
@@ -2324,7 +2929,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                     if (tab.dataset.boundTab === '1') return;
                     tab.dataset.boundTab = '1';
 
-                    tab.addEventListener('click', function(e) {
+                    tab.addEventListener('click', function (e) {
                         e.preventDefault();
                         const statusValue = this.dataset.status || '';
                         setActiveTab(statusValue);
@@ -2342,7 +2947,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                     if (link.dataset.boundPagination === '1') return;
                     link.dataset.boundPagination = '1';
 
-                    link.addEventListener('click', function(e) {
+                    link.addEventListener('click', function (e) {
                         e.preventDefault();
                         const href = this.getAttribute('href') || '';
                         const qPos = href.indexOf('?');
@@ -2361,6 +2966,34 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
             setActiveTab((new URL(window.location.href)).searchParams.get('status') || '');
             updateDownloadLinkFromUrl(new URL(window.location.href));
 
+            // Expose loadPage untuk diakses SSE handler (didefinisikan di scope ini)
+            window.loadPage = loadPage;
+
+            // ===== ASSIGN TICKET FUNCTION =====
+            window.assignTicket = function (ticketCode, mode, btnEl) {
+                const fd = new FormData();
+                fd.append('action', 'assign_ticket');
+                fd.append('ticket_code', ticketCode);
+                fd.append('mode', mode);
+
+                const td = btnEl ? btnEl.closest('td') : null;
+                if (btnEl) {
+                    btnEl.disabled = true;
+                    btnEl.style.opacity = '0.6';
+                }
+
+                fetch(window.location.pathname, { method: 'POST', body: fd, credentials: 'same-origin' })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.ok) { alert('Gagal: ' + (data.error || 'Unknown error')); return; }
+                        // Refresh tabel agar tombol update ke state terbaru
+                        if (typeof window._refreshMainTicketTable === 'function') {
+                            window._refreshMainTicketTable();
+                        }
+                    })
+                    .catch(() => { if (btnEl) { btnEl.disabled = false; btnEl.style.opacity = ''; } });
+            };
+
             // Realtime search (debounced). Non-AJAX still works by submitting the form.
             (function attachSearchListeners() {
                 const form = document.getElementById('ticketSearchForm');
@@ -2376,7 +3009,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 };
 
                 input.addEventListener('input', trigger);
-                form.addEventListener('submit', function(e) {
+                form.addEventListener('submit', function (e) {
                     e.preventDefault();
                     loadPage(1);
                 });
@@ -2384,7 +3017,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
         });
 
         // Kamera + GPS stamp untuk upload Photo_IT (best-effort, support AJAX table)
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const IT_IMAGE_TARGET_BYTES = 100 * 1024; // 100KB
             const IT_IMAGE_MAX_DIM = 1600; // px
             let itGeoWatchId = null;
@@ -2417,7 +3050,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
             function itStopGeoWatchSoon() {
                 if (itGeoWatchId === null) return;
                 window.setTimeout(() => {
-                    try { navigator.geolocation.clearWatch(itGeoWatchId); } catch (e) {}
+                    try { navigator.geolocation.clearWatch(itGeoWatchId); } catch (e) { }
                     itGeoWatchId = null;
                 }, 30000);
             }
@@ -2523,7 +3156,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 }
 
                 if (!(bitmap instanceof ImageBitmap) && bitmap && bitmap.src && bitmap.src.startsWith('blob:')) {
-                    try { URL.revokeObjectURL(bitmap.src); } catch (e) {}
+                    try { URL.revokeObjectURL(bitmap.src); } catch (e) { }
                 }
 
                 if (!bestBlob) return file;
@@ -2589,7 +3222,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 const stampedBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
 
                 if (!(bitmap instanceof ImageBitmap) && bitmap && bitmap.src && bitmap.src.startsWith('blob:')) {
-                    try { URL.revokeObjectURL(bitmap.src); } catch (e) {}
+                    try { URL.revokeObjectURL(bitmap.src); } catch (e) { }
                 }
 
                 if (!stampedBlob) return file;
@@ -2652,11 +3285,11 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 const video = document.getElementById('itCameraVideo');
                 if (modal) modal.classList.add('hidden');
                 if (video) {
-                    try { video.pause(); } catch (e) {}
+                    try { video.pause(); } catch (e) { }
                     video.srcObject = null;
                 }
                 if (itCameraStream) {
-                    try { itCameraStream.getTracks().forEach((t) => t.stop()); } catch (e) {}
+                    try { itCameraStream.getTracks().forEach((t) => t.stop()); } catch (e) { }
                 }
                 itCameraStream = null;
             }
@@ -2767,5 +3400,5 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
         });
     </script>
 </body>
-</html>
 
+</html>

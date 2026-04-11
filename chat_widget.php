@@ -107,6 +107,19 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         animation: cwSlideIn .25s cubic-bezier(.34, 1.56, .64, 1) forwards
     }
 
+    /* Desktop: full screen */
+    @media (min-width: 481px) {
+        #cw-panel {
+            inset: 0;
+            width: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            bottom: 0;
+            right: 0;
+            border-radius: 0;
+        }
+    }
+
     @keyframes cwSlideIn {
         from {
             opacity: 0;
@@ -767,8 +780,13 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
     }
 
     @keyframes cwFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
 
     #cw-seen-modal {
@@ -785,8 +803,15 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
     }
 
     @keyframes cwSeenModalIn {
-        from { transform: scale(.88) translateY(16px); opacity: 0; }
-        to { transform: scale(1) translateY(0); opacity: 1; }
+        from {
+            transform: scale(.88) translateY(16px);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
     }
 
     #cw-seen-modal-header {
@@ -933,7 +958,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
     }
 
     #cw-seen-counter {
-        background: rgba(255,255,255,.25);
+        background: rgba(255, 255, 255, .25);
         border-radius: 999px;
         padding: 2px 8px;
         font-size: 11px;
@@ -1829,6 +1854,15 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         display: flex;
     }
 
+    /* Active call overlay: stretch card ke full screen */
+    #cw-call-active.active {
+        display: flex;
+        align-items: stretch;
+        padding: 0;
+        background: #0a0f1a;
+        backdrop-filter: none;
+    }
+
     .cw-call-card {
         background: linear-gradient(145deg, #1e293b, #0f172a);
         border-radius: 24px;
@@ -1963,21 +1997,31 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         background: #dc2626;
     }
 
-    /* Active call card */
+    /* Active call card — full screen */
     #cw-call-active .cw-call-card {
-        width: 380px;
+        flex: 1;
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
         padding: 0;
         overflow: hidden;
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+        animation: none;
     }
 
     #cw-call-video-wrap {
         width: 100%;
-        height: 210px;
+        flex: 1;
+        min-height: 0;
         background: #0a0f1a;
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
     }
 
     #cw-call-remote-video {
@@ -1994,13 +2038,14 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
 
     #cw-call-local-wrap {
         position: absolute;
-        bottom: 10px;
-        right: 10px;
-        width: 82px;
-        height: 62px;
-        border-radius: 8px;
+        bottom: 16px;
+        right: 16px;
+        width: 160px;
+        height: 120px;
+        border-radius: 12px;
         overflow: hidden;
-        border: 2px solid rgba(255, 255, 255, .28);
+        border: 2px solid rgba(255, 255, 255, .35);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, .4);
         display: none;
     }
 
@@ -2012,11 +2057,13 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
     }
 
     .cw-call-active-body {
-        padding: 18px 20px 22px;
+        padding: 16px 20px 28px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
+        background: linear-gradient(to top, rgba(10, 15, 26, .95) 0%, rgba(10, 15, 26, .6) 60%, transparent 100%);
+        flex-shrink: 0;
     }
 
     /* Call button on user list */
@@ -2024,14 +2071,14 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         background: rgba(249, 115, 22, .12);
         border: 1px solid rgba(249, 115, 22, .3);
         color: #f97316;
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 11px;
         flex-shrink: 0;
         transition: all .15s;
     }
@@ -2041,6 +2088,590 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         border-color: #f97316;
         color: white;
         transform: scale(1.08);
+    }
+
+    .cw-online-call-btn.video {
+        background: rgba(37, 99, 235, .1);
+        border-color: rgba(37, 99, 235, .3);
+        color: #2563eb;
+    }
+
+    .cw-online-call-btn.video:hover {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: white;
+    }
+
+    /* ===== Video Call Button in DM Header ===== */
+    #cw-dm-video-btn {
+        background: rgba(255, 255, 255, .2);
+        border: none;
+        color: white;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 11px;
+        transition: background .15s;
+    }
+
+    #cw-dm-video-btn:hover {
+        background: rgba(255, 255, 255, .35);
+    }
+
+    /* ===== GPS Panel ===== */
+    #cw-gps-panel {
+        margin: 6px 8px 0;
+        border-radius: 12px;
+        overflow: hidden;
+        flex-shrink: 0;
+        transition: all .25s;
+    }
+
+    #cw-gps-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: linear-gradient(135deg, #1e40af, #1d4ed8);
+        color: white;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    #cw-gps-header-left {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    #cw-gps-header-left i {
+        font-size: 12px;
+        color: #93c5fd;
+    }
+
+    #cw-gps-header-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    #cw-gps-refresh-btn {
+        background: rgba(255, 255, 255, .18);
+        border: none;
+        color: white;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        transition: background .15s;
+    }
+
+    #cw-gps-refresh-btn:hover {
+        background: rgba(255, 255, 255, .3);
+    }
+
+    #cw-gps-toggle-icon {
+        font-size: 9px;
+        transition: transform .25s;
+    }
+
+    #cw-gps-toggle-icon.collapsed {
+        transform: rotate(-180deg);
+    }
+
+    #cw-gps-body {
+        background: linear-gradient(160deg, #eff6ff, #dbeafe);
+        border: 1px solid #bfdbfe;
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+        transition: max-height .25s ease, padding .2s;
+        max-height: 300px;
+    }
+
+    #cw-gps-body.collapsed {
+        max-height: 0;
+    }
+
+    #cw-gps-content {
+        padding: 8px 12px 10px;
+    }
+
+    #cw-gps-status {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 0 4px;
+        font-size: 11px;
+        color: #6b7280;
+    }
+
+    #cw-gps-status.loading {
+        color: #2563eb;
+    }
+
+    #cw-gps-status.success {
+        color: #16a34a;
+    }
+
+    #cw-gps-status.error {
+        color: #dc2626;
+    }
+
+    .cw-gps-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-top: 3px;
+    }
+
+    .cw-gps-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+        font-size: 11px;
+        color: #1e40af;
+        line-height: 1.4;
+    }
+
+    .cw-gps-row-icon {
+        font-size: 11px;
+        color: #2563eb;
+        flex-shrink: 0;
+        margin-top: 1px;
+        width: 14px;
+        text-align: center;
+    }
+
+    .cw-gps-row-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #3b82f6;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        min-width: 52px;
+        flex-shrink: 0;
+    }
+
+    .cw-gps-row-value {
+        color: #1e3a8a;
+        font-weight: 600;
+        flex: 1;
+        min-width: 0;
+        word-break: break-word;
+    }
+
+    .cw-gps-coord-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .cw-gps-coord-chip {
+        background: rgba(37, 99, 235, .1);
+        border: 1px solid rgba(37, 99, 235, .2);
+        border-radius: 6px;
+        padding: 3px 8px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #1d4ed8;
+        font-family: monospace;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    #cw-gps-detect-btn {
+        margin-top: 8px;
+        width: 100%;
+        padding: 7px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all .15s;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, .3);
+    }
+
+    #cw-gps-detect-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, .4);
+    }
+
+    #cw-gps-detect-btn:disabled {
+        opacity: .6;
+        cursor: default;
+        transform: none;
+    }
+
+    #cw-gps-accuracy {
+        font-size: 9px;
+        color: #6b7280;
+        text-align: center;
+        margin-top: 3px;
+    }
+
+    /* ===== Call History Modal ===== */
+    #cw-callhist-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .58);
+        z-index: 200200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+        backdrop-filter: blur(5px);
+    }
+
+    #cw-callhist-overlay.active {
+        display: flex;
+    }
+
+    #cw-callhist-modal {
+        background: white;
+        border-radius: 20px;
+        width: 360px;
+        max-width: calc(100vw - 32px);
+        max-height: min(540px, calc(100vh - 60px));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 28px 70px rgba(0, 0, 0, .32);
+        animation: cwSeenModalIn .22s cubic-bezier(.34, 1.56, .64, 1) forwards;
+    }
+
+    #cw-callhist-header {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        padding: 16px 18px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+    }
+
+    #cw-callhist-header h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    #cw-callhist-header-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, .15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: #93c5fd;
+    }
+
+    #cw-callhist-close {
+        background: rgba(255, 255, 255, .15);
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: background .15s;
+    }
+
+    #cw-callhist-close:hover {
+        background: rgba(255, 255, 255, .28);
+    }
+
+    #cw-callhist-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px 0;
+    }
+
+    #cw-callhist-body::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #cw-callhist-body::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 2px;
+    }
+
+    #cw-callhist-loading {
+        padding: 36px 18px;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #cw-callhist-empty {
+        padding: 40px 18px;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .cw-clog-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        transition: background .12s;
+        cursor: pointer;
+        border-bottom: 1px solid #f9fafb;
+    }
+
+    .cw-clog-row:hover {
+        background: #f8fafc;
+    }
+
+    .cw-clog-row:last-child {
+        border-bottom: none;
+    }
+
+    .cw-clog-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .cw-clog-type-badge {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+    }
+
+    .cw-clog-type-badge.audio {
+        background: #f97316;
+    }
+
+    .cw-clog-type-badge.video {
+        background: #2563eb;
+    }
+
+    .cw-clog-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .cw-clog-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cw-clog-meta {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 2px;
+    }
+
+    .cw-clog-dir-icon {
+        font-size: 10px;
+    }
+
+    .cw-clog-dir-icon.incoming {
+        color: #16a34a;
+    }
+
+    .cw-clog-dir-icon.missed {
+        color: #dc2626;
+    }
+
+    .cw-clog-dir-icon.outgoing {
+        color: #6b7280;
+    }
+
+    .cw-clog-dir-icon.cancelled {
+        color: #9ca3af;
+    }
+
+    .cw-clog-status {
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .cw-clog-status.answered {
+        color: #16a34a;
+    }
+
+    .cw-clog-status.missed {
+        color: #dc2626;
+    }
+
+    .cw-clog-status.rejected {
+        color: #ef4444;
+    }
+
+    .cw-clog-status.cancelled {
+        color: #9ca3af;
+    }
+
+    .cw-clog-status.initiated {
+        color: #6b7280;
+    }
+
+    .cw-clog-dur {
+        font-size: 10px;
+        color: #6b7280;
+        margin-left: 2px;
+    }
+
+    .cw-clog-time {
+        font-size: 10px;
+        color: #9ca3af;
+        flex-shrink: 0;
+        text-align: right;
+    }
+
+    .cw-clog-actions {
+        display: flex;
+        gap: 5px;
+        flex-shrink: 0;
+    }
+
+    .cw-clog-call-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: 1.5px solid;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        transition: all .15s;
+    }
+
+    .cw-clog-call-btn.audio {
+        border-color: rgba(249, 115, 22, .4);
+        color: #f97316;
+    }
+
+    .cw-clog-call-btn.audio:hover {
+        background: #f97316;
+        color: white;
+        border-color: #f97316;
+    }
+
+    .cw-clog-call-btn.video {
+        border-color: rgba(37, 99, 235, .4);
+        color: #2563eb;
+    }
+
+    .cw-clog-call-btn.video:hover {
+        background: #2563eb;
+        color: white;
+        border-color: #2563eb;
+    }
+
+    #cw-callhist-footer {
+        padding: 10px 16px;
+        border-top: 1px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    #cw-callhist-load-more {
+        background: none;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 6px 18px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all .15s;
+    }
+
+    #cw-callhist-load-more:hover {
+        border-color: #f97316;
+        color: #f97316;
+    }
+
+    #cw-callhist-load-more:disabled {
+        opacity: .45;
+        cursor: default;
+    }
+
+    /* History button in Online tab */
+    #cw-callhist-open-btn {
+        background: rgba(255, 255, 255, .18);
+        border: none;
+        color: white;
+        border-radius: 8px;
+        padding: 4px 9px;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: background .15s;
+        flex-shrink: 0;
+    }
+
+    #cw-callhist-open-btn:hover {
+        background: rgba(255, 255, 255, .3);
     }
 </style>
 
@@ -2062,6 +2693,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         </div>
         <button id="cw-dm-call-btn" onclick="cwStartCallFromDM()" title="Telepon" style="display:none"><i
                 class="fas fa-phone"></i></button>
+        <button id="cw-dm-video-btn" onclick="cwStartVideoCallFromDM()" title="Video Call" style="display:none"><i
+                class="fas fa-video"></i></button>
         <button id="cw-dm-close-btn" onclick="cwCloseDM(false)"><i class="fas fa-times"></i></button>
     </div>
     <div id="cw-dm-messages">
@@ -2098,6 +2731,30 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         <i class="fas fa-times"></i>
     </button>
     <img id="cw-lightbox-img" src="" alt="Preview" onclick="event.stopPropagation()">
+</div>
+
+<!-- ===== Call History Modal ===== -->
+<div id="cw-callhist-overlay" onclick="cwCallHistClose(event)">
+    <div id="cw-callhist-modal" onclick="event.stopPropagation()">
+        <div id="cw-callhist-header">
+            <h4>
+                <div id="cw-callhist-header-icon"><i class="fas fa-phone-alt"></i></div>
+                Riwayat Panggilan
+            </h4>
+            <button id="cw-callhist-close" onclick="cwCallHistForceClose()" title="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="cw-callhist-body">
+            <div id="cw-callhist-loading">
+                <i class="fas fa-spinner fa-spin" style="font-size:26px;color:#e5e7eb"></i>
+                <span>Memuat riwayat...</span>
+            </div>
+        </div>
+        <div id="cw-callhist-footer" style="display:none">
+            <button id="cw-callhist-load-more" onclick="cwCallHistLoadMore()">Muat lebih banyak</button>
+        </div>
+    </div>
 </div>
 
 <!-- ===== Seen By Modal (WhatsApp-style) ===== -->
@@ -2157,7 +2814,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
 <div class="cw-call-overlay" id="cw-call-active">
     <div class="cw-call-card">
         <div id="cw-call-video-wrap">
-            <video id="cw-call-remote-video" autoplay playsinline></video>
+            <video id="cw-call-remote-video" autoplay playsinline muted></video>
+            <audio id="cw-call-remote-audio" autoplay style="display:none"></audio>
             <div id="cw-call-no-video">🎙️</div>
             <div id="cw-call-local-wrap"><video id="cw-call-local-video" autoplay playsinline muted></video></div>
         </div>
@@ -2199,8 +2857,13 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 <span id="cw-dm-total-badge"></span>
             </button>
         </div>
-        <p style="font-size:10px;margin:6px 0 0;opacity:.8"><span id="cw-online-dot"></span><span
-                id="cw-online-count-label">1</span> pengguna online</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+            <p style="font-size:10px;margin:0;opacity:.8"><span id="cw-online-dot"></span><span
+                    id="cw-online-count-label">1</span> pengguna online</p>
+            <button id="cw-callhist-open-btn" onclick="cwOpenCallHistory()" title="Riwayat Panggilan">
+                <i class="fas fa-history"></i> Riwayat
+            </button>
+        </div>
     </div>
 
     <!-- Messages (Chat View) -->
@@ -2213,7 +2876,63 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
 
     <!-- Online Users View -->
     <div id="cw-online-view">
-        <div id="cw-user-search-wrap">
+        <!-- GPS Location Panel -->
+        <div id="cw-gps-panel">
+            <div id="cw-gps-header" onclick="cwGpsToggle()">
+                <div id="cw-gps-header-left">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Lokasi Saya</span>
+                </div>
+                <div id="cw-gps-header-right">
+                    <button id="cw-gps-refresh-btn" onclick="event.stopPropagation();cwDetectLocation(true)"
+                        title="Refresh Lokasi">
+                        <i class="fas fa-sync-alt" id="cw-gps-refresh-icon"></i>
+                    </button>
+                    <i class="fas fa-chevron-up" id="cw-gps-toggle-icon"></i>
+                </div>
+            </div>
+            <div id="cw-gps-body">
+                <div id="cw-gps-content">
+                    <div id="cw-gps-status">
+                        <i class="fas fa-location-arrow"></i>
+                        <span id="cw-gps-status-text">Klik untuk deteksi lokasi Anda</span>
+                    </div>
+                    <div class="cw-gps-rows" id="cw-gps-rows" style="display:none">
+                        <div class="cw-gps-row">
+                            <i class="fas fa-home cw-gps-row-icon"></i>
+                            <span class="cw-gps-row-label">Alamat</span>
+                            <span class="cw-gps-row-value" id="cw-gps-address">-</span>
+                        </div>
+                        <div class="cw-gps-row">
+                            <i class="fas fa-city cw-gps-row-icon"></i>
+                            <span class="cw-gps-row-label">Kota</span>
+                            <span class="cw-gps-row-value" id="cw-gps-city">-</span>
+                        </div>
+                        <div class="cw-gps-row">
+                            <i class="fas fa-flag cw-gps-row-icon"></i>
+                            <span class="cw-gps-row-label">Negara</span>
+                            <span class="cw-gps-row-value" id="cw-gps-country">-</span>
+                        </div>
+                        <div class="cw-gps-coord-row">
+                            <div class="cw-gps-coord-chip">
+                                <i class="fas fa-arrows-alt-v" style="font-size:9px"></i>
+                                Lat: <span id="cw-gps-lat">-</span>
+                            </div>
+                            <div class="cw-gps-coord-chip">
+                                <i class="fas fa-arrows-alt-h" style="font-size:9px"></i>
+                                Lng: <span id="cw-gps-lng">-</span>
+                            </div>
+                        </div>
+                        <div id="cw-gps-accuracy"></div>
+                    </div>
+                    <button id="cw-gps-detect-btn" onclick="cwDetectLocation(false)">
+                        <i class="fas fa-crosshairs"></i>
+                        Deteksi Lokasi Saya
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="cw-user-search-wrap" style="padding-top:8px">
             <input type="text" id="cw-user-search" placeholder="Cari pengguna..." oninput="cwFilterUsers(this.value)">
         </div>
         <div id="cw-online-list">
@@ -2724,7 +3443,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         return;
                     }
 
-                    const avatarColors = ['#f97316','#8b5cf6','#06b6d4','#10b981','#f43f5e','#3b82f6','#ec4899','#84cc16'];
+                    const avatarColors = ['#f97316', '#8b5cf6', '#06b6d4', '#10b981', '#f43f5e', '#3b82f6', '#ec4899', '#84cc16'];
                     function getColor(uid) { return avatarColors[Math.abs(uid) % avatarColors.length]; }
 
                     let html = `<div class="cw-seen-section-title"><i class="fas fa-eye" style="margin-right:5px;color:#f97316"></i>Dibaca oleh ${readers.length} orang</div>`;
@@ -3129,7 +3848,10 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 }
 
                 const callBtn = (!u.is_me && u.is_online)
-                    ? `<button class="cw-online-call-btn" onclick="event.stopPropagation();cwStartCall(${u.user_id},'${u.nama.replace(/'/g, "\\'")}',' audio')" title="Telepon ${u.nama}"><i class="fas fa-phone"></i></button><button class="cw-online-call-btn" onclick="event.stopPropagation();cwStartCall(${u.user_id},'${u.nama.replace(/'/g, "\\'")}',' video')" title="Video Call ${u.nama}" style="margin-left:3px"><i class="fas fa-video"></i></button>`
+                    ? `<div style="display:flex;gap:3px;flex-shrink:0">
+                        <button class="cw-online-call-btn" onclick="event.stopPropagation();cwStartCall(${u.user_id},'${u.nama.replace(/'/g, "\\'")}\'audio')" title="Telepon ${u.nama}"><i class="fas fa-phone"></i></button>
+                        <button class="cw-online-call-btn video" onclick="event.stopPropagation();cwStartCall(${u.user_id},'${u.nama.replace(/'/g, "\\'")}\'video')" title="Video Call ${u.nama}"><i class="fas fa-video"></i></button>
+                      </div>`
                     : '';
                 return `<div class="cw-online-item${itemCls}" ${click} title="${title}">
                     <div class="cw-online-avatar" style="background:${color}">${initial}<span class="cw-online-dot-indicator${dotCls}"></span></div>
@@ -3196,9 +3918,11 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             const dmAttPreview = document.getElementById('cw-dm-attach-preview');
             if (dmAttPreview) dmAttPreview.innerHTML = '';
 
-            // Show/hide call button based on online status
+            // Show/hide call & video buttons based on online status
             const dmCallBtn = document.getElementById('cw-dm-call-btn');
+            const dmVideoBtn = document.getElementById('cw-dm-video-btn');
             if (dmCallBtn) dmCallBtn.style.display = isOnline ? 'flex' : 'none';
+            if (dmVideoBtn) dmVideoBtn.style.display = isOnline ? 'flex' : 'none';
 
             dmPanel.style.display = 'flex';
             cwLoadDM(false);
@@ -3589,6 +4313,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         let _callRingTimer = null;
         let _ringAudioCtx = null;
         let _ringNodes = [];
+        let _audioCtxUnlocked = false;
 
         const ICE_CFG = {
             iceServers: [
@@ -3598,29 +4323,123 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             ]
         };
 
-        function cwPlayRing(loop) {
-            cwStopRing();
+        // ===== PRE-UNLOCK AudioContext pada interaksi user pertama =====
+        function cwUnlockAudioCtx() {
+            if (_audioCtxUnlocked) return;
             try {
                 if (!_ringAudioCtx) _ringAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const ctx = _ringAudioCtx;
-                function ring() {
-                    const now = ctx.currentTime;
-                    [0, 0.42].forEach(off => {
-                        const o = ctx.createOscillator(), g = ctx.createGain();
-                        o.type = 'sine';
-                        o.frequency.setValueAtTime(440, now + off);
-                        o.frequency.linearRampToValueAtTime(490, now + off + 0.2);
-                        g.gain.setValueAtTime(0, now + off);
-                        g.gain.linearRampToValueAtTime(0.38, now + off + 0.025);
-                        g.gain.setValueAtTime(0.38, now + off + 0.28);
-                        g.gain.linearRampToValueAtTime(0, now + off + 0.38);
-                        o.connect(g); g.connect(ctx.destination);
-                        o.start(now + off); o.stop(now + off + 0.39);
-                        _ringNodes.push(o);
-                    });
+                if (ctx.state === 'suspended') {
+                    ctx.resume().then(() => { _audioCtxUnlocked = true; }).catch(() => { });
+                } else {
+                    _audioCtxUnlocked = true;
                 }
-                ring();
-                if (loop) _callRingTimer = setInterval(ring, 2400);
+                // Silent buffer trick untuk unlock
+                const buf = ctx.createBuffer(1, 1, 22050);
+                const src = ctx.createBufferSource();
+                src.buffer = buf;
+                src.connect(ctx.destination);
+                src.start(0);
+            } catch (e) { }
+        }
+        // Unlock AudioContext pada klik/keydown pertama
+        ['click', 'keydown', 'touchstart', 'mousedown'].forEach(ev => {
+            document.addEventListener(ev, cwUnlockAudioCtx, { once: false, passive: true });
+        });
+
+        // ===== NADA DERING PEMANGGIL — gaya WhatsApp (brr-brr ringan berulang) =====
+        function cwPlayRingOutgoing() {
+            cwStopRing();
+            cwUnlockAudioCtx();
+            try {
+                if (!_ringAudioCtx) _ringAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = _ringAudioCtx;
+                const doRing = function () {
+                    function waDialTone() {
+                        const now = ctx.currentTime;
+                        // WhatsApp outgoing: dua "brr" pendek (400Hz + 450Hz chord), jeda 3 detik
+                        // sedikit vibrato untuk karakter "brr" WA
+                        [0, 0.45].forEach(off => {
+                            // Osilator utama
+                            const o1 = ctx.createOscillator();
+                            const o2 = ctx.createOscillator(); // harmonic ringan
+                            const g = ctx.createGain();
+                            o1.type = 'sine';
+                            o2.type = 'sine';
+                            o1.frequency.setValueAtTime(397, now + off);
+                            o2.frequency.setValueAtTime(450, now + off); // interval minor WA
+                            // envelope: cepat naik, sustain, cepat fade
+                            g.gain.setValueAtTime(0, now + off);
+                            g.gain.linearRampToValueAtTime(0.28, now + off + 0.015);
+                            g.gain.setValueAtTime(0.28, now + off + 0.28);
+                            g.gain.linearRampToValueAtTime(0, now + off + 0.38);
+                            o1.connect(g); o2.connect(g);
+                            g.connect(ctx.destination);
+                            o1.start(now + off); o1.stop(now + off + 0.40);
+                            o2.start(now + off); o2.stop(now + off + 0.40);
+                            _ringNodes.push(o1, o2);
+                        });
+                    }
+                    waDialTone();
+                    _callRingTimer = setInterval(waDialTone, 3200);
+                };
+                if (ctx.state === 'suspended') ctx.resume().then(doRing).catch(() => { });
+                else doRing();
+            } catch (e) { }
+        }
+
+        // ===== NADA DERING PENERIMA — gaya WhatsApp (melodi khas "bamboo/xylophone") =====
+        function cwPlayRingIncoming() {
+            cwStopRing();
+            cwUnlockAudioCtx();
+            try {
+                if (!_ringAudioCtx) _ringAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = _ringAudioCtx;
+                const doRing = function () {
+                    // Melodi WA default: sekuens naik-turun dengan karakter "ping" xylophone
+                    // Approx: G5-B5-D6-G6 … D6-B5 (ascending + resolusi)
+                    const melody = [
+                        { freq: 784, off: 0.00, dur: 0.13 }, // G5
+                        { freq: 988, off: 0.15, dur: 0.13 }, // B5
+                        { freq: 1175, off: 0.30, dur: 0.13 }, // D6
+                        { freq: 1568, off: 0.45, dur: 0.22 }, // G6 (puncak)
+                        { freq: 1175, off: 0.70, dur: 0.13 }, // D6 (turun)
+                        { freq: 988, off: 0.85, dur: 0.18 }, // B5 (resolusi)
+                    ];
+
+                    function waRingtone() {
+                        const now = ctx.currentTime;
+                        melody.forEach(n => {
+                            // Layer 1: sine (fundamental)
+                            const o1 = ctx.createOscillator();
+                            const g1 = ctx.createGain();
+                            o1.type = 'sine';
+                            o1.frequency.setValueAtTime(n.freq, now + n.off);
+                            g1.gain.setValueAtTime(0, now + n.off);
+                            g1.gain.linearRampToValueAtTime(0.45, now + n.off + 0.008); // attack cepat (pluck)
+                            g1.gain.exponentialRampToValueAtTime(0.001, now + n.off + n.dur + 0.12); // decay alami
+                            o1.connect(g1); g1.connect(ctx.destination);
+                            o1.start(now + n.off); o1.stop(now + n.off + n.dur + 0.15);
+
+                            // Layer 2: triangle octave atas (memberikan karakter "xylophone/ping")
+                            const o2 = ctx.createOscillator();
+                            const g2 = ctx.createGain();
+                            o2.type = 'triangle';
+                            o2.frequency.setValueAtTime(n.freq * 2, now + n.off);
+                            g2.gain.setValueAtTime(0, now + n.off);
+                            g2.gain.linearRampToValueAtTime(0.12, now + n.off + 0.008);
+                            g2.gain.exponentialRampToValueAtTime(0.001, now + n.off + n.dur + 0.06);
+                            o2.connect(g2); g2.connect(ctx.destination);
+                            o2.start(now + n.off); o2.stop(now + n.off + n.dur + 0.08);
+
+                            _ringNodes.push(o1, o2);
+                        });
+                    }
+                    waRingtone();
+                    _callRingTimer = setInterval(waRingtone, 2500);
+                };
+                if (ctx.state === 'suspended') ctx.resume().then(doRing).catch(() => { });
+                else doRing();
             } catch (e) { }
         }
 
@@ -3647,12 +4466,15 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             const nv = document.getElementById('cw-call-no-video');
             const muteBtn = document.getElementById('cw-ca-mute');
             const camBtn = document.getElementById('cw-ca-cam');
-            if (rv) { rv.srcObject = null; rv.style.display = 'none'; }
-            if (lv) lv.srcObject = null;
+            if (rv) { try { rv.srcObject = null; } catch (e) { } rv.style.display = 'none'; }
+            if (lv) { try { lv.srcObject = null; } catch (e) { } }
             if (lw) lw.style.display = 'none';
             if (nv) nv.style.display = 'block';
             if (muteBtn) { muteBtn.querySelector('i').className = 'fas fa-microphone'; muteBtn.classList.remove('off'); }
             if (camBtn) { camBtn.querySelector('i').className = 'fas fa-video'; camBtn.classList.remove('off'); }
+            // Bersihkan elemen audio remote
+            const ra = document.getElementById('cw-call-remote-audio');
+            if (ra) { ra.srcObject = null; ra.pause(); }
         }
 
         function cwSendSignal(toId, type, data) {
@@ -3671,13 +4493,52 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                     cwSendSignal(_callPeerId, 'ice', { candidate: e.candidate });
             };
             peer.ontrack = e => {
-                if (!e.streams || !e.streams[0]) return;
+                // Ambil stream: dari e.streams[0] atau buat dari e.track
+                const stream = (e.streams && e.streams[0]) ? e.streams[0] : (() => {
+                    const s = new MediaStream(); s.addTrack(e.track); return s;
+                })();
+
                 const rv = document.getElementById('cw-call-remote-video');
+                const ra = document.getElementById('cw-call-remote-audio');
                 const nv = document.getElementById('cw-call-no-video');
-                const hasVid = e.streams[0].getVideoTracks().length > 0;
-                if (rv) {
-                    if (hasVid) { rv.srcObject = e.streams[0]; rv.style.display = 'block'; if (nv) nv.style.display = 'none'; }
-                    else { rv.style.display = 'none'; if (nv) nv.style.display = 'block'; }
+                const hasVid = stream.getVideoTracks().length > 0;
+
+                // *** PENTING: Audio SELALU diputar via elemen <audio> terpisah ***
+                // Ini menghindari masalah autoplay-block pada elemen <video> yang disembunyikan
+                if (ra) {
+                    // Gabungkan track audio ke dalam audio element
+                    if (!ra.srcObject) {
+                        ra.srcObject = stream;
+                    } else {
+                        // Tambahkan track audio ke stream yang sudah ada
+                        stream.getAudioTracks().forEach(t => {
+                            try {
+                                const existing = ra.srcObject;
+                                if (existing && !existing.getAudioTracks().find(x => x.id === t.id)) {
+                                    existing.addTrack(t);
+                                }
+                            } catch (err) { ra.srcObject = stream; }
+                        });
+                    }
+                    ra.volume = 1.0;
+                    ra.muted = false;
+                    const playAudio = () => ra.play().catch(() => {
+                        // Retry sekali jika gagal
+                        setTimeout(() => ra.play().catch(() => { }), 300);
+                    });
+                    if (ra.readyState >= 2) { playAudio(); }
+                    else { ra.oncanplay = playAudio; }
+                }
+
+                // Video hanya ditampilkan untuk video call
+                if (hasVid && rv) {
+                    rv.srcObject = stream;
+                    rv.style.display = 'block';
+                    rv.play().catch(() => { });
+                    if (nv) nv.style.display = 'none';
+                } else if (!hasVid) {
+                    if (rv) rv.style.display = 'none';
+                    if (nv) nv.style.display = 'block';
                 }
             };
             peer.onconnectionstatechange = () => {
@@ -3712,6 +4573,13 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             }
             callType = (callType || 'audio').trim();
             _callState = 'outgoing'; _callPeerId = userId; _callPeerName = nama; _callType = callType;
+
+            // --- Call logging setup ---
+            _callUid = cwMakeCallUid();
+            _callStartTs = Date.now();
+            _callCalleeId = userId;
+            cwLogCall(userId, callType, 'initiated', 0);
+            // --------------------------
             const color = cwAvatarColor2(userId);
             const coAv = document.getElementById('cw-co-avatar');
             coAv.textContent = (nama || '?').charAt(0).toUpperCase();
@@ -3719,8 +4587,15 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             document.getElementById('cw-co-name').textContent = nama;
             document.getElementById('cw-co-status').textContent = callType === 'video' ? 'Menghubungi (video)...' : 'Menghubungi...';
             document.getElementById('cw-call-outgoing').classList.add('active');
-            cwPlayRing(true);
-            const constraints = { audio: true, video: callType === 'video' ? { width: { ideal: 640 }, height: { ideal: 480 } } : false };
+            cwPlayRingOutgoing(); // Nada dial-tone untuk pemanggil
+            const audioConstraints = {
+                echoCancellation: { ideal: true },
+                noiseSuppression: { ideal: true },
+                autoGainControl: false,   // Matikan AGC agar dua pihak bisa bicara bersamaan (full-duplex)
+                channelCount: 1,
+                sampleRate: { ideal: 48000 }
+            };
+            const constraints = { audio: audioConstraints, video: callType === 'video' ? { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } : false };
             navigator.mediaDevices.getUserMedia(constraints)
                 .then(stream => {
                     if (_callState !== 'outgoing') { stream.getTracks().forEach(t => t.stop()); return; }
@@ -3747,6 +4622,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             setTimeout(() => {
                 if (_callState === 'outgoing' && _callPeerId === userId) {
                     cwSendSignal(userId, 'end', {});
+                    cwLogCall(userId, callType, 'missed', 0);
                     cwCleanupCall();
                     cwShowCallToast('Tidak ada jawaban dari ' + nama);
                 }
@@ -3761,7 +4637,26 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             document.getElementById('cw-call-incoming').classList.remove('active');
             _callState = 'active';
             cwCallShowActive();
-            const constraints = { audio: true, video: _callType === 'video' ? { width: { ideal: 640 }, height: { ideal: 480 } } : false };
+            // --- Log: callee accepted. We need to log from callee's side ---
+            // We don't have _callUid here (that's the caller's), so we create one for the callee
+            // The server merges by call_uid but callee doesn't know caller's uid, so we store caller as callee ref
+            _callCalleeIdForCallee = _callPeerId; // store caller_id so hangup can log
+            _callStartTs = Date.now();
+            // We log the callee side as 'answered' using caller_id as callee (direction flipped)
+            // Actually the log_call action logs from the current user's perspective (as caller)
+            // For the callee side: caller_id=callee (us), callee_id=caller (them), but we don't have a shared uid.
+            // Simple approach: log a new record from callee perspective with a fresh uid
+            _callUid = cwMakeCallUid();
+            _callCalleeId = _callPeerId;
+            cwLogCall(_callPeerId, _callType, 'answered', 0);
+            const audioConstraints = {
+                echoCancellation: { ideal: true },
+                noiseSuppression: { ideal: true },
+                autoGainControl: false,   // Matikan AGC agar dua pihak bisa bicara bersamaan (full-duplex)
+                channelCount: 1,
+                sampleRate: { ideal: 48000 }
+            };
+            const constraints = { audio: audioConstraints, video: _callType === 'video' ? { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } : false };
             navigator.mediaDevices.getUserMedia(constraints)
                 .then(stream => {
                     _callLocalStream = stream;
@@ -3792,22 +4687,37 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         window.cwCallReject = function () {
             if (_callState !== 'incoming') return;
             const pid = _callPeerId;
+            const ptype = _callType || 'audio';
             cwCleanupCall();
             cwSendSignal(pid, 'reject', {});
+            // Log rejected call from callee's perspective
+            _callUid = cwMakeCallUid();
+            cwLogCall(pid, ptype, 'rejected', 0);
         };
 
         window.cwCallCancel = function () {
             if (_callState !== 'outgoing') return;
             const pid = _callPeerId;
+            const ptype = _callType || 'audio';
+            const uid = _callUid;
+            const calleeId = _callCalleeId;
             cwCleanupCall();
             cwSendSignal(pid, 'end', {});
+            cwLogCall(calleeId, ptype, 'cancelled', 0, uid);
         };
 
         window.cwCallHangup = function () {
             if (_callState === 'idle') return;
             const pid = _callPeerId;
+            const ptype = _callType || 'audio';
+            const uid = _callUid;
+            const calleeId = _callCalleeId;
+            const dur = _callStartTs > 0 ? Math.round((Date.now() - _callStartTs) / 1000) : 0;
+            const wasActive = (_callState === 'active');
             cwCleanupCall();
             if (pid > 0) cwSendSignal(pid, 'end', {});
+            if (wasActive) cwLogCall(calleeId, ptype, 'answered', dur, uid);
+            else cwLogCall(calleeId, ptype, 'cancelled', 0, uid);
         };
 
         window.cwCallToggleMute = function () {
@@ -3835,6 +4745,271 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         window.cwStartCallFromDM = function () {
             if (dmWithUserId === 0) return;
             cwStartCall(dmWithUserId, dmWithName, 'audio');
+        };
+
+        window.cwStartVideoCallFromDM = function () {
+            if (dmWithUserId === 0) return;
+            cwStartCall(dmWithUserId, dmWithName, 'video');
+        };
+
+        // ===== CALL LOGGING =====
+        let _callUid = '';         // unique ID per call session
+        let _callStartTs = 0;      // unix ts when call offer was made
+        let _callCalleeId = 0;     // callee user_id (from caller's perspective)
+        let _callCalleeIdForCallee = 0; // caller user_id (from callee's perspective)
+
+        function cwMakeCallUid() {
+            return 'cw_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        }
+
+        function cwLogCall(calleeId, callType, status, durationSec, uid) {
+            uid = uid || _callUid;
+            if (!uid) return;
+            const fd = new FormData();
+            fd.append('action', 'log_call');
+            fd.append('call_uid', uid);
+            fd.append('callee_id', calleeId);
+            fd.append('call_type', callType || 'audio');
+            fd.append('call_status', status);
+            fd.append('duration_sec', durationSec || 0);
+            fetch(ENDPOINT, { method: 'POST', body: fd }).catch(() => { });
+        }
+
+        // ===== CALL HISTORY MODAL =====
+        let _callHistOffset = 0;
+        let _callHistTotal = 0;
+        let _callHistLoading = false;
+        const HIST_LIMIT = 20;
+
+        window.cwOpenCallHistory = function () {
+            _callHistOffset = 0;
+            _callHistTotal = 0;
+            const overlay = document.getElementById('cw-callhist-overlay');
+            const body = document.getElementById('cw-callhist-body');
+            const footer = document.getElementById('cw-callhist-footer');
+            if (!overlay) return;
+            body.innerHTML = '<div id="cw-callhist-loading"><i class="fas fa-spinner fa-spin" style="font-size:26px;color:#e5e7eb"></i><span>Memuat riwayat...</span></div>';
+            footer.style.display = 'none';
+            overlay.classList.add('active');
+            cwCallHistLoad(false);
+        };
+
+        function cwCallHistLoad(append) {
+            if (_callHistLoading) return;
+            _callHistLoading = true;
+            const lmBtn = document.getElementById('cw-callhist-load-more');
+            if (lmBtn) lmBtn.disabled = true;
+            fetch(`${ENDPOINT}?action=get_call_history&limit=${HIST_LIMIT}&offset=${_callHistOffset}`)
+                .then(r => r.json())
+                .then(data => {
+                    _callHistTotal = data.total || 0;
+                    cwCallHistRender(data.logs || [], append);
+                    _callHistOffset += (data.logs || []).length;
+                    const footer = document.getElementById('cw-callhist-footer');
+                    if (footer) footer.style.display = _callHistOffset < _callHistTotal ? 'flex' : 'none';
+                    if (lmBtn) lmBtn.disabled = false;
+                })
+                .catch(() => {
+                    const body = document.getElementById('cw-callhist-body');
+                    if (body && !append) body.innerHTML = '<div id="cw-callhist-empty"><i class="fas fa-exclamation-circle" style="font-size:28px;color:#fca5a5"></i><span>Gagal memuat riwayat.</span></div>';
+                    if (lmBtn) lmBtn.disabled = false;
+                })
+                .finally(() => { _callHistLoading = false; });
+        }
+
+        function cwCallHistRender(logs, append) {
+            const body = document.getElementById('cw-callhist-body');
+            if (!body) return;
+            if (!append) body.innerHTML = '';
+            if (!logs.length && !append) {
+                body.innerHTML = '<div id="cw-callhist-empty"><i class="fas fa-phone-slash" style="font-size:30px;color:#e5e7eb"></i><span>Belum ada riwayat panggilan.</span></div>';
+                return;
+            }
+            logs.forEach(log => {
+                const isMissed = (log.status === 'missed' || (log.direction === 'outgoing' && log.status === 'missed'));
+                const isRejected = log.status === 'rejected';
+                const isCancelled = log.status === 'cancelled';
+                const isAnswered = log.status === 'answered';
+                const isIncoming = log.direction === 'incoming';
+
+                // Direction icon + class
+                let dirIcon, dirClass;
+                if (isIncoming && isAnswered) { dirIcon = 'fa-phone-volume'; dirClass = 'incoming'; }
+                else if (isIncoming && isMissed) { dirIcon = 'fa-phone-missed'; dirClass = 'missed'; }
+                else if (isIncoming && isRejected) { dirIcon = 'fa-phone-volume'; dirClass = 'missed'; }
+                else if (!isIncoming && isAnswered) { dirIcon = 'fa-phone-alt'; dirClass = 'outgoing'; }
+                else if (!isIncoming && isMissed || !isIncoming && isCancelled) { dirIcon = 'fa-phone-alt'; dirClass = 'cancelled'; }
+                else { dirIcon = 'fa-phone-alt'; dirClass = 'outgoing'; }
+
+                // Status color class
+                let statClass = log.status;
+                if (isIncoming && isRejected) statClass = 'missed';
+
+                const color = cwAvatarColor2(log.peer_id);
+                const init = (log.peer_name || '?').charAt(0).toUpperCase();
+                const typeIcon = log.call_type === 'video' ? 'fa-video' : 'fa-phone';
+                const durHtml = log.duration_label ? `<span class="cw-clog-dur">· ${log.duration_label}</span>` : '';
+
+                const row = document.createElement('div');
+                row.className = 'cw-clog-row';
+                row.innerHTML = `
+                    <div class="cw-clog-avatar" style="background:${color}">
+                        ${init}
+                        <div class="cw-clog-type-badge ${log.call_type}"><i class="fas ${typeIcon}"></i></div>
+                    </div>
+                    <div class="cw-clog-info">
+                        <div class="cw-clog-name">${log.peer_name}</div>
+                        <div class="cw-clog-meta">
+                            <i class="fas ${dirIcon} cw-clog-dir-icon ${dirClass}"></i>
+                            <span class="cw-clog-status ${statClass}">${log.status_label}</span>
+                            ${durHtml}
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+                        <span class="cw-clog-time">${log.started_label}</span>
+                        <div class="cw-clog-actions">
+                            <button class="cw-clog-call-btn audio" onclick="event.stopPropagation();cwCallHistDial(${log.peer_id},'${(log.peer_name || '').replace(/'/g, "\\'")}\'audio')" title="Telepon">
+                                <i class="fas fa-phone"></i>
+                            </button>
+                            <button class="cw-clog-call-btn video" onclick="event.stopPropagation();cwCallHistDial(${log.peer_id},'${(log.peer_name || '').replace(/'/g, "\\'")}\'video')" title="Video Call">
+                                <i class="fas fa-video"></i>
+                            </button>
+                        </div>
+                    </div>`;
+                body.appendChild(row);
+            });
+        }
+
+        window.cwCallHistLoadMore = function () {
+            cwCallHistLoad(true);
+        };
+
+        window.cwCallHistDial = function (peerId, peerName, callType) {
+            cwCallHistForceClose();
+            cwStartCall(peerId, peerName, callType.trim());
+        };
+
+        window.cwCallHistClose = function (e) {
+            if (e && e.target !== document.getElementById('cw-callhist-overlay')) return;
+            cwCallHistForceClose();
+        };
+
+        window.cwCallHistForceClose = function () {
+            const overlay = document.getElementById('cw-callhist-overlay');
+            if (overlay) overlay.classList.remove('active');
+        };
+
+        // ===== GPS LOCATION SYSTEM =====
+        let _gpsCollapsed = false;
+        let _gpsLoaded = false;
+
+        window.cwGpsToggle = function () {
+            _gpsCollapsed = !_gpsCollapsed;
+            const body = document.getElementById('cw-gps-body');
+            const icon = document.getElementById('cw-gps-toggle-icon');
+            if (body) body.classList.toggle('collapsed', _gpsCollapsed);
+            if (icon) icon.classList.toggle('collapsed', _gpsCollapsed);
+        };
+
+        window.cwDetectLocation = function (isRefresh) {
+            if (!navigator.geolocation) {
+                cwGpsSetStatus('error', '⚠️ Browser tidak mendukung GPS');
+                return;
+            }
+            const btn = document.getElementById('cw-gps-detect-btn');
+            const refreshIcon = document.getElementById('cw-gps-refresh-icon');
+            cwGpsSetStatus('loading', '🔄 Mendeteksi lokasi...');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mendeteksi...'; }
+            if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    const lat = pos.coords.latitude.toFixed(6);
+                    const lng = pos.coords.longitude.toFixed(6);
+                    const acc = Math.round(pos.coords.accuracy);
+
+                    // Update koordinat immediately
+                    const latEl = document.getElementById('cw-gps-lat');
+                    const lngEl = document.getElementById('cw-gps-lng');
+                    const accEl = document.getElementById('cw-gps-accuracy');
+                    if (latEl) latEl.textContent = lat;
+                    if (lngEl) lngEl.textContent = lng;
+                    if (accEl) accEl.textContent = `Akurasi: ±${acc} meter`;
+
+                    // Show rows
+                    const rows = document.getElementById('cw-gps-rows');
+                    if (rows) rows.style.display = 'flex';
+                    cwGpsSetStatus('loading', '📡 Memuat nama alamat...');
+
+                    // Reverse geocode via Nominatim (free, no API key needed)
+                    const nomUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id&addressdetails=1`;
+                    fetch(nomUrl, { headers: { 'Accept-Language': 'id' } })
+                        .then(r => r.json())
+                        .then(data => {
+                            const addr = data.address || {};
+                            // Build display address
+                            const road = addr.road || addr.neighbourhood || addr.suburb || '';
+                            const num = addr.house_number ? ' No.' + addr.house_number : '';
+                            const displayAddr = (road + num) || data.display_name?.split(',')[0] || 'Tidak diketahui';
+                            const city = addr.city || addr.town || addr.regency || addr.municipality || addr.county || addr.district || '';
+                            const province = addr.state || addr.province || '';
+                            const cityFull = [city, province].filter(Boolean).join(', ');
+                            const country = addr.country || 'Tidak diketahui';
+
+                            const addrEl = document.getElementById('cw-gps-address');
+                            const cityEl = document.getElementById('cw-gps-city');
+                            const countryEl = document.getElementById('cw-gps-country');
+                            if (addrEl) addrEl.textContent = displayAddr || 'Tidak diketahui';
+                            if (cityEl) cityEl.textContent = cityFull || 'Tidak diketahui';
+                            if (countryEl) countryEl.textContent = country;
+
+                            cwGpsSetStatus('success', '✅ Lokasi berhasil dideteksi');
+                            _gpsLoaded = true;
+                        })
+                        .catch(() => {
+                            const addrEl = document.getElementById('cw-gps-address');
+                            const cityEl = document.getElementById('cw-gps-city');
+                            const countryEl = document.getElementById('cw-gps-country');
+                            if (addrEl) addrEl.textContent = 'Gagal memuat alamat';
+                            if (cityEl) cityEl.textContent = '-';
+                            if (countryEl) countryEl.textContent = '-';
+                            cwGpsSetStatus('success', `✅ Koordinat: ${lat}, ${lng}`);
+                            _gpsLoaded = true;
+                        })
+                        .finally(() => {
+                            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-crosshairs"></i> Deteksi Ulang'; }
+                            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+                        });
+                },
+                function (err) {
+                    let msg = '⚠️ Gagal deteksi lokasi';
+                    if (err.code === 1) msg = '🔒 Izin lokasi ditolak. Izinkan di browser.';
+                    else if (err.code === 2) msg = '📡 Lokasi tidak tersedia saat ini.';
+                    else if (err.code === 3) msg = '⏱️ Waktu habis. Coba lagi.';
+                    cwGpsSetStatus('error', msg);
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-crosshairs"></i> Coba Lagi'; }
+                    if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+                },
+                { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+            );
+        };
+
+        function cwGpsSetStatus(type, text) {
+            const el = document.getElementById('cw-gps-status');
+            const textEl = document.getElementById('cw-gps-status-text');
+            if (!el || !textEl) return;
+            el.className = '';
+            el.classList.add(type);
+            textEl.textContent = text;
+        }
+
+        // Auto-detect location when Online tab is first opened
+        const _origSwitchTab = window.cwSwitchTab;
+        window.cwSwitchTab = function (tab) {
+            _origSwitchTab(tab);
+            if (tab === 'online' && !_gpsLoaded) {
+                setTimeout(() => cwDetectLocation(false), 400);
+            }
         };
 
         function cwShowCallToast(msg) {
@@ -3883,7 +5058,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 ciAv.style.background = cwAvatarColor2(fromId);
                 document.getElementById('cw-ci-name').textContent = fromName;
                 document.getElementById('cw-call-incoming').classList.add('active');
-                cwPlayRing(true);
+                cwPlayRingIncoming(); // Nada dering HP untuk penerima
                 // Auto-reject after 30s
                 setTimeout(() => { if (_callState === 'incoming' && _callPeerId === fromId) cwCallReject(); }, 30000);
 
@@ -3896,6 +5071,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         _callQueuedIce = [];
                     }).catch(() => { });
                 _callState = 'active';
+                _callStartTs = Date.now(); // Reset to actual answer time for duration
                 document.getElementById('cw-call-outgoing').classList.remove('active');
                 cwCallShowActive();
 
@@ -3912,16 +5088,31 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             } else if (type === 'reject') {
                 if (_callState !== 'outgoing' || _callPeerId !== fromId) return;
                 const name = _callPeerName;
+                const ptype = _callType || 'audio';
+                const uid = _callUid;
+                const calleeId = _callCalleeId;
                 cwCleanupCall();
+                cwLogCall(calleeId, ptype, 'rejected', 0, uid);
                 cwShowCallToast(name + ' menolak panggilan');
 
             } else if (type === 'end') {
                 if (_callPeerId !== fromId) return;
                 const wasActive = _callState === 'active';
                 const wasIncoming = _callState === 'incoming';
+                const dur = wasActive && _callStartTs > 0 ? Math.round((Date.now() - _callStartTs) / 1000) : 0;
+                const calleeId = _callCalleeId;
+                const uid = _callUid;
+                const ptype = _callType || 'audio';
                 cwCleanupCall();
-                if (wasActive) cwShowCallToast('Panggilan berakhir');
-                else if (wasIncoming) cwShowCallToast(fromName + ' membatalkan panggilan');
+                if (wasActive) {
+                    cwLogCall(calleeId, ptype, 'answered', dur, uid);
+                    cwShowCallToast('Panggilan berakhir');
+                } else if (wasIncoming) {
+                    // Incoming call cancelled by caller before we answered  → missed for us
+                    _callUid = cwMakeCallUid();
+                    cwLogCall(fromId, ptype, 'missed', 0);
+                    cwShowCallToast(fromName + ' membatalkan panggilan');
+                }
             }
         }
 

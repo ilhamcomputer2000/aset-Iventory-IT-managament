@@ -165,6 +165,25 @@ $kon->query("CREATE TABLE IF NOT EXISTS chat_call_signals (
 // Auto-purge signals older than 60 seconds
 @$kon->query("DELETE FROM chat_call_signals WHERE created_at < DATE_SUB(NOW(), INTERVAL 60 SECOND)");
 
+// Call Logs table (riwayat panggilan)
+$kon->query("CREATE TABLE IF NOT EXISTS chat_call_logs (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    call_uid        VARCHAR(64) NOT NULL UNIQUE,
+    caller_id       INT NOT NULL,
+    caller_nama     VARCHAR(150) NOT NULL DEFAULT '',
+    callee_id       INT NOT NULL,
+    callee_nama     VARCHAR(150) NOT NULL DEFAULT '',
+    call_type       ENUM('audio','video') NOT NULL DEFAULT 'audio',
+    status          ENUM('initiated','answered','rejected','missed','cancelled') NOT NULL DEFAULT 'initiated',
+    duration_sec    INT NOT NULL DEFAULT 0,
+    started_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    answered_at     DATETIME NULL,
+    ended_at        DATETIME NULL,
+    INDEX idx_caller (caller_id, started_at),
+    INDEX idx_callee (callee_id, started_at),
+    INDEX idx_uid    (call_uid)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
 // Helper: update presence
 function updatePresence($kon, $uid, $uname, $nama, $role, $jabatan = '')
 {
@@ -411,7 +430,7 @@ if ($action === 'get_reads') {
             $mid = (int)$rr['message_id'];
             $readAtFmt = null;
             if ($rr['read_at']) {
-                try { $dt = new DateTime($rr['read_at']); $readAtFmt = $dt->format('H:i, d M'); } catch (Exception $e) {}
+                try { $dt = new DateTime($rr['read_at']); $readAtFmt = $dt->format('H:i, d M Y'); } catch (Exception $e) {}
             }
             $readsMap[$mid]['readers'][] = [
                 'user_id' => (int)$rr['user_id'],
@@ -798,6 +817,138 @@ if ($action === 'get_call_signals') {
         ];
     }
     echo json_encode(['signals' => $signals]);
+    exit;
+}
+
+// ---- ACTION: log_call ----
+// Dipanggil dari JS saat berbagai event panggilan terjadi
+if ($action === 'log_call') {
+    $call_uid    = trim((string)($_POST['call_uid']    ?? ''));
+    $callee_id   = max(0, (int)($_POST['callee_id']    ?? 0));
+    $call_type   = trim((string)($_POST['call_type']   ?? 'audio'));
+    $call_status = trim((string)($_POST['call_status'] ?? 'initiated'));
+    $duration    = max(0, (int)($_POST['duration_sec'] ?? 0));
+
+    if ($call_uid === '' || $callee_id === 0) {
+        echo json_encode(['error' => 'Invalid']); exit;
+    }
+    if (!in_array($call_type, ['audio', 'video'])) $call_type = 'audio';
+    if (!in_array($call_status, ['initiated', 'answered', 'rejected', 'missed', 'cancelled'])) $call_status = 'initiated';
+
+    // Resolve callee name
+    $cnq = $kon->query("SELECT COALESCE(Nama_Lengkap, username, 'Pengguna') AS n FROM users WHERE id=$callee_id LIMIT 1");
+    $callee_nama = ($cnq && ($cnr = $cnq->fetch_assoc())) ? $cnr['n'] : 'Pengguna';
+
+    $call_uid_e    = $kon->real_escape_string($call_uid);
+    $call_type_e   = $kon->real_escape_string($call_type);
+    $call_status_e = $kon->real_escape_string($call_status);
+    $caller_nama_e = $kon->real_escape_string($nama);
+    $callee_nama_e = $kon->real_escape_string($callee_nama);
+
+    // answered_at / ended_at logic
+    $answeredSql = '';
+    $endedSql    = '';
+    if ($call_status === 'answered') {
+        $answeredSql = ", answered_at = IF(answered_at IS NULL, NOW(), answered_at)";
+    }
+    if (in_array($call_status, ['answered', 'rejected', 'missed', 'cancelled'])) {
+        $endedSql = ", ended_at = IF(ended_at IS NULL, NOW(), ended_at)";
+    }
+
+    $kon->query("INSERT INTO chat_call_logs
+        (call_uid, caller_id, caller_nama, callee_id, callee_nama, call_type, status, duration_sec, started_at)
+        VALUES ('$call_uid_e', $user_id, '$caller_nama_e', $callee_id, '$callee_nama_e', '$call_type_e', '$call_status_e', $duration, NOW())
+        ON DUPLICATE KEY UPDATE
+            status = CASE
+                WHEN status = 'initiated' THEN '$call_status_e'
+                WHEN status = 'answered'  AND '$call_status_e' IN ('missed','rejected','cancelled') THEN status
+                ELSE '$call_status_e'
+            END,
+            duration_sec = GREATEST(duration_sec, $duration)
+            $answeredSql
+            $endedSql
+    ");
+
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+// ---- ACTION: get_call_history ----
+if ($action === 'get_call_history') {
+    $limit  = min(50, max(1, (int)($_GET['limit'] ?? 30)));
+    $offset = max(0, (int)($_GET['offset'] ?? 0));
+
+    $rq = $kon->query("
+        SELECT cl.*,
+               TIMESTAMPDIFF(SECOND, cl.started_at, IFNULL(cl.ended_at, NOW())) AS age_sec
+        FROM chat_call_logs cl
+        WHERE cl.caller_id = $user_id OR cl.callee_id = $user_id
+        ORDER BY cl.started_at DESC
+        LIMIT $limit OFFSET $offset
+    ");
+
+    $rows = [];
+    if ($rq) {
+        while ($r = $rq->fetch_assoc()) {
+            $isOutgoing = ((int)$r['caller_id'] === $user_id);
+            $peerName   = $isOutgoing ? htmlspecialchars($r['callee_nama']) : htmlspecialchars($r['caller_nama']);
+            $peerId     = $isOutgoing ? (int)$r['callee_id'] : (int)$r['caller_id'];
+
+            // Format started_at
+            $startedLabel = '';
+            try {
+                $dt = new DateTime($r['started_at']);
+                $today  = new DateTime(); $today->setTime(0,0,0);
+                $yest   = (clone $today)->modify('-1 day');
+                $dtDate = (clone $dt)->setTime(0,0,0);
+                if ($dtDate == $today)      $startedLabel = 'Hari ini ' . $dt->format('H:i');
+                elseif ($dtDate == $yest)   $startedLabel = 'Kemarin ' . $dt->format('H:i');
+                else                        $startedLabel = $dt->format('d M Y, H:i');
+            } catch (Exception $e) { $startedLabel = $r['started_at']; }
+
+            // Duration label
+            $dur = (int)$r['duration_sec'];
+            $durLabel = '';
+            if ($dur > 0) {
+                if ($dur < 60) $durLabel = $dur . ' dtk';
+                else           $durLabel = floor($dur/60) . ' mnt ' . ($dur%60) . ' dtk';
+            }
+
+            // Status visual
+            $status = $r['status'];
+            if (!$isOutgoing && $status === 'missed') $statusLabel = 'Tidak Diangkat';
+            elseif (!$isOutgoing && $status === 'rejected') $statusLabel = 'Ditolak';
+            elseif (!$isOutgoing && $status === 'initiated') $statusLabel = 'Panggilan Masuk';
+            elseif (!$isOutgoing && $status === 'answered') $statusLabel = 'Diterima';
+            elseif ($isOutgoing && $status === 'cancelled') $statusLabel = 'Dibatalkan';
+            elseif ($isOutgoing && $status === 'rejected')  $statusLabel = 'Ditolak';
+            elseif ($isOutgoing && $status === 'missed')    $statusLabel = 'Tidak Terjawab';
+            elseif ($isOutgoing && $status === 'answered')  $statusLabel = 'Terjawab';
+            elseif ($isOutgoing && $status === 'initiated') $statusLabel = 'Memanggil';
+            else $statusLabel = $status;
+
+            $rows[] = [
+                'id'           => (int)$r['id'],
+                'call_uid'     => $r['call_uid'],
+                'peer_id'      => $peerId,
+                'peer_name'    => $peerName,
+                'call_type'    => $r['call_type'],
+                'status'       => $status,
+                'status_label' => $statusLabel,
+                'direction'    => $isOutgoing ? 'outgoing' : 'incoming',
+                'duration_sec' => $dur,
+                'duration_label' => $durLabel,
+                'started_at'   => $r['started_at'],
+                'started_label' => $startedLabel,
+            ];
+        }
+    }
+
+    // Count total
+    $countRq = $kon->query("SELECT COUNT(*) c FROM chat_call_logs WHERE caller_id=$user_id OR callee_id=$user_id");
+    $total   = ($countRq && ($cr = $countRq->fetch_assoc())) ? (int)$cr['c'] : 0;
+
+    echo json_encode(['logs' => $rows, 'total' => $total, 'my_id' => $user_id]);
     exit;
 }
 

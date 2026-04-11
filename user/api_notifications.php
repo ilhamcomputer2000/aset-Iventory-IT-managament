@@ -1,17 +1,21 @@
 <?php
 /**
  * User Notification API
- * 
- * GET  ?action=fetch          → JSON list of notifications for THIS user + unread count
- * POST ?action=mark_read      → Mark single notification as read
- * POST ?action=mark_all_read  → Mark all user's notifications as read
- * 
+ *
+ * GET  ?action=fetch              → JSON list of notifications for THIS user + unread count
+ * GET  ?action=check_new&since_id=X → Lightweight: only returns new unread notifs with id > X
+ * POST ?action=mark_read          → Mark single notification as read
+ * POST ?action=mark_all_read      → Mark all user's notifications as read
+ *
  * IMPORTANT: Only returns notifications for the logged-in user (target_user_id = session user_id)
  */
 session_start();
+session_write_close(); // Bebaskan session lock agar request lain tidak antri
+
 require_once __DIR__ . '/../koneksi.php';
 
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-cache, no-store, must-revalidate');
 
 // Auth check
 if (!isset($_SESSION['user_id'])) {
@@ -39,10 +43,10 @@ $kon->query("CREATE TABLE IF NOT EXISTS `notifications` (
 
 $action = isset($_REQUEST['action']) ? trim($_REQUEST['action']) : 'fetch';
 
+// --- mark_read ---
 if ($action === 'mark_read' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
     if ($id > 0) {
-        // Only mark if it belongs to this user
         $stmt = $kon->prepare("UPDATE `notifications` SET `is_read` = 1 WHERE `id` = ? AND `target_role` = 'user' AND `target_user_id` = ?");
         $stmt->bind_param('ii', $id, $userId);
         $stmt->execute();
@@ -52,6 +56,7 @@ if ($action === 'mark_read' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// --- mark_all_read ---
 if ($action === 'mark_all_read' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $kon->prepare("UPDATE `notifications` SET `is_read` = 1 WHERE `target_role` = 'user' AND `target_user_id` = ? AND `is_read` = 0");
     $stmt->bind_param('i', $userId);
@@ -61,9 +66,54 @@ if ($action === 'mark_all_read' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// Default: fetch notifications scoped to this user only
+// --- check_new: endpoint ringan untuk polling cepat ---
+if ($action === 'check_new') {
+    $sinceId = isset($_GET['since_id']) ? (int)$_GET['since_id'] : 0;
+    $stmt = $kon->prepare(
+        "SELECT `id`, `type`, `title`, `message`, `reference_id`, `is_read`, `created_at`
+         FROM `notifications`
+         WHERE `target_role` = 'user' AND `target_user_id` = ? AND `is_read` = 0 AND `id` > ?
+         ORDER BY `id` ASC
+         LIMIT 10"
+    );
+    $stmt->bind_param('ii', $userId, $sinceId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $newNotifs = [];
+    while ($row = $result->fetch_assoc()) {
+        $newNotifs[] = $row;
+    }
+    $stmt->close();
+
+    // Unread count
+    $stmt2 = $kon->prepare("SELECT COUNT(*) AS cnt FROM `notifications` WHERE `target_role` = 'user' AND `target_user_id` = ? AND `is_read` = 0");
+    $stmt2->bind_param('i', $userId);
+    $stmt2->execute();
+    $countRes = $stmt2->get_result();
+    $unreadCount = 0;
+    if ($countRes) {
+        $cr = $countRes->fetch_assoc();
+        $unreadCount = (int)$cr['cnt'];
+    }
+    $stmt2->close();
+
+    echo json_encode([
+        'unread_count' => $unreadCount,
+        'new_notifs'   => $newNotifs,
+        'has_new'      => count($newNotifs) > 0,
+    ]);
+    exit;
+}
+
+// --- Default: fetch all notifications ---
 $limit = 50;
-$stmt = $kon->prepare("SELECT `id`, `type`, `title`, `message`, `reference_id`, `is_read`, `created_at` FROM `notifications` WHERE `target_role` = 'user' AND `target_user_id` = ? ORDER BY `created_at` DESC LIMIT ?");
+$stmt = $kon->prepare(
+    "SELECT `id`, `type`, `title`, `message`, `reference_id`, `is_read`, `created_at`
+     FROM `notifications`
+     WHERE `target_role` = 'user' AND `target_user_id` = ?
+     ORDER BY `created_at` DESC
+     LIMIT ?"
+);
 $stmt->bind_param('ii', $userId, $limit);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -74,7 +124,7 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// Unread count scoped to this user
+// Unread count
 $stmt2 = $kon->prepare("SELECT COUNT(*) AS cnt FROM `notifications` WHERE `target_role` = 'user' AND `target_user_id` = ? AND `is_read` = 0");
 $stmt2->bind_param('i', $userId);
 $stmt2->execute();
@@ -87,6 +137,6 @@ if ($countRes) {
 $stmt2->close();
 
 echo json_encode([
-    'unread_count' => $unreadCount,
-    'notifications' => $notifications
+    'unread_count'  => $unreadCount,
+    'notifications' => $notifications,
 ]);

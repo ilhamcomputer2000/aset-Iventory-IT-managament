@@ -358,6 +358,73 @@ $_sidebarLinks = [
     </div>
 </div>
 
+<!-- ===== POPUP TOAST NOTIFIKASI ===== -->
+<style>
+#notif-toast-container {
+    position: fixed;
+    top: 70px;
+    right: 16px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 360px;
+    width: calc(100vw - 32px);
+    pointer-events: none;
+}
+.notif-toast {
+    pointer-events: all;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08);
+    border-left: 4px solid #f97316;
+    overflow: hidden;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+    position: relative;
+}
+.notif-toast.show { transform: translateX(0); opacity: 1; }
+.notif-toast.hide { transform: translateX(120%); opacity: 0; }
+.notif-toast-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 40px 14px 16px;
+    cursor: pointer;
+}
+.notif-toast-inner:hover { background: #fafafa; }
+.notif-toast-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 14px;
+}
+.notif-toast-content { flex: 1; min-width: 0; }
+.notif-toast-title {
+    font-size: 13px; font-weight: 700; color: #111827;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.notif-toast-msg {
+    font-size: 11.5px; color: #6b7280;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;
+}
+.notif-toast-time { font-size: 10px; color: #9ca3af; margin-top: 4px; }
+.notif-toast-close {
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #f3f4f6; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #6b7280;
+    transition: background 0.2s, color 0.2s;
+    z-index: 1;
+}
+.notif-toast-close:hover { background: #e5e7eb; color: #111827; }
+</style>
+<div id="notif-toast-container"></div>
+
 <!-- Sidebar JS -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -526,13 +593,13 @@ $_sidebarLinks = [
 
         function getNavUrl(type) {
             const map = {
-                'ticket_status_changed': '<?php echo app_abs_path("user/ticket"); ?>',
-                'ticket_approval_needed': '<?php echo app_abs_path("user/ticket"); ?>?status=Done',
-                'ticket_created': '<?php echo app_abs_path("user/ticket"); ?>',
-                'ticket_closed': '<?php echo app_abs_path("user/ticket"); ?>',
-                'pinjaman_approved': '<?php echo app_abs_path("user/lacak_asset"); ?>',
-                'pinjaman_rejected': '<?php echo app_abs_path("user/lacak_asset"); ?>',
-                'pinjaman_request': '<?php echo app_abs_path("user/lacak_asset"); ?>'
+                'ticket_status_changed': '<?php echo app_abs_path("user/ticket.php"); ?>',
+                'ticket_approval_needed': '<?php echo app_abs_path("user/ticket.php"); ?>?status=Done',
+                'ticket_created': '<?php echo app_abs_path("user/ticket.php"); ?>',
+                'ticket_closed': '<?php echo app_abs_path("user/ticket.php"); ?>',
+                'pinjaman_approved': '<?php echo app_abs_path("user/lacak_asset.php"); ?>',
+                'pinjaman_rejected': '<?php echo app_abs_path("user/lacak_asset.php"); ?>',
+                'pinjaman_request': '<?php echo app_abs_path("user/lacak_asset.php"); ?>'
             };
             return map[type] || null;
         }
@@ -694,6 +761,148 @@ $_sidebarLinks = [
 
         fetchBadgeOnly();
         setInterval(fetchBadgeOnly, 30000);
+
+        // ===== POPUP TOAST SYSTEM =====
+        const TOAST_SEEN_KEY = 'user_notif_seen_ids';
+        const toastContainer = document.getElementById('notif-toast-container');
+
+        function getSeenIds() {
+            try { return JSON.parse(localStorage.getItem(TOAST_SEEN_KEY) || '[]'); } catch { return []; }
+        }
+        function addSeenId(id) {
+            const ids = getSeenIds();
+            if (!ids.includes(id)) {
+                ids.push(id);
+                if (ids.length > 200) ids.splice(0, ids.length - 200);
+                localStorage.setItem(TOAST_SEEN_KEY, JSON.stringify(ids));
+            }
+        }
+
+        function showToast(notif) {
+            const ti = typeIcon(notif.type);
+            const url = getNavUrl(notif.type);
+
+            // Langsung tandai sebagai "sudah dilihat" agar polling berikutnya tidak tampilkan lagi
+            addSeenId(parseInt(notif.id));
+
+            const toast = document.createElement('div');
+            toast.className = 'notif-toast';
+            toast.dataset.id = notif.id;
+
+            const iconColors = {
+                'bg-blue-100 text-blue-600': '#dbeafe;color:#2563eb',
+                'bg-gray-100 text-gray-600': '#f3f4f6;color:#4b5563',
+                'bg-orange-100 text-orange-600': '#ffedd5;color:#ea580c',
+                'bg-amber-100 text-amber-600': '#fef3c7;color:#d97706',
+                'bg-purple-100 text-purple-600': '#f3e8ff;color:#9333ea',
+                'bg-green-100 text-green-600': '#dcfce7;color:#16a34a',
+                'bg-red-100 text-red-600': '#fee2e2;color:#dc2626'
+            };
+            const iconStyle = iconColors[ti.color] || '#f3f4f6;color:#4b5563';
+            const [bg, fg] = iconStyle.split(';color:');
+
+            toast.innerHTML = `
+                <div class="notif-toast-inner">
+                    <div class="notif-toast-icon" style="background:${bg};color:#${fg}">
+                        <i class="fas ${ti.icon}"></i>
+                    </div>
+                    <div class="notif-toast-content">
+                        <div class="notif-toast-title">${notif.title || ''}</div>
+                        <div class="notif-toast-msg">${notif.message || ''}</div>
+                        <div class="notif-toast-time" data-created="${notif.created_at}"><i class="fas fa-clock" style="margin-right:3px"></i>${timeAgo(notif.created_at)}</div>
+                    </div>
+                </div>
+                <button class="notif-toast-close" title="Tutup"><i class="fas fa-times"></i></button>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // Update waktu setiap 60 detik selama toast masih ada
+            const timeEl = toast.querySelector('.notif-toast-time');
+            const timeInterval = setInterval(() => {
+                if (!toast.parentNode) { clearInterval(timeInterval); return; }
+                timeEl.innerHTML = '<i class="fas fa-clock" style="margin-right:3px"></i>' + timeAgo(notif.created_at);
+            }, 60000);
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => toast.classList.add('show'));
+            });
+
+            // Click toast body → navigate
+            toast.querySelector('.notif-toast-inner').addEventListener('click', function () {
+                markRead(notif.id, null);
+                addSeenId(parseInt(notif.id));
+                dismissToast(toast);
+                if (url) window.location.href = url;
+            });
+
+            // Click × → dismiss only
+            toast.querySelector('.notif-toast-close').addEventListener('click', function (e) {
+                e.stopPropagation();
+                addSeenId(parseInt(notif.id));
+                dismissToast(toast);
+            });
+        }
+
+        function dismissToast(toast) {
+            toast.classList.remove('show');
+            toast.classList.add('hide');
+            setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+        }
+
+        // === REALTIME POLLING dengan check_new (ringan, 5 detik) ===
+        let highestSeenId = 0;
+
+        function initHighestId() {
+            try {
+                const ids = getSeenIds();
+                if (ids.length > 0) highestSeenId = Math.max(...ids);
+            } catch(e) {}
+        }
+
+        function fetchNewToasts() {
+            fetch(API_URL + '?action=check_new&since_id=' + highestSeenId)
+                .then(r => r.json())
+                .then(data => {
+                    updateBadge(data.unread_count || 0);
+                    const newNotifs = data.new_notifs || [];
+                    if (newNotifs.length === 0) return;
+
+                    const maxId = Math.max(...newNotifs.map(n => parseInt(n.id)));
+                    if (maxId > highestSeenId) highestSeenId = maxId;
+
+                    const seenIds = getSeenIds();
+                    const toShow = newNotifs.filter(n => !seenIds.includes(parseInt(n.id)));
+                    toShow.slice(0, 3).forEach((n, idx) => {
+                        setTimeout(() => showToast(n), idx * 400);
+                    });
+                })
+                .catch(() => {});
+        }
+
+        function initToasts() {
+            fetch(API_URL + '?action=fetch')
+                .then(r => r.json())
+                .then(data => {
+                    updateBadge(data.unread_count || 0);
+                    const notifs = data.notifications || [];
+                    if (notifs.length > 0) {
+                        const maxExisting = Math.max(...notifs.map(n => parseInt(n.id)));
+                        if (maxExisting > highestSeenId) highestSeenId = maxExisting;
+                    }
+                    const seenIds = getSeenIds();
+                    const toShow = notifs.filter(n => n.is_read == 0 && !seenIds.includes(parseInt(n.id)));
+                    toShow.slice(0, 3).forEach((n, idx) => {
+                        setTimeout(() => showToast(n), idx * 400 + 1500);
+                    });
+                })
+                .catch(() => {});
+        }
+
+        initHighestId();
+        initToasts();
+        // Polling setiap 5 detik — ringan karena hanya ambil id > highestSeenId
+        setInterval(fetchNewToasts, 5000);
     })();
 </script>
 
