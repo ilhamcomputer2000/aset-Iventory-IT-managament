@@ -784,7 +784,8 @@ if ($action === 'call_signal') {
     $to_id = max(0, (int)($_POST['to_user_id'] ?? 0));
     $type  = trim((string)($_POST['type'] ?? ''));
     $data  = trim((string)($_POST['data'] ?? '{}'));
-    $allowed = ['offer','answer','ice','reject','end'];
+    $allowed = ['offer','answer','ice','reject','end',
+                'screen_request','screen_accept','screen_reject','screen_stop'];
     if ($to_id === 0 || !in_array($type, $allowed)) {
         echo json_encode(['error' => 'Invalid']); exit;
     }

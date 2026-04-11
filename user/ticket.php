@@ -1828,6 +1828,120 @@ $dashPriorityData = [
                 transition: none !important;
             }
         }
+
+        /* ===== MOBILE RESPONSIF - User Ticket ===== */
+
+        /* Main content padding lebih kecil di mobile */
+        @media (max-width: 767px) {
+            main.p-6 { padding: 0.75rem !important; }
+
+            /* Page title lebih compact */
+            h1.text-3xl { font-size: 1.5rem !important; margin-top: 3.5rem !important; }
+
+            /* Buat ticket card: compact di mobile */
+            .bg-white.rounded-xl.shadow-lg.p-6.mb-6 { padding: 0.875rem !important; }
+            .bg-white.rounded-xl.shadow-lg.p-6.mb-6 .flex.items-start.gap-4 { gap: 0.75rem !important; }
+
+            /* Buat Ticket button: full width di mobile */
+            [data-action="openCreateTicket"] { width: 100%; justify-content: center; }
+
+            /* Modal form: padding compact */
+            #createTicketModal .modal-panel { max-height: calc(100vh - 1rem) !important; }
+            #createTicketModal .p-6 { padding: 1rem !important; }
+            #createTicketModal .grid.grid-cols-1.md\:grid-cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Dashboard header: stack vertikal */
+            .bg-white.rounded-xl.shadow-lg .flex.items-center.justify-between.gap-4.mb-5,
+            #it-status-banner + .bg-white.rounded-xl.shadow-lg .flex.items-center.justify-between.gap-4.mb-5 {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+            }
+
+            /* Stats cards: 2 kolom di mobile */
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 > div {
+                padding: 0.875rem !important;
+            }
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 .text-3xl {
+                font-size: 1.5rem !important;
+            }
+
+            /* Dashboard section: padding lebih kecil */
+            .bg-white.rounded-xl.shadow-lg.p-6 { padding: 0.75rem !important; }
+
+            /* IT Status Banner: compact di mobile */
+            #it-status-banner .flex.items-center.gap-4.px-5.py-3\.5 {
+                padding: 0.625rem 0.875rem !important;
+                gap: 0.625rem !important;
+            }
+            #it-status-icon { width: 2rem !important; height: 2rem !important; font-size: 1rem !important; }
+
+            /* Recent tickets table */
+            .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+
+            /* Main ticket table */
+            #tickets-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                border-radius: 0.5rem;
+            }
+            #tickets-table-container::after {
+                content: '\2190 Geser untuk melihat lebih \2192';
+                display: block;
+                text-align: center;
+                font-size: 0.7rem;
+                color: #9ca3af;
+                padding: 0.35rem 0;
+                border-top: 1px solid #f3f4f6;
+            }
+
+            /* Action buttons di tabel: ukuran lebih kecil */
+            [data-action="viewTicket"],
+            [data-action="editTicket"],
+            [data-action="auditTicket"],
+            [data-action="approveClose"] {
+                padding: 0.25rem 0.625rem !important;
+                font-size: 0.7rem !important;
+                gap: 0.25rem !important;
+            }
+
+            /* Status tabs: ukuran lebih kecil */
+            .status-tab { padding: 0.375rem 0.625rem !important; font-size: 0.7rem !important; }
+
+            /* Search + action buttons: full width */
+            #ticketSearchForm > div { flex-direction: column !important; }
+            #ticketSearchForm .flex.flex-col.sm\:flex-row { flex-direction: column !important; }
+            #ticketApprovalCloseBtn, #ticketDownloadReportBtn { width: 100% !important; }
+
+            /* Charts height lebih kecil */
+            [style*="height: 300px"] { height: 200px !important; }
+        }
+
+        /* Small mobile (< 480px) */
+        @media (max-width: 479px) {
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 .text-3xl {
+                font-size: 1.25rem !important;
+            }
+            h1.text-3xl { font-size: 1.25rem !important; }
+            /* Status tab: sangat compact */
+            .status-tab { padding: 0.3rem 0.5rem !important; font-size: 0.65rem !important; }
+        }
+
+        /* Tablet (768px - 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            main.p-6 { padding: 1.25rem !important; }
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
     </style>
 </head>
 
@@ -1871,9 +1985,9 @@ $dashPriorityData = [
                 });
             })();
         </script>
-        <main class="p-6 lg:p-8">
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2 mt-16">Ticket</h1>
+        <main class="p-3 sm:p-6 lg:p-8">
+            <div class="mb-6 sm:mb-8">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 mt-14 sm:mt-16">Ticket</h1>
                 <p class="text-gray-600">Buat request ticket IT Support.</p>
             </div>
 
@@ -2062,7 +2176,7 @@ $dashPriorityData = [
             <!-- Dashboard Ticket (User) -->
             <div class="mb-8">
                 <div class="bg-white rounded-xl shadow-lg p-6">
-                    <div class="flex items-center justify-between gap-4 mb-5">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
                                 <i class="fas fa-chart-pie text-orange-600" aria-hidden="true"></i>
@@ -2082,7 +2196,7 @@ $dashPriorityData = [
                     </div>
 
                     <!-- Stats Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
                         <div tabindex="0"
                             class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
@@ -2149,7 +2263,7 @@ $dashPriorityData = [
                     </div>
 
                     <!-- Additional Stats -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
                         <div tabindex="0"
                             class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">

@@ -822,3 +822,131 @@
 .submenu-item {
     pointer-events: auto !important;  /* Pastikan li clickable */
 }
+
+/* ===================================================
+   GLOBAL MOBILE RESPONSIVE FIXES
+   Berlaku untuk semua halaman (dashboard, ticket, dll)
+   =================================================== */
+
+/* Pastikan body tidak overflow horizontal di semua device */
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+/* Main content wrapper: jangan pakai margin kiri di mobile */
+@media (max-width: 1023px) {
+    #main-content-wrapper {
+        margin-left: 0 !important;
+    }
+}
+
+/* Semua halaman: padding lebih kecil di mobile */
+@media (max-width: 767px) {
+    /* Page title spacing */
+    .mt-16 { margin-top: 3.75rem !important; }
+
+    /* Kartu stats mobile: font lebih kecil */
+    .text-3xl.font-semibold { font-size: 1.375rem !important; }
+
+    /* Semua tabel: aktifkan horizontal scroll + touch scrolling */
+    .overflow-x-auto {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+
+    /* White card paddings */
+    .bg-white.rounded-xl.shadow-lg.p-6 {
+        padding: 0.875rem !important;
+    }
+    .bg-white.rounded-xl.shadow-lg.p-4 {
+        padding: 0.75rem !important;
+    }
+
+    /* Filter card */
+    .filter-card {
+        padding: 0.875rem !important;
+    }
+
+    /* Table action buttons: compact */
+    .table-action-btn,
+    button[data-action] {
+        padding: 0.25rem 0.625rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* Pagination: smaller */
+    .pagination-btn {
+        min-width: 2rem !important;
+        height: 2rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Modal: full width di mobile */
+    .modal-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 1rem 1rem 0 0 !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        max-height: 90vh !important;
+        transform: none !important;
+    }
+
+    /* Status card: 2 kolom di mobile */
+    .status-card {
+        padding: 0.875rem !important;
+    }
+    .status-card:hover {
+        transform: translateY(-4px) scale(1.01) !important;
+    }
+
+    /* Chart height: lebih kecil di mobile */
+    canvas { max-height: 220px !important; }
+
+    /* Tabel: min-width agar tidak collapse terlalu sempit */
+    table.min-w-full { min-width: 700px; }
+
+    /* Form inputs: padding compact */
+    input[type="text"], input[type="date"], input[type="number"],
+    select, textarea {
+        font-size: 0.875rem !important;
+    }
+
+    /* Toast notification: posisi tidak terlalu jauh kanan */
+    #notif-toast-container {
+        max-width: calc(100vw - 24px) !important;
+        right: 12px !important;
+    }
+}
+
+/* Tablet: adjust sidebar margin */
+@media (min-width: 768px) and (max-width: 1023px) {
+    #main-content-wrapper {
+        margin-left: 0 !important;
+    }
+
+    /* Sedikit lebih compact */
+    .bg-white.rounded-xl.shadow-lg.p-6 {
+        padding: 1.25rem !important;
+    }
+}
+
+/* Scrollbar hint untuk tabel di mobile */
+@media (max-width: 767px) {
+    .overflow-x-auto::-webkit-scrollbar {
+        height: 4px;
+    }
+    .overflow-x-auto::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 2px;
+    }
+    .overflow-x-auto::-webkit-scrollbar-thumb {
+        background: #f97316;
+        border-radius: 2px;
+    }
+}

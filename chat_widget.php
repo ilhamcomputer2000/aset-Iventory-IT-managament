@@ -1841,7 +1841,14 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
     /* ===== Call System ===== */
     .cw-call-overlay {
         position: fixed;
-        inset: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* dvh = dynamic viewport height: memperhitungkan browser chrome (address bar) */
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
         z-index: 100002;
         display: none;
         align-items: center;
@@ -1861,6 +1868,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         padding: 0;
         background: #0a0f1a;
         backdrop-filter: none;
+        /* Pastikan full height termasuk area bawah (safe-area iOS) */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     .cw-call-card {
@@ -2022,6 +2031,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         align-items: center;
         justify-content: center;
         overflow: hidden;
+        /* Pastikan video area mengisi semua ruang vertikal yang tersedia */
+        height: 100%;
     }
 
     #cw-call-remote-video {
@@ -2047,6 +2058,23 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         border: 2px solid rgba(255, 255, 255, .35);
         box-shadow: 0 4px 20px rgba(0, 0, 0, .4);
         display: none;
+        /* Cegah browser menampilkan native PiP button */
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* Sembunyikan native browser PiP button dan control overlay pada semua video call */
+    #cw-call-local-video::-webkit-media-controls,
+    #cw-call-remote-video::-webkit-media-controls,
+    #cw-call-local-video::-webkit-media-controls-overlay-play-button,
+    #cw-call-remote-video::-webkit-media-controls-overlay-play-button {
+        display: none !important;
+    }
+
+    #cw-call-local-video,
+    #cw-call-remote-video {
+        /* Disable browser PiP dan download control */
+        pointer-events: none;
     }
 
     #cw-call-local-video {
@@ -2673,6 +2701,271 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
     #cw-callhist-open-btn:hover {
         background: rgba(255, 255, 255, .3);
     }
+
+    /* ===== Screen Share / Remote Feature ===== */
+
+    /* Tombol Remote di call controls */
+    #cw-ca-remote {
+        background: rgba(255, 255, 255, .14);
+        position: relative;
+    }
+
+    #cw-ca-remote.active {
+        background: #f97316;
+        box-shadow: 0 4px 16px rgba(249, 115, 22, .5);
+        animation: cwRemotePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes cwRemotePulse {
+
+        0%,
+        100% {
+            box-shadow: 0 4px 16px rgba(249, 115, 22, .5);
+        }
+
+        50% {
+            box-shadow: 0 4px 28px rgba(249, 115, 22, .85);
+        }
+    }
+
+    /* Screen Share Request Popup — muncul di dalam overlay call */
+    #cw-screen-popup {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 100010;
+        background: #fff;
+        border-radius: 18px;
+        padding: 24px 22px 20px;
+        width: 300px;
+        max-width: calc(100vw - 32px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, .50);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        text-align: center;
+        animation: cwSlideIn .25s ease forwards;
+    }
+
+    #cw-screen-popup.active {
+        display: flex;
+    }
+
+    #cw-screen-popup-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #fff7ed;
+        border: 2px solid #fed7aa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #f97316;
+    }
+
+    #cw-screen-popup h4 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+
+    #cw-screen-popup p {
+        font-size: 12px;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    #cw-screen-popup .cw-screen-popup-btns {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+    }
+
+    #cw-screen-popup .cw-screen-popup-btns button {
+        flex: 1;
+        padding: 9px 0;
+        border-radius: 10px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity .15s;
+    }
+
+    #cw-screen-popup .cw-screen-popup-btns button:hover {
+        opacity: .85;
+    }
+
+    #cw-screen-popup-accept {
+        background: #f97316;
+        color: white;
+    }
+
+    #cw-screen-popup-reject {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    /* Banner screen share aktif (muncul di atas area video) */
+    #cw-screen-banner {
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100005;
+        background: rgba(249, 115, 22, .92);
+        color: white;
+        border-radius: 999px;
+        padding: 5px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        display: none;
+        align-items: center;
+        gap: 7px;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, .3);
+        white-space: nowrap;
+    }
+
+    #cw-screen-banner.active {
+        display: flex;
+    }
+
+    #cw-screen-banner-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: white;
+        animation: cwLiveDot 1.2s ease-in-out infinite;
+    }
+
+    @keyframes cwLiveDot {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: .3;
+        }
+    }
+
+    #cw-screen-stop-btn {
+        background: rgba(255, 255, 255, .25);
+        border: 1px solid rgba(255, 255, 255, .4);
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: background .15s;
+    }
+
+    #cw-screen-stop-btn:hover {
+        background: rgba(255, 255, 255, .4);
+    }
+
+    /* Remote Pointer — dot merah muncul di layar user */
+    #cw-remote-pointer {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(220, 38, 38, .85);
+        border: 2.5px solid white;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, .35), 0 3px 10px rgba(0, 0, 0, .4);
+        pointer-events: none;
+        display: none;
+        z-index: 100008;
+        transform: translate(-50%, -50%);
+        transition: left .06s linear, top .06s linear;
+        animation: cwPointerPulse 1s ease-in-out infinite;
+    }
+
+    #cw-remote-pointer::after {
+        content: '';
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        border: 2px solid rgba(220, 38, 38, .4);
+        animation: cwPointerRing 1s ease-in-out infinite;
+    }
+
+    @keyframes cwPointerPulse {
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, .35);
+        }
+
+        50% {
+            box-shadow: 0 0 0 7px rgba(220, 38, 38, .15);
+        }
+    }
+
+    @keyframes cwPointerRing {
+        0% {
+            transform: scale(1);
+            opacity: .6;
+        }
+
+        100% {
+            transform: scale(1.6);
+            opacity: 0;
+        }
+    }
+
+    /* Crosshair cursor saat IT mode viewer */
+    #cw-call-video-wrap.remote-viewer {
+        cursor: crosshair;
+    }
+
+    /* Notif kecil di pojok kiri bawah video */
+    #cw-screen-viewer-label {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, .6);
+        color: #fbbf24;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 999px;
+        display: none;
+        z-index: 100006;
+        backdrop-filter: blur(4px);
+        letter-spacing: .5px;
+    }
+
+    #cw-screen-viewer-label.active {
+        display: block;
+    }
+
+    /* iOS fallback notice */
+    #cw-screen-ios-notice {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, .75);
+        color: white;
+        border-radius: 14px;
+        padding: 16px 18px;
+        font-size: 12px;
+        text-align: center;
+        max-width: 260px;
+        display: none;
+        z-index: 100009;
+        backdrop-filter: blur(8px);
+        line-height: 1.6;
+    }
 </style>
 
 <!-- Bubble -->
@@ -2814,10 +3107,47 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
 <div class="cw-call-overlay" id="cw-call-active">
     <div class="cw-call-card">
         <div id="cw-call-video-wrap">
-            <video id="cw-call-remote-video" autoplay playsinline muted></video>
+            <video id="cw-call-remote-video" autoplay playsinline muted disablepictureinpicture disableremoteplayback
+                controlslist="nodownload nofullscreen noremoteplayback nopictureinpicture"></video>
             <audio id="cw-call-remote-audio" autoplay style="display:none"></audio>
             <div id="cw-call-no-video">🎙️</div>
-            <div id="cw-call-local-wrap"><video id="cw-call-local-video" autoplay playsinline muted></video></div>
+            <div id="cw-call-local-wrap">
+                <video id="cw-call-local-video" autoplay playsinline muted disablepictureinpicture disableremoteplayback
+                    controlslist="nodownload nofullscreen noremoteplayback nopictureinpicture"></video>
+            </div>
+            <!-- Screen share banner (tampil saat share aktif) -->
+            <div id="cw-screen-banner">
+                <span id="cw-screen-banner-dot"></span>
+                <span id="cw-screen-banner-text">Screen Share Aktif</span>
+                <button id="cw-screen-stop-btn" onclick="cwScreenStop(true)">■ Stop</button>
+            </div>
+            <!-- Label viewer mode untuk IT -->
+            <div id="cw-screen-viewer-label">🖥️ MELIHAT LAYAR USER</div>
+            <!-- Remote Pointer (dot merah, muncul di sisi user) -->
+            <div id="cw-remote-pointer"></div>
+            <!-- Popup konfirmasi request screen share (sisi user) -->
+            <div id="cw-screen-popup">
+                <div id="cw-screen-popup-icon"><i class="fas fa-desktop"></i></div>
+                <h4>IT Support ingin melihat layar Anda</h4>
+                <p id="cw-screen-popup-msg">IT Support meminta untuk melihat layar Anda dalam sesi ini. Anda bisa
+                    menghentikannya kapan saja.</p>
+                <div class="cw-screen-popup-btns">
+                    <button id="cw-screen-popup-reject" onclick="cwScreenReject()"><i class="fas fa-times"></i>
+                        Tolak</button>
+                    <button id="cw-screen-popup-accept" onclick="cwScreenAccept()"><i class="fas fa-desktop"></i>
+                        Izinkan</button>
+                </div>
+            </div>
+            <!-- iOS fallback notice -->
+            <div id="cw-screen-ios-notice">
+                📱 <strong>iOS tidak mendukung Screen Share</strong><br><br>
+                Sebagai alternatif, arahkan kamera Anda ke layar yang ingin ditampilkan ke IT Support.
+                <br><br>
+                <button onclick="document.getElementById('cw-screen-ios-notice').style.display='none'"
+                    style="background:#f97316;color:white;border:none;border-radius:8px;padding:6px 16px;font-weight:600;cursor:pointer;">
+                    Mengerti
+                </button>
+            </div>
         </div>
         <div class="cw-call-active-body">
             <div class="cw-call-name" id="cw-ca-name">-</div>
@@ -2827,12 +3157,17 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         class="fas fa-microphone"></i></button>
                 <button class="cw-call-btn ctrl" id="cw-ca-cam" onclick="cwCallToggleCam()" title="Kamera"><i
                         class="fas fa-video"></i></button>
+                <?php if ($_cw_is_admin): ?>
+                    <button class="cw-call-btn ctrl" id="cw-ca-remote" onclick="cwCallToggleRemote()"
+                        title="Remote Layar User"><i class="fas fa-desktop"></i></button>
+                <?php endif; ?>
                 <button class="cw-call-btn hangup" onclick="cwCallHangup()" title="Tutup"><i
                         class="fas fa-phone-slash"></i></button>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Chat Panel -->
 <div id="cw-panel">
@@ -2969,7 +3304,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 title="Lampirkan file/foto">
                 <i class="fas fa-paperclip"></i>
             </button>
-            <textarea id="cw-input" placeholder="Ketik pesan..." rows="1" maxlength="1000"></textarea>
+            <textarea id="cw-input" placeholder="Ketik pesan... (Ctrl+V untuk paste gambar)" rows="1"
+                maxlength="1000"></textarea>
             <button id="cw-send" onclick="cwSend()" disabled>
                 <i class="fas fa-paper-plane" style="font-size:13px"></i>
             </button>
@@ -3598,6 +3934,31 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             this.value = '';
         });
 
+        // ---- Clipboard Paste Image (Ctrl+V / Snipping Tool) ----
+        // Tangkap event paste di textarea — jika ada gambar di clipboard → masuk pendingFiles
+        input.addEventListener('paste', function (e) {
+            const items = (e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData) || {}).items;
+            if (!items) return;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.startsWith('image/')) {
+                    const blob = items[i].getAsFile();
+                    if (!blob) continue;
+                    // Nama file otomatis
+                    const ext = items[i].type === 'image/png' ? 'png' : 'jpg';
+                    const ts = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+                    const name = 'paste_' + ts + '.' + ext;
+                    // Kompres & preview sama seperti upload manual
+                    cwCompressImage(blob, function (compBlob, dataUrl) {
+                        pendingFiles.push({ blob: compBlob, name: name, type: 'image', dataUrl: dataUrl });
+                        showAttachPreview();
+                        updateSendBtn();
+                    });
+                    e.preventDefault(); // cegah teks base64 muncul di textarea
+                    break;
+                }
+            }
+        });
+
         function showAttachPreview() {
             if (!pendingFiles.length) { attachBar.style.display = 'none'; return; }
             attachBar.style.display = 'block';
@@ -4100,6 +4461,28 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             this.value = '';
         });
 
+        // ---- Clipboard Paste Image di DM (Ctrl+V / Snipping Tool) ----
+        dmInput.addEventListener('paste', function (e) {
+            const items = (e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData) || {}).items;
+            if (!items) return;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.startsWith('image/')) {
+                    const blob = items[i].getAsFile();
+                    if (!blob) continue;
+                    const ext = items[i].type === 'image/png' ? 'png' : 'jpg';
+                    const ts = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+                    const name = 'paste_' + ts + '.' + ext;
+                    cwCompressImage(blob, function (compBlob, dataUrl) {
+                        dmPendingFiles.push({ blob: compBlob, name: name, type: 'image', dataUrl: dataUrl });
+                        cwDmShowAttachPreview();
+                        cwDmUpdateSendBtn();
+                    });
+                    e.preventDefault();
+                    break;
+                }
+            }
+        });
+
         function cwDmShowAttachPreview() {
             if (!dmPendingFiles.length) { document.getElementById('cw-dm-attach-bar').style.display = 'none'; return; }
             document.getElementById('cw-dm-attach-bar').style.display = 'block';
@@ -4315,6 +4698,15 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         let _ringNodes = [];
         let _audioCtxUnlocked = false;
 
+        // ===== Screen Share State =====
+        let _screenActive = false;      // user sedang share layar
+        let _screenStream = null;       // MediaStream dari getDisplayMedia()
+        let _screenSender = null;       // RTCRtpSender untuk video track
+        let _screenOrigTrack = null;    // track kamera asli (untuk di-restore)
+        let _isRemoteViewer = false;    // apakah saya (IT) sedang view screen user
+        let _dataChannel = null;        // RTCDataChannel untuk pointer real-time
+        let _pointerHideTimer = null;   // timer sembunyikan pointer setelah idle
+
         const ICE_CFG = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -4347,7 +4739,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             document.addEventListener(ev, cwUnlockAudioCtx, { once: false, passive: true });
         });
 
-        // ===== NADA DERING PEMANGGIL — gaya WhatsApp (brr-brr ringan berulang) =====
+        // ===== NADA DERING PEMANGGIL — dial tone "tut...tut" mirip telepon =====
+        // Berbeda total dari incoming: monoton, satu nada per siklus
         function cwPlayRingOutgoing() {
             cwStopRing();
             cwUnlockAudioCtx();
@@ -4355,40 +4748,33 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 if (!_ringAudioCtx) _ringAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const ctx = _ringAudioCtx;
                 const doRing = function () {
-                    function waDialTone() {
+                    function dialTone() {
                         const now = ctx.currentTime;
-                        // WhatsApp outgoing: dua "brr" pendek (400Hz + 450Hz chord), jeda 3 detik
-                        // sedikit vibrato untuk karakter "brr" WA
-                        [0, 0.45].forEach(off => {
-                            // Osilator utama
-                            const o1 = ctx.createOscillator();
-                            const o2 = ctx.createOscillator(); // harmonic ringan
-                            const g = ctx.createGain();
-                            o1.type = 'sine';
-                            o2.type = 'sine';
-                            o1.frequency.setValueAtTime(397, now + off);
-                            o2.frequency.setValueAtTime(450, now + off); // interval minor WA
-                            // envelope: cepat naik, sustain, cepat fade
-                            g.gain.setValueAtTime(0, now + off);
-                            g.gain.linearRampToValueAtTime(0.28, now + off + 0.015);
-                            g.gain.setValueAtTime(0.28, now + off + 0.28);
-                            g.gain.linearRampToValueAtTime(0, now + off + 0.38);
-                            o1.connect(g); o2.connect(g);
-                            g.connect(ctx.destination);
-                            o1.start(now + off); o1.stop(now + off + 0.40);
-                            o2.start(now + off); o2.stop(now + off + 0.40);
-                            _ringNodes.push(o1, o2);
-                        });
+                        // Nada tunggal 425 Hz (PSTN standard dial tone) selama 1 detik lalu diam 1 detik
+                        const o = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(425, now);
+                        // Envelope: fade in cepat, sustain, fade out
+                        g.gain.setValueAtTime(0, now);
+                        g.gain.linearRampToValueAtTime(0.22, now + 0.02);
+                        g.gain.setValueAtTime(0.22, now + 0.95);
+                        g.gain.linearRampToValueAtTime(0, now + 1.0);
+                        o.connect(g); g.connect(ctx.destination);
+                        o.start(now); o.stop(now + 1.02);
+                        _ringNodes.push(o);
                     }
-                    waDialTone();
-                    _callRingTimer = setInterval(waDialTone, 3200);
+                    dialTone();
+                    // Ulangi setiap 2 detik (1 detik bunyi, 1 detik diam)
+                    _callRingTimer = setInterval(dialTone, 2000);
                 };
                 if (ctx.state === 'suspended') ctx.resume().then(doRing).catch(() => { });
                 else doRing();
             } catch (e) { }
         }
 
-        // ===== NADA DERING PENERIMA — gaya WhatsApp (melodi khas "bamboo/xylophone") =====
+        // ===== NADA DERING PENERIMA — melodi xylophone naik (WhatsApp-style) =====
+        // Berbeda total dari outgoing: kaya nada, melodi 6 not naik-turun
         function cwPlayRingIncoming() {
             cwStopRing();
             cwUnlockAudioCtx();
@@ -4396,47 +4782,46 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 if (!_ringAudioCtx) _ringAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const ctx = _ringAudioCtx;
                 const doRing = function () {
-                    // Melodi WA default: sekuens naik-turun dengan karakter "ping" xylophone
-                    // Approx: G5-B5-D6-G6 … D6-B5 (ascending + resolusi)
+                    // Melodi WA: G5(784)→B5(988)→D6(1175)→G6(1568)→D6→B5 dengan karakter xylophone
                     const melody = [
-                        { freq: 784, off: 0.00, dur: 0.13 }, // G5
-                        { freq: 988, off: 0.15, dur: 0.13 }, // B5
-                        { freq: 1175, off: 0.30, dur: 0.13 }, // D6
-                        { freq: 1568, off: 0.45, dur: 0.22 }, // G6 (puncak)
-                        { freq: 1175, off: 0.70, dur: 0.13 }, // D6 (turun)
-                        { freq: 988, off: 0.85, dur: 0.18 }, // B5 (resolusi)
+                        { freq: 784, off: 0.00, dur: 0.14 }, // G5
+                        { freq: 988, off: 0.17, dur: 0.14 }, // B5
+                        { freq: 1175, off: 0.34, dur: 0.14 }, // D6
+                        { freq: 1568, off: 0.51, dur: 0.24 }, // G6 (puncak)
+                        { freq: 1175, off: 0.78, dur: 0.14 }, // D6 (turun)
+                        { freq: 988, off: 0.95, dur: 0.20 }, // B5 (resolusi)
                     ];
 
                     function waRingtone() {
                         const now = ctx.currentTime;
                         melody.forEach(n => {
-                            // Layer 1: sine (fundamental)
+                            // Layer 1: sine (fundamental) — volume lebih tinggi supaya jelas
                             const o1 = ctx.createOscillator();
                             const g1 = ctx.createGain();
                             o1.type = 'sine';
                             o1.frequency.setValueAtTime(n.freq, now + n.off);
                             g1.gain.setValueAtTime(0, now + n.off);
-                            g1.gain.linearRampToValueAtTime(0.45, now + n.off + 0.008); // attack cepat (pluck)
-                            g1.gain.exponentialRampToValueAtTime(0.001, now + n.off + n.dur + 0.12); // decay alami
+                            g1.gain.linearRampToValueAtTime(0.55, now + n.off + 0.008);
+                            g1.gain.exponentialRampToValueAtTime(0.001, now + n.off + n.dur + 0.14);
                             o1.connect(g1); g1.connect(ctx.destination);
-                            o1.start(now + n.off); o1.stop(now + n.off + n.dur + 0.15);
+                            o1.start(now + n.off); o1.stop(now + n.off + n.dur + 0.18);
 
-                            // Layer 2: triangle octave atas (memberikan karakter "xylophone/ping")
+                            // Layer 2: triangle 2x frekuensi (karakter "ping" metalik)
                             const o2 = ctx.createOscillator();
                             const g2 = ctx.createGain();
                             o2.type = 'triangle';
                             o2.frequency.setValueAtTime(n.freq * 2, now + n.off);
                             g2.gain.setValueAtTime(0, now + n.off);
-                            g2.gain.linearRampToValueAtTime(0.12, now + n.off + 0.008);
-                            g2.gain.exponentialRampToValueAtTime(0.001, now + n.off + n.dur + 0.06);
+                            g2.gain.linearRampToValueAtTime(0.18, now + n.off + 0.008);
+                            g2.gain.exponentialRampToValueAtTime(0.001, now + n.off + n.dur + 0.07);
                             o2.connect(g2); g2.connect(ctx.destination);
-                            o2.start(now + n.off); o2.stop(now + n.off + n.dur + 0.08);
+                            o2.start(now + n.off); o2.stop(now + n.off + n.dur + 0.10);
 
                             _ringNodes.push(o1, o2);
                         });
                     }
                     waRingtone();
-                    _callRingTimer = setInterval(waRingtone, 2500);
+                    _callRingTimer = setInterval(waRingtone, 2600);
                 };
                 if (ctx.state === 'suspended') ctx.resume().then(doRing).catch(() => { });
                 else doRing();
@@ -4475,6 +4860,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             // Bersihkan elemen audio remote
             const ra = document.getElementById('cw-call-remote-audio');
             if (ra) { ra.srcObject = null; ra.pause(); }
+            // Bersihkan screen share state
+            cwScreenCleanup();
         }
 
         function cwSendSignal(toId, type, data) {
@@ -4492,6 +4879,21 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 if (e.candidate && _callPeerId > 0)
                     cwSendSignal(_callPeerId, 'ice', { candidate: e.candidate });
             };
+
+            // ===== DataChannel untuk pointer real-time (hanya caller yang buat) =====
+            // Caller = initiator, callee = receiver via ondatachannel
+            if (!_callIncomingData) {
+                // Sisi caller: buat DataChannel
+                _dataChannel = peer.createDataChannel('cwPointer', { ordered: false, maxRetransmits: 0 });
+                cwSetupDataChannel(_dataChannel);
+            } else {
+                // Sisi callee: tunggu DataChannel dari caller
+                peer.ondatachannel = e => {
+                    _dataChannel = e.channel;
+                    cwSetupDataChannel(_dataChannel);
+                };
+            }
+
             peer.ontrack = e => {
                 // Ambil stream: dari e.streams[0] atau buat dari e.track
                 const stream = (e.streams && e.streams[0]) ? e.streams[0] : (() => {
@@ -4633,56 +5035,79 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             if (_callState !== 'incoming') return;
             cwStopRing();
             const inData = _callIncomingData;
-            _callType = preferredType === 'video' ? 'video' : 'audio';
+            // Callee bebas memilih audio atau video — tidak dipaksa
+            // (jika caller video tapi callee pilih audio → callee tidak buka kamera, tidak ada PiP)
+            const useVideo = (preferredType === 'video');
+            _callType = useVideo ? 'video' : 'audio';
             document.getElementById('cw-call-incoming').classList.remove('active');
             _callState = 'active';
             cwCallShowActive();
-            // --- Log: callee accepted. We need to log from callee's side ---
-            // We don't have _callUid here (that's the caller's), so we create one for the callee
-            // The server merges by call_uid but callee doesn't know caller's uid, so we store caller as callee ref
-            _callCalleeIdForCallee = _callPeerId; // store caller_id so hangup can log
+            _callCalleeIdForCallee = _callPeerId;
             _callStartTs = Date.now();
-            // We log the callee side as 'answered' using caller_id as callee (direction flipped)
-            // Actually the log_call action logs from the current user's perspective (as caller)
-            // For the callee side: caller_id=callee (us), callee_id=caller (them), but we don't have a shared uid.
-            // Simple approach: log a new record from callee perspective with a fresh uid
             _callUid = cwMakeCallUid();
             _callCalleeId = _callPeerId;
             cwLogCall(_callPeerId, _callType, 'answered', 0);
             const audioConstraints = {
                 echoCancellation: { ideal: true },
                 noiseSuppression: { ideal: true },
-                autoGainControl: false,   // Matikan AGC agar dua pihak bisa bicara bersamaan (full-duplex)
+                autoGainControl: false,
                 channelCount: 1,
                 sampleRate: { ideal: 48000 }
             };
-            const constraints = { audio: audioConstraints, video: _callType === 'video' ? { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } : false };
+            const videoConstraints = useVideo ? { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } : false;
+            const constraints = { audio: audioConstraints, video: videoConstraints };
+
+            // Fungsi helper: setup peer setelah stream berhasil didapat
+            function setupPeerWithStream(stream) {
+                _callLocalStream = stream;
+                if (useVideo) {
+                    const lv = document.getElementById('cw-call-local-video');
+                    const lw = document.getElementById('cw-call-local-wrap');
+                    if (lv) lv.srcObject = stream;
+                    if (lw) lw.style.display = 'block';
+                }
+                _callPeer = cwCreatePeer();
+                stream.getTracks().forEach(t => _callPeer.addTrack(t, stream));
+                return _callPeer.setRemoteDescription(new RTCSessionDescription(inData.sdp))
+                    .then(() => {
+                        _callQueuedIce.forEach(c => _callPeer.addIceCandidate(new RTCIceCandidate(c)).catch(() => { }));
+                        _callQueuedIce = [];
+                    })
+                    .then(() => _callPeer.createAnswer())
+                    .then(ans => _callPeer.setLocalDescription(ans))
+                    .then(() => cwSendSignal(_callPeerId, 'answer', { sdp: _callPeer.localDescription, callType: _callType }));
+            }
+
             navigator.mediaDevices.getUserMedia(constraints)
-                .then(stream => {
-                    _callLocalStream = stream;
-                    if (_callType === 'video') {
-                        const lv = document.getElementById('cw-call-local-video');
-                        const lw = document.getElementById('cw-call-local-wrap');
-                        if (lv) lv.srcObject = stream;
-                        if (lw) lw.style.display = 'block';
-                    }
-                    _callPeer = cwCreatePeer();
-                    stream.getTracks().forEach(t => _callPeer.addTrack(t, stream));
-                    return _callPeer.setRemoteDescription(new RTCSessionDescription(inData.sdp))
-                        .then(() => {
-                            _callQueuedIce.forEach(c => _callPeer.addIceCandidate(new RTCIceCandidate(c)).catch(() => { }));
-                            _callQueuedIce = [];
-                        })
-                        .then(() => _callPeer.createAnswer())
-                        .then(ans => _callPeer.setLocalDescription(ans))
-                        .then(() => cwSendSignal(_callPeerId, 'answer', { sdp: _callPeer.localDescription, callType: _callType }));
-                })
+                .then(stream => setupPeerWithStream(stream))
                 .catch(err => {
-                    cwSendSignal(_callPeerId, 'reject', {});
-                    cwCleanupCall();
-                    alert(err.name === 'NotAllowedError' ? 'Akses mikrofon/kamera ditolak.' : 'Gagal mengakses perangkat: ' + err.message);
+                    // Jika gagal karena kamera sedang dipakai (Device in use / NotReadableError),
+                    // coba fallback ke audio-only agar panggilan tetap bisa terjadi
+                    const isDeviceBusy = err.name === 'NotReadableError' ||
+                        err.name === 'TrackStartError' ||
+                        (err.message && (err.message.toLowerCase().includes('device in use') ||
+                            err.message.toLowerCase().includes('already in use') ||
+                            err.message.toLowerCase().includes('could not start')));
+
+                    if (useVideo && isDeviceBusy) {
+                        // Fallback: coba audio saja
+                        console.warn('[CW Call] Kamera busy, fallback ke audio-only');
+                        _callType = 'audio';
+                        navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false })
+                            .then(stream => setupPeerWithStream(stream))
+                            .catch(err2 => {
+                                cwSendSignal(_callPeerId, 'reject', {});
+                                cwCleanupCall();
+                                alert(err2.name === 'NotAllowedError' ? 'Akses mikrofon ditolak.' : 'Gagal mengakses mikrofon: ' + err2.message);
+                            });
+                    } else {
+                        cwSendSignal(_callPeerId, 'reject', {});
+                        cwCleanupCall();
+                        alert(err.name === 'NotAllowedError' ? 'Akses mikrofon/kamera ditolak.' : 'Gagal mengakses perangkat: ' + err.message);
+                    }
                 });
         };
+
 
         window.cwCallReject = function () {
             if (_callState !== 'incoming') return;
@@ -4719,6 +5144,266 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             if (wasActive) cwLogCall(calleeId, ptype, 'answered', dur, uid);
             else cwLogCall(calleeId, ptype, 'cancelled', 0, uid);
         };
+
+        // ===================================================================
+        // ===== SCREEN SHARE & REMOTE POINTER SYSTEM =====
+        // ===================================================================
+
+        // ----- DataChannel Setup (pointer real-time via WebRTC, no server) -----
+        function cwSetupDataChannel(dc) {
+            dc.binaryType = 'arraybuffer';
+            dc.onopen = () => { console.log('[CW] DataChannel open'); };
+            dc.onclose = () => { console.log('[CW] DataChannel closed'); };
+            dc.onerror = (e) => { console.warn('[CW] DataChannel error', e); };
+            dc.onmessage = (e) => {
+                try {
+                    const msg = JSON.parse(e.data);
+                    if (msg.type === 'ptr') {
+                        // Saya (user) menerima koordinat pointer dari IT
+                        cwPointerShow(msg.x, msg.y);
+                    }
+                } catch (_) { }
+            };
+        }
+
+        // ----- IT: Kirim posisi pointer via DataChannel (real-time, no polling) -----
+        function cwPointerSend(e) {
+            if (!_isRemoteViewer || !_dataChannel || _dataChannel.readyState !== 'open') return;
+            const wrap = document.getElementById('cw-call-video-wrap');
+            const rv = document.getElementById('cw-call-remote-video');
+            if (!wrap || !rv) return;
+            const rect = rv.getBoundingClientRect();
+            // Hitung posisi relatif terhadap elemen video (bukan wrap)
+            let cx = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+            let cy = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+            const xPct = Math.max(0, Math.min(1, (cx - rect.left) / rect.width));
+            const yPct = Math.max(0, Math.min(1, (cy - rect.top) / rect.height));
+            try {
+                _dataChannel.send(JSON.stringify({ type: 'ptr', x: xPct, y: yPct }));
+            } catch (_) { }
+        }
+
+        // ----- User: Tampilkan pointer dot di layar -----
+        function cwPointerShow(xPct, yPct) {
+            const wrap = document.getElementById('cw-call-video-wrap');
+            const ptr = document.getElementById('cw-remote-pointer');
+            if (!wrap || !ptr) return;
+            const rect = wrap.getBoundingClientRect();
+            ptr.style.left = (xPct * rect.width) + 'px';
+            ptr.style.top = (yPct * rect.height) + 'px';
+            ptr.style.display = 'block';
+            // Auto-sembunyikan setelah 3 detik tidak ada gerakan
+            clearTimeout(_pointerHideTimer);
+            _pointerHideTimer = setTimeout(() => { ptr.style.display = 'none'; }, 3000);
+        }
+
+        // ----- IT: Toggle minta / batalkan screen share -----
+        window.cwCallToggleRemote = function () {
+            if (!IS_ADMIN) return; // Hanya admin
+            if (_callState !== 'active') return;
+            if (_isRemoteViewer) {
+                // IT hentikan sesi viewer
+                cwSendSignal(_callPeerId, 'screen_stop', {});
+                cwViewerStop();
+            } else {
+                // IT minta screen share dari user
+                cwSendSignal(_callPeerId, 'screen_request', { requesterName: MY_NAMA });
+                cwShowCallToast('Permintaan screen share dikirim ke user...');
+            }
+        };
+
+        // ----- IT: Aktifkan mode viewer (setelah user accept) -----
+        function cwViewerStart() {
+            _isRemoteViewer = true;
+            const btn = document.getElementById('cw-ca-remote');
+            const vwLabel = document.getElementById('cw-screen-viewer-label');
+            const wrap = document.getElementById('cw-call-video-wrap');
+            if (btn) btn.classList.add('active');
+            if (vwLabel) vwLabel.classList.add('active');
+            if (wrap) {
+                wrap.classList.add('remote-viewer');
+                // Mouse/touch event untuk kirim pointer
+                wrap.addEventListener('mousemove', cwPointerSend);
+                wrap.addEventListener('touchmove', cwPointerSend, { passive: true });
+                wrap.addEventListener('click', cwPointerSend);
+            }
+        }
+
+        // ----- IT: Hentikan mode viewer -----
+        function cwViewerStop() {
+            _isRemoteViewer = false;
+            const btn = document.getElementById('cw-ca-remote');
+            const vwLabel = document.getElementById('cw-screen-viewer-label');
+            const wrap = document.getElementById('cw-call-video-wrap');
+            const ptr = document.getElementById('cw-remote-pointer');
+            if (btn) btn.classList.remove('active');
+            if (vwLabel) vwLabel.classList.remove('active');
+            if (ptr) ptr.style.display = 'none';
+            if (wrap) {
+                wrap.classList.remove('remote-viewer');
+                wrap.removeEventListener('mousemove', cwPointerSend);
+                wrap.removeEventListener('touchmove', cwPointerSend);
+                wrap.removeEventListener('click', cwPointerSend);
+            }
+            cwShowCallToast('Sesi Remote selesai');
+        }
+
+        // ----- User: Tampilkan popup konfirmasi permission -----
+        function cwScreenShowPopup(requesterName) {
+            const popup = document.getElementById('cw-screen-popup');
+            const msg = document.getElementById('cw-screen-popup-msg');
+            if (msg) msg.textContent = (requesterName || 'IT Support') + ' meminta untuk melihat layar Anda. Anda bisa menghentikannya kapan saja.';
+            if (popup) popup.classList.add('active');
+        }
+
+        // ----- User: Tolak screen share -----
+        window.cwScreenReject = function () {
+            const popup = document.getElementById('cw-screen-popup');
+            if (popup) popup.classList.remove('active');
+            cwSendSignal(_callPeerId, 'screen_reject', {});
+            cwShowCallToast('Permintaan screen share ditolak');
+        };
+
+        // ----- User: Izinkan screen share → mulai getDisplayMedia -----
+        window.cwScreenAccept = function () {
+            const popup = document.getElementById('cw-screen-popup');
+            if (popup) popup.classList.remove('active');
+
+            // Cek iOS — tidak support getDisplayMedia
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+                const notice = document.getElementById('cw-screen-ios-notice');
+                if (notice) notice.style.display = 'block';
+                cwSendSignal(_callPeerId, 'screen_reject', { reason: 'ios_not_supported' });
+                return;
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                cwShowCallToast('Browser ini tidak mendukung Screen Share');
+                cwSendSignal(_callPeerId, 'screen_reject', { reason: 'not_supported' });
+                return;
+            }
+
+            navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 15 }, audio: false })
+                .then(screenStream => {
+                    _screenStream = screenStream;
+                    _screenActive = true;
+
+                    // Simpan track kamera asli (jika ada) untuk restore nanti
+                    if (_callPeer) {
+                        const senders = _callPeer.getSenders();
+                        const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+                        if (videoSender) {
+                            _screenSender = videoSender;
+                            _screenOrigTrack = videoSender.track;
+                            // Replace track kamera → track layar
+                            videoSender.replaceTrack(screenStream.getVideoTracks()[0]).catch(() => { });
+                        } else {
+                            // Tidak ada video sender sebelumnya, tambahkan track baru
+                            _screenSender = _callPeer.addTrack(screenStream.getVideoTracks()[0], screenStream);
+                            _screenOrigTrack = null;
+                        }
+                    }
+
+                    // Tampilkan preview layar sendiri di local video
+                    const lv = document.getElementById('cw-call-local-video');
+                    const lw = document.getElementById('cw-call-local-wrap');
+                    if (lv) lv.srcObject = screenStream;
+                    if (lw) lw.style.display = 'block';
+
+                    // Tampilkan banner aktif
+                    const banner = document.getElementById('cw-screen-banner');
+                    const bannerText = document.getElementById('cw-screen-banner-text');
+                    if (banner) banner.classList.add('active');
+                    if (bannerText) bannerText.textContent = 'Layar sedang dibagikan ke IT Support';
+
+                    // Kirim sinyal ke IT: screen share dimulai
+                    cwSendSignal(_callPeerId, 'screen_accept', {});
+
+                    // Handle jika user stop share dari browser native
+                    screenStream.getVideoTracks()[0].onended = () => cwScreenStop(true);
+                })
+                .catch(err => {
+                    if (err.name !== 'NotAllowedError' && err.name !== 'AbortError') {
+                        cwShowCallToast('Gagal share layar: ' + err.message);
+                    }
+                    cwSendSignal(_callPeerId, 'screen_reject', { reason: err.name });
+                });
+        };
+
+        // ----- User/IT: Hentikan screen share -----
+        window.cwScreenStop = function (notify) {
+            if (!_screenActive && !_isRemoteViewer) return;
+
+            if (_screenActive) {
+                // Hentikan track layar
+                if (_screenStream) {
+                    _screenStream.getTracks().forEach(t => t.stop());
+                    _screenStream = null;
+                }
+                // Restore video track kamera asli
+                if (_screenSender && _callPeer) {
+                    if (_screenOrigTrack) {
+                        _screenSender.replaceTrack(_screenOrigTrack).catch(() => { });
+                    } else {
+                        try { _callPeer.removeTrack(_screenSender); } catch (_) { }
+                    }
+                }
+                _screenSender = null;
+                _screenOrigTrack = null;
+                _screenActive = false;
+
+                // Sembunyikan banner
+                const banner = document.getElementById('cw-screen-banner');
+                if (banner) banner.classList.remove('active');
+
+                // Restore local video (kembali ke kamera asli atau sembunyikan)
+                const lv = document.getElementById('cw-call-local-video');
+                const lw = document.getElementById('cw-call-local-wrap');
+                if (lv && _callLocalStream) {
+                    lv.srcObject = _callLocalStream;
+                } else if (lw) {
+                    lw.style.display = 'none';
+                }
+
+                if (notify) {
+                    cwSendSignal(_callPeerId, 'screen_stop', {});
+                    cwShowCallToast('Screen share dihentikan');
+                }
+            }
+
+            if (_isRemoteViewer) {
+                cwViewerStop();
+            }
+        };
+
+        // ----- Internal cleanup (dipanggil saat call berakhir) -----
+        function cwScreenCleanup() {
+            if (_screenStream) { _screenStream.getTracks().forEach(t => t.stop()); _screenStream = null; }
+            _screenActive = false;
+            _screenSender = null;
+            _screenOrigTrack = null;
+            _isRemoteViewer = false;
+            _dataChannel = null;
+            clearTimeout(_pointerHideTimer);
+            const banner = document.getElementById('cw-screen-banner');
+            const vwLabel = document.getElementById('cw-screen-viewer-label');
+            const ptr = document.getElementById('cw-remote-pointer');
+            const popup = document.getElementById('cw-screen-popup');
+            const rBtn = document.getElementById('cw-ca-remote');
+            const wrap = document.getElementById('cw-call-video-wrap');
+            if (banner) banner.classList.remove('active');
+            if (vwLabel) vwLabel.classList.remove('active');
+            if (ptr) ptr.style.display = 'none';
+            if (popup) popup.classList.remove('active');
+            if (rBtn) rBtn.classList.remove('active');
+            if (wrap) {
+                wrap.classList.remove('remote-viewer');
+                wrap.removeEventListener('mousemove', cwPointerSend);
+                wrap.removeEventListener('touchmove', cwPointerSend);
+                wrap.removeEventListener('click', cwPointerSend);
+            }
+        }
 
         window.cwCallToggleMute = function () {
             if (!_callLocalStream) return;
@@ -5053,12 +5738,17 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 }
                 _callState = 'incoming'; _callPeerId = fromId; _callPeerName = fromName;
                 _callIncomingData = payload; _callQueuedIce = [];
+                // Simpan callType dari caller agar cwCallAccept bisa tahu jenis panggilan
+                _callType = (payload && payload.callType === 'video') ? 'video' : 'audio';
                 const ciAv = document.getElementById('cw-ci-avatar');
                 ciAv.textContent = (fromName || '?').charAt(0).toUpperCase();
                 ciAv.style.background = cwAvatarColor2(fromId);
                 document.getElementById('cw-ci-name').textContent = fromName;
+                // Tampilkan status sesuai jenis panggilan
+                const ciStatus = document.querySelector('#cw-call-incoming .cw-call-status');
+                if (ciStatus) ciStatus.textContent = _callType === 'video' ? '📹 Video call masuk...' : '📞 Panggilan masuk...';
                 document.getElementById('cw-call-incoming').classList.add('active');
-                cwPlayRingIncoming(); // Nada dering HP untuk penerima
+                cwPlayRingIncoming();
                 // Auto-reject after 30s
                 setTimeout(() => { if (_callState === 'incoming' && _callPeerId === fromId) cwCallReject(); }, 30000);
 
@@ -5108,11 +5798,41 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                     cwLogCall(calleeId, ptype, 'answered', dur, uid);
                     cwShowCallToast('Panggilan berakhir');
                 } else if (wasIncoming) {
-                    // Incoming call cancelled by caller before we answered  → missed for us
                     _callUid = cwMakeCallUid();
                     cwLogCall(fromId, ptype, 'missed', 0);
                     cwShowCallToast(fromName + ' membatalkan panggilan');
                 }
+
+                // ===== SCREEN SHARE SIGNALS =====
+
+            } else if (type === 'screen_request') {
+                // Saya (user biasa) menerima permintaan screen share dari IT
+                if (_callState !== 'active' || _callPeerId !== fromId) return;
+                cwScreenShowPopup(payload.requesterName || fromName);
+
+            } else if (type === 'screen_accept') {
+                // Saya (IT) mendapat konfirmasi user setuju → aktifkan viewer mode
+                if (_callState !== 'active' || _callPeerId !== fromId) return;
+                cwViewerStart();
+                cwShowCallToast('✅ User mulai membagikan layar');
+
+            } else if (type === 'screen_reject') {
+                // Saya (IT) mendapat penolakan atau gagal screen share
+                if (_callState !== 'active' || _callPeerId !== fromId) return;
+                const reason = payload.reason || '';
+                if (reason === 'ios_not_supported') {
+                    cwShowCallToast('⚠️ iOS tidak mendukung screen share');
+                } else if (reason === 'not_supported') {
+                    cwShowCallToast('⚠️ Browser user tidak mendukung screen share');
+                } else {
+                    cwShowCallToast('❌ User menolak screen share');
+                }
+
+            } else if (type === 'screen_stop') {
+                // Salah satu pihak menghentikan screen share
+                if (_callPeerId !== fromId) return;
+                if (_isRemoteViewer) cwViewerStop();
+                if (_screenActive) cwScreenStop(false);
             }
         }
 

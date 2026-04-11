@@ -1573,6 +1573,156 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 transform: rotate(360deg);
             }
         }
+
+        /* ===== MOBILE RESPONSIF - Admin Ticket ===== */
+
+        /* Main content padding lebih kecil di mobile */
+        @media (max-width: 767px) {
+            main.p-6 {
+                padding: 0.75rem !important;
+            }
+
+            /* Page title lebih compact di mobile */
+            h1.text-3xl {
+                font-size: 1.5rem !important;
+                margin-top: 3.5rem !important;
+            }
+
+            /* Dashboard header: stack vertikal di mobile */
+            .bg-white.rounded-xl.shadow-lg .flex.items-center.justify-between.gap-4.mb-5 {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 0.75rem !important;
+            }
+
+            /* Filter form date range: stack ke bawah di mobile */
+            .bg-white.rounded-xl.shadow-lg form.flex.flex-wrap {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100% !important;
+            }
+
+            .bg-white.rounded-xl.shadow-lg form.flex.flex-wrap div,
+            .bg-white.rounded-xl.shadow-lg form.flex.flex-wrap input[type="date"] {
+                width: 100% !important;
+            }
+
+            .bg-white.rounded-xl.shadow-lg form.flex.flex-wrap .flex.items-center.gap-2 {
+                flex-direction: row !important;
+                width: 100% !important;
+            }
+
+            .bg-white.rounded-xl.shadow-lg form.flex.flex-wrap button[type="submit"],
+            .bg-white.rounded-xl.shadow-lg form.flex.flex-wrap a {
+                flex: 1;
+                text-align: center;
+                justify-content: center;
+            }
+
+            /* Stats cards: 2 kolom di mobile */
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+
+            /* Stats card padding lebih kecil */
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4>div {
+                padding: 0.875rem !important;
+            }
+
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 .text-3xl {
+                font-size: 1.5rem !important;
+            }
+
+            /* Table section: padding lebih kecil */
+            .bg-white.rounded-xl.shadow-lg.p-6 {
+                padding: 0.75rem !important;
+            }
+
+            /* Table horizontal scroll dengan hint */
+            #tickets-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                border-radius: 0.5rem;
+                position: relative;
+            }
+
+            #tickets-table-container::after {
+                content: '← Geser untuk melihat lebih →';
+                display: block;
+                text-align: center;
+                font-size: 0.7rem;
+                color: #9ca3af;
+                padding: 0.35rem 0;
+                border-top: 1px solid #f3f4f6;
+            }
+
+            /* Search + download: full width di mobile */
+            #ticketSearchForm .flex.flex-col {
+                gap: 0.5rem !important;
+            }
+
+            #ticketSearchForm #ticketDownloadReportBtn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Status tabs: wrappable dan ukuran kecil */
+            .status-tab {
+                padding: 0.375rem 0.75rem !important;
+                font-size: 0.75rem !important;
+            }
+
+            /* Form in card: lebih compact */
+            .bg-white.rounded-xl.shadow-lg.p-6 input[type="date"],
+            .bg-white.rounded-xl.shadow-lg.p-6 input[type="text"],
+            .bg-white.rounded-xl.shadow-lg.p-6 textarea,
+            .bg-white.rounded-xl.shadow-lg.p-6 select {
+                padding: 0.5rem 0.75rem !important;
+            }
+
+            /* Recent tickets table: horizontal scroll */
+            .overflow-x-auto {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Tabel assign button lebih compact */
+            .assign-btn {
+                padding: 0.25rem 0.5rem !important;
+                font-size: 0.7rem !important;
+            }
+
+            /* Charts: height lebih kecil di mobile */
+            [style*="height: 300px"] {
+                height: 220px !important;
+            }
+        }
+
+        /* Small mobile (< 480px) */
+        @media (max-width: 479px) {
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+                grid-template-columns: 1fr 1fr !important;
+            }
+
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 .text-3xl {
+                font-size: 1.25rem !important;
+            }
+
+            h1.text-3xl {
+                font-size: 1.25rem !important;
+            }
+        }
+
+        /* Tablet (768px - 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            main.p-6 {
+                padding: 1.25rem !important;
+            }
+
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
     </style>
 </head>
 
@@ -1620,16 +1770,16 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 window.addEventListener('resize', function () { applyState(); });
             })();
         </script>
-        <main class="p-6 lg:p-8">
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2 mt-16">Ticket</h1>
+        <main class="p-3 sm:p-6 lg:p-8">
+            <div class="mb-6 sm:mb-8">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 mt-14 sm:mt-16">Ticket</h1>
                 <p class="text-gray-600">Tabel request ticket IT Support (input dari user).</p>
             </div>
 
             <!-- Dashboard Ticket (Admin) -->
             <div class="mb-8">
                 <div class="bg-white rounded-xl shadow-lg p-6">
-                    <div class="flex items-center justify-between gap-4 mb-5">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
                                 <i class="fas fa-chart-pie text-orange-600" aria-hidden="true"></i>
@@ -1647,7 +1797,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                             </span>
                         </div>
 
-                        <form method="GET" class="flex flex-wrap items-end justify-end gap-3">
+                        <form method="GET" class="flex flex-wrap items-end gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                             <?php if ($statusFilter !== ''): ?>
                                 <input type="hidden" name="status"
                                     value="<?php echo htmlspecialchars($statusFilter, ENT_QUOTES); ?>" />
@@ -1657,19 +1807,19 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                                     value="<?php echo htmlspecialchars($searchQuery, ENT_QUOTES); ?>" />
                             <?php endif; ?>
 
-                            <div>
+                            <div class="flex-1 min-w-[130px]">
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Dari</label>
                                 <input type="date" name="date_from"
                                     value="<?php echo htmlspecialchars($filterDateFrom, ENT_QUOTES); ?>"
-                                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                             </div>
-                            <div>
+                            <div class="flex-1 min-w-[130px]">
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Sampai</label>
                                 <input type="date" name="date_to"
                                     value="<?php echo htmlspecialchars($filterDateTo, ENT_QUOTES); ?>"
-                                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 pt-5">
                                 <button type="submit"
                                     class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-semibold whitespace-nowrap">Filter</button>
                                 <?php if ($hasDateFilter): ?>
@@ -1686,7 +1836,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                     </div>
 
                     <!-- Stats Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
                         <div tabindex="0"
                             class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
@@ -1759,7 +1909,7 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                     </div>
 
                     <!-- Additional Stats -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
                         <div tabindex="0"
                             class="pressable bg-white rounded-lg border border-gray-200 p-5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:border-orange-200 hover:bg-orange-50/30 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:ring-offset-2">
                             <div class="flex items-start justify-between">
