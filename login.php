@@ -540,7 +540,8 @@ $login_success = $_GET['login_success'] ?? false;
         <div class="text-center title-mb mb-5">
             <div
                 style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
-                <img src="<?php echo app_abs_path('logo-tab/' . rawurlencode('logo ckt fix bg.png')); ?>" alt="CITRATEL Logo"
+                <img src="<?php echo app_abs_path('logo-tab/' . rawurlencode('logo ckt fix bg.png')); ?>"
+                    alt="CITRATEL Logo"
                     style="width: 120px; height: 120px; object-fit: contain; mix-blend-mode: multiply;"
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                 <i class="fas fa-microchip text-orange-500 text-2xl" style="display:none"></i>
@@ -637,8 +638,10 @@ $login_success = $_GET['login_success'] ?? false;
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 flex items-center justify-center z-50 hidden" id="loadingOverlay">
         <div class="loading-card p-8 text-center max-w-xs mx-4">
-            <div class="logo-ring w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-5">
-                <i class="fas fa-microchip text-white text-xl"></i>
+            <div class="flex items-center justify-center mx-auto mb-5" style="width: 80px; height: 80px;">
+                <img src="<?php echo app_abs_path('logo-tab/' . rawurlencode('logo ckt fix bg.png')); ?>"
+                    alt="CITRATEL Logo"
+                    style="width: 80px; height: 80px; object-fit: contain; mix-blend-mode: multiply;">
             </div>
             <h3 class="text-base font-bold text-gray-800 mb-1">Memverifikasi Akses</h3>
             <p class="text-gray-500 text-sm mb-5">Mengamankan koneksi ke sistem...</p>

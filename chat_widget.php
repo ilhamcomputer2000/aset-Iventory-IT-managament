@@ -3602,6 +3602,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         msgs.scrollTop = msgs.scrollHeight;
                     }
                     if (data.online !== undefined) onlineEl.textContent = data.online;
+                    // Pesan awal sudah dibaca (ditampilkan), jadi reset unread
+                    unread = 0; badge.style.display = 'none';
                     startPoll();
                 }).catch(() => startPoll());
         }
@@ -3620,9 +3622,11 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                     if (data.messages && data.messages.length) {
                         const fromOthers = data.messages.filter(m => parseInt(m.user_id) !== MY_ID).length;
                         if (fromOthers > 0) {
-                            // Play notification sound
-                            cwPlayNotif();
-                            if (!panelOpen) {
+                            // Apakah user sedang melihat tab Umum?
+                            const isViewingChat = panelOpen && currentTab === 'chat';
+                            if (!isViewingChat) {
+                                // Play notification sound
+                                cwPlayNotif();
                                 unread += fromOthers;
                                 badge.textContent = unread > 99 ? '99+' : unread;
                                 badge.style.display = 'flex';
@@ -3630,18 +3634,12 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         }
                         lastId = data.last_id;
                         appendMessages(data.messages, false);
-                        if (panelOpen) { unread = 0; badge.style.display = 'none'; }
+                        // Jika user sedang melihat tab Umum, reset unread
+                        if (panelOpen && currentTab === 'chat') {
+                            unread = 0; badge.style.display = 'none';
+                        }
                     }
                     if (data.online !== undefined) onlineEl.textContent = data.online;
-                    // ---- Live update read receipts on existing own messages ----
-                    if (data.messages && data.messages.length) {
-                        data.messages.forEach(m => {
-                            if (parseInt(m.user_id) !== MY_ID) {
-                                // Someone else's message was fetched - means WE just read it.
-                                // Also update existing own messages' receipt counters via a separate reads check.
-                            }
-                        });
-                    }
                     // Refresh receipts on own visible messages
                     cwRefreshReceipts();
                 }).catch(() => { });
@@ -3840,7 +3838,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         });
 
         // Background poll for unread badge
-        setInterval(() => { if (!panelOpen && !_sessionExpired) poll(); }, 8000);
+        // Hanya poll jika lastId > 0 (chat sudah pernah di-load) agar pesan lama tidak dihitung sebagai unread
+        setInterval(() => { if (!panelOpen && !_sessionExpired && lastId > 0) poll(); }, 8000);
         // Presence ping every 30s (well within 90s server window, even on high-latency hosting)
         // Jika server balas Unauthorized → session expired → hentikan ping
         setInterval(() => {
@@ -4151,6 +4150,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 tabOnline.classList.remove('active');
                 // show footer bars back
                 document.getElementById('cw-footer').style.display = 'block';
+                // User sekarang melihat pesan umum — reset unread badge
+                unread = 0; badge.style.display = 'none';
             } else {
                 msgs.style.display = 'none';
                 onlineView.classList.add('active');
