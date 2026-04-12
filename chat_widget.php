@@ -2948,23 +2948,27 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         display: block;
     }
 
-    /* iOS fallback notice */
-    #cw-screen-ios-notice {
+    /* Mobile fallback notice (Android & iOS) */
+    #cw-screen-mobile-notice {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(0, 0, 0, .75);
+        background: rgba(15, 23, 42, .92);
         color: white;
-        border-radius: 14px;
-        padding: 16px 18px;
-        font-size: 12px;
+        border-radius: 18px;
+        padding: 22px 20px 18px;
+        font-size: 13px;
+        font-weight: 600;
         text-align: center;
-        max-width: 260px;
+        width: 290px;
+        max-width: calc(100vw - 32px);
         display: none;
         z-index: 100009;
-        backdrop-filter: blur(8px);
-        line-height: 1.6;
+        backdrop-filter: blur(12px);
+        line-height: 1.5;
+        border: 1px solid rgba(255, 255, 255, .1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
     }
 </style>
 
@@ -3138,15 +3142,25 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         Izinkan</button>
                 </div>
             </div>
-            <!-- iOS fallback notice -->
-            <div id="cw-screen-ios-notice">
-                📱 <strong>iOS tidak mendukung Screen Share</strong><br><br>
-                Sebagai alternatif, arahkan kamera Anda ke layar yang ingin ditampilkan ke IT Support.
-                <br><br>
-                <button onclick="document.getElementById('cw-screen-ios-notice').style.display='none'"
-                    style="background:#f97316;color:white;border:none;border-radius:8px;padding:6px 16px;font-weight:600;cursor:pointer;">
-                    Mengerti
-                </button>
+            <!-- Mobile fallback notice (Android & iOS tidak support getDisplayMedia) -->
+            <div id="cw-screen-mobile-notice">
+                <div style="font-size:28px;margin-bottom:10px">📱</div>
+                <strong id="cw-screen-mobile-title">Browser HP Tidak Mendukung Screen Share</strong>
+                <p style="margin:10px 0;font-size:12px;opacity:.9;line-height:1.6">
+                    Browser di HP Anda tidak mendukung berbagi layar secara langsung.
+                    <br><br>
+                    <b>Alternatif:</b> Aktifkan kamera dan arahkan ke layar yang ingin ditunjukkan ke IT Support.
+                </p>
+                <div style="display:flex;gap:8px;width:100%;margin-top:4px">
+                    <button onclick="cwScreenMobileCancel()"
+                        style="flex:1;background:rgba(255,255,255,.2);color:white;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:8px 0;font-size:12px;font-weight:600;cursor:pointer">
+                        Batal
+                    </button>
+                    <button onclick="cwScreenUseCameraMode()"
+                        style="flex:2;background:#f97316;color:white;border:none;border-radius:8px;padding:8px 0;font-size:12px;font-weight:600;cursor:pointer">
+                        <i class="fas fa-camera"></i> Gunakan Kamera
+                    </button>
+                </div>
             </div>
         </div>
         <div class="cw-call-active-body">
@@ -4944,9 +4958,27 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 }
             };
             peer.onconnectionstatechange = () => {
-                if (['disconnected', 'failed', 'closed'].includes(peer.connectionState) && _callState === 'active')
-                    cwCallHangup();
+                const state = peer.connectionState;
+                if (state === 'failed') {
+                    // Failed = unrecoverable, langsung hangup
+                    if (_callState === 'active') cwCallHangup();
+                } else if (state === 'disconnected') {
+                    // Disconnected bisa sementara (ICE restart saat screen share renegotiation)
+                    // Tunggu 8 detik sebelum hangup
+                    if (peer._disconnectTimer) clearTimeout(peer._disconnectTimer);
+                    peer._disconnectTimer = setTimeout(() => {
+                        if (_callPeer === peer && peer.connectionState === 'disconnected' && _callState === 'active') {
+                            cwCallHangup();
+                        }
+                    }, 8000);
+                } else if (state === 'connected') {
+                    // Koneksi pulih — batalkan timer disconnect
+                    if (peer._disconnectTimer) { clearTimeout(peer._disconnectTimer); peer._disconnectTimer = null; }
+                } else if (state === 'closed') {
+                    if (peer._disconnectTimer) { clearTimeout(peer._disconnectTimer); peer._disconnectTimer = null; }
+                }
             };
+
             return peer;
         }
 
@@ -5269,19 +5301,27 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             const popup = document.getElementById('cw-screen-popup');
             if (popup) popup.classList.remove('active');
 
-            // Cek iOS — tidak support getDisplayMedia
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            if (isIOS) {
-                const notice = document.getElementById('cw-screen-ios-notice');
-                if (notice) notice.style.display = 'block';
-                cwSendSignal(_callPeerId, 'screen_reject', { reason: 'ios_not_supported' });
-                return;
-            }
+            // Deteksi mobile — Android & iOS tidak support getDisplayMedia
+            const isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream;
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const isMobile = isIOS || isAndroid;
 
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-                cwShowCallToast('Browser ini tidak mendukung Screen Share');
-                cwSendSignal(_callPeerId, 'screen_reject', { reason: 'not_supported' });
-                return;
+            // Cek apakah browser benar-benar mendukung getDisplayMedia
+            const hasDisplayMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+
+            if (isMobile || !hasDisplayMedia) {
+                // Tampilkan mobile notice dengan pilihan kamera — TIDAK langsung reject
+                const notice = document.getElementById('cw-screen-mobile-notice');
+                const title = document.getElementById('cw-screen-mobile-title');
+                if (title) {
+                    title.textContent = isIOS
+                        ? 'iOS Tidak Mendukung Screen Share'
+                        : isAndroid
+                            ? 'Chrome HP Tidak Mendukung Screen Share'
+                            : 'Browser Ini Tidak Mendukung Screen Share';
+                }
+                if (notice) notice.style.display = 'block';
+                return; // Tunggu user pilih: Gunakan Kamera atau Batal
             }
 
             navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 15 }, audio: false })
@@ -5317,8 +5357,8 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                     if (banner) banner.classList.add('active');
                     if (bannerText) bannerText.textContent = 'Layar sedang dibagikan ke IT Support';
 
-                    // Kirim sinyal ke IT: screen share dimulai
-                    cwSendSignal(_callPeerId, 'screen_accept', {});
+                    // Kirim sinyal ke IT: screen share dimulai (mode layar penuh)
+                    cwSendSignal(_callPeerId, 'screen_accept', { cameraMode: false });
 
                     // Handle jika user stop share dari browser native
                     screenStream.getVideoTracks()[0].onended = () => cwScreenStop(true);
@@ -5330,6 +5370,37 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                     cwSendSignal(_callPeerId, 'screen_reject', { reason: err.name });
                 });
         };
+
+        // ----- User: Pakai kamera sebagai alternatif screen share (mobile) -----
+        window.cwScreenUseCameraMode = function () {
+            const notice = document.getElementById('cw-screen-mobile-notice');
+            if (notice) notice.style.display = 'none';
+            // Tampilkan banner biru (bukan oranye) sebagai penanda mode kamera
+            const banner = document.getElementById('cw-screen-banner');
+            const bannerText = document.getElementById('cw-screen-banner-text');
+            const stopBtn = document.getElementById('cw-screen-stop-btn');
+            if (banner) { banner.classList.add('active'); banner.style.background = 'rgba(59,130,246,.92)'; }
+            if (bannerText) bannerText.textContent = 'Kamera aktif — arahkan ke layar';
+            if (stopBtn) stopBtn.onclick = function () { cwScreenMobileStop(); };
+            // Kirim sinyal ke IT: user pakai kamera sebagai pengganti
+            cwSendSignal(_callPeerId, 'screen_accept', { cameraMode: true });
+            cwShowCallToast('Arahkan kamera Anda ke layar yang ingin ditampilkan');
+        };
+
+        // ----- User: Batal dari mobile notice -----
+        window.cwScreenMobileCancel = function () {
+            const notice = document.getElementById('cw-screen-mobile-notice');
+            if (notice) notice.style.display = 'none';
+            cwSendSignal(_callPeerId, 'screen_reject', { reason: 'mobile_cancelled' });
+        };
+
+        // ----- User: Hentikan camera mode (mobile) -----
+        function cwScreenMobileStop() {
+            const banner = document.getElementById('cw-screen-banner');
+            if (banner) { banner.classList.remove('active'); banner.style.background = ''; }
+            cwSendSignal(_callPeerId, 'screen_stop', {});
+            cwShowCallToast('Mode kamera dihentikan');
+        }
 
         // ----- User/IT: Hentikan screen share -----
         window.cwScreenStop = function (notify) {
@@ -5732,6 +5803,22 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             try { payload = JSON.parse(sig.data); } catch (e) { }
 
             if (type === 'offer') {
+                // ===== Cek apakah ini renegotiation (bukan panggilan baru) =====
+                if (payload.renego) {
+                    // Renegotiation dari peer yang sedang aktif (misal: mereka addTrack screen)
+                    if (_callState === 'active' && _callPeer && _callPeerId === fromId) {
+                        _callPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp))
+                            .then(() => _callPeer.createAnswer())
+                            .then(ans => _callPeer.setLocalDescription(ans))
+                            .then(() => cwSendSignal(_callPeerId, 'answer', {
+                                sdp: _callPeer.localDescription,
+                                renego: true
+                            }))
+                            .catch(() => { });
+                    }
+                    return; // Jangan proses sebagai panggilan masuk biasa
+                }
+
                 if (_callState !== 'idle') {
                     cwSendSignal(fromId, 'reject', { reason: 'busy' });
                     return;
@@ -5753,6 +5840,15 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 setTimeout(() => { if (_callState === 'incoming' && _callPeerId === fromId) cwCallReject(); }, 30000);
 
             } else if (type === 'answer') {
+                // ===== Cek apakah ini renegotiation answer =====
+                if (payload.renego) {
+                    if (_callState === 'active' && _callPeer && _callPeerId === fromId) {
+                        _callPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp))
+                            .catch(() => { });
+                    }
+                    return; // Jangan proses sebagai answer panggilan biasa
+                }
+
                 if (_callState !== 'outgoing' || _callPeerId !== fromId || !_callPeer) return;
                 cwStopRing();
                 _callPeer.setRemoteDescription(new RTCSessionDescription(payload.sdp))
@@ -5811,19 +5907,25 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 cwScreenShowPopup(payload.requesterName || fromName);
 
             } else if (type === 'screen_accept') {
-                // Saya (IT) mendapat konfirmasi user setuju → aktifkan viewer mode
+                // Saya (IT) mendapat konfirmasi user setuju
                 if (_callState !== 'active' || _callPeerId !== fromId) return;
                 cwViewerStart();
-                cwShowCallToast('✅ User mulai membagikan layar');
+                if (payload.cameraMode) {
+                    // User HP menggunakan kamera sebagai alternatif
+                    cwShowCallToast('📷 User arahkan kamera ke layar. Lihat di video utama.');
+                } else {
+                    // User desktop share layar penuh
+                    cwShowCallToast('✅ User mulai membagikan layar');
+                }
 
             } else if (type === 'screen_reject') {
                 // Saya (IT) mendapat penolakan atau gagal screen share
                 if (_callState !== 'active' || _callPeerId !== fromId) return;
                 const reason = payload.reason || '';
-                if (reason === 'ios_not_supported') {
-                    cwShowCallToast('⚠️ iOS tidak mendukung screen share');
-                } else if (reason === 'not_supported') {
-                    cwShowCallToast('⚠️ Browser user tidak mendukung screen share');
+                if (reason === 'mobile_cancelled') {
+                    cwShowCallToast('ℹ️ User membatalkan dari HP');
+                } else if (reason === 'ios_not_supported' || reason === 'not_supported') {
+                    cwShowCallToast('⚠️ Browser HP user tidak mendukung screen share');
                 } else {
                     cwShowCallToast('❌ User menolak screen share');
                 }
