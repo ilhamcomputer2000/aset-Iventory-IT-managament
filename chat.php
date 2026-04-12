@@ -206,15 +206,18 @@ function formatMsg($m, $myId)
     $m['is_edited'] = !empty($m['edited_at']);
 
     $storedJabatan = trim((string)($m['jabatan'] ?? ''));
-    if ($storedJabatan === '') {
-        static $jabatanCache = [];
+    if ($storedJabatan === '' || !isset($m['profile_picture'])) {
+        static $userMetaCache = [];
         $uid = (int)$m['user_id'];
-        if (!isset($jabatanCache[$uid])) {
+        if (!isset($userMetaCache[$uid])) {
             global $kon;
-            $jq = $kon->query("SELECT Jabatan_Level FROM users WHERE id=$uid LIMIT 1");
-            $jabatanCache[$uid] = ($jq && ($jr = $jq->fetch_assoc())) ? (string)$jr['Jabatan_Level'] : '';
+            $jq = $kon->query("SELECT Jabatan_Level, profile_picture FROM users WHERE id=$uid LIMIT 1");
+            $userMetaCache[$uid] = ($jq && ($jr = $jq->fetch_assoc())) ? $jr : ['Jabatan_Level'=>'', 'profile_picture'=>''];
         }
-        $storedJabatan = $jabatanCache[$uid];
+        $storedJabatan = $storedJabatan !== '' ? $storedJabatan : (string)$userMetaCache[$uid]['Jabatan_Level'];
+        if (!isset($m['profile_picture'])) {
+            $m['profile_picture'] = (string)$userMetaCache[$uid]['profile_picture'];
+        }
     }
     $m['jabatan'] = htmlspecialchars($storedJabatan);
 
@@ -274,15 +277,20 @@ if ($action === 'get') {
     $messages = array_map(fn($m) => formatMsg($m, $user_id), $messages);
 
     if (!empty($messages)) {
-        $nEsc       = $kon->real_escape_string($nama);
-        $readValues = [];
-        foreach ($messages as $m) {
-            if ((int)$m['user_id'] !== $user_id) {
-                $readValues[] = "({$m['id']},$user_id,'$nEsc',NOW())";
+        // Hanya tandai pesan sebagai dibaca jika client mengirim mark_read=1
+        // (artinya user benar-benar melihat tab Umum, bukan background poll)
+        $markRead = (int)($_GET['mark_read'] ?? 0);
+        if ($markRead === 1) {
+            $nEsc       = $kon->real_escape_string($nama);
+            $readValues = [];
+            foreach ($messages as $m) {
+                if ((int)$m['user_id'] !== $user_id) {
+                    $readValues[] = "({$m['id']},$user_id,'$nEsc',NOW())";
+                }
             }
-        }
-        if (!empty($readValues)) {
-            $kon->query("INSERT IGNORE INTO chat_message_reads (message_id,user_id,nama_lengkap,read_at) VALUES " . implode(',', $readValues));
+            if (!empty($readValues)) {
+                $kon->query("INSERT IGNORE INTO chat_message_reads (message_id,user_id,nama_lengkap,read_at) VALUES " . implode(',', $readValues));
+            }
         }
         $msgIds  = implode(',', array_column($messages, 'id'));
         $readsMap = [];
@@ -423,7 +431,10 @@ if ($action === 'get_reads') {
     if ($ownCheck) while ($oc = $ownCheck->fetch_assoc()) $ownIds[] = (int)$oc['id'];
     if (empty($ownIds)) { echo json_encode(['reads' => []]); exit; }
     $ownStr   = implode(',', $ownIds);
-    $rq       = $kon->query("SELECT message_id, user_id, nama_lengkap, read_at FROM chat_message_reads WHERE message_id IN ($ownStr) ORDER BY read_at ASC");
+    $rq       = $kon->query("SELECT r.message_id, r.user_id, r.nama_lengkap, r.read_at, u.profile_picture 
+                             FROM chat_message_reads r
+                             LEFT JOIN users u ON r.user_id = u.id
+                             WHERE r.message_id IN ($ownStr) ORDER BY r.read_at ASC");
     $readsMap = [];
     if ($rq) {
         while ($rr = $rq->fetch_assoc()) {
@@ -433,9 +444,10 @@ if ($action === 'get_reads') {
                 try { $dt = new DateTime($rr['read_at']); $readAtFmt = $dt->format('H:i, d M Y'); } catch (Exception $e) {}
             }
             $readsMap[$mid]['readers'][] = [
-                'user_id' => (int)$rr['user_id'],
-                'name'    => htmlspecialchars($rr['nama_lengkap']),
-                'read_at' => $readAtFmt,
+                'user_id'         => (int)$rr['user_id'],
+                'name'            => htmlspecialchars($rr['nama_lengkap']),
+                'read_at'         => $readAtFmt,
+                'profile_picture' => (string)$rr['profile_picture'],
             ];
             $readsMap[$mid]['names'][] = htmlspecialchars($rr['nama_lengkap']);
         }
@@ -455,25 +467,26 @@ if ($action === 'get_reads') {
 // ---- ACTION: get_online_users ----
 if ($action === 'get_online_users') {
     updatePresence($kon, $user_id, $username, $nama, $role, $jabatan);
-    $rq = $kon->query("SELECT user_id, nama_lengkap, username, role, jabatan
-                       FROM chat_presence
-                       WHERE last_seen >= DATE_SUB(NOW(), INTERVAL 90 SECOND)
-                       ORDER BY role ASC, nama_lengkap ASC");
+    $rq = $kon->query("SELECT cp.user_id, cp.nama_lengkap, cp.username, cp.role, cp.jabatan, u.profile_picture, u.Jabatan_Level as u_jab_level
+                       FROM chat_presence cp
+                       LEFT JOIN users u ON cp.user_id = u.id
+                       WHERE cp.last_seen >= DATE_SUB(NOW(), INTERVAL 90 SECOND)
+                       ORDER BY cp.role ASC, cp.nama_lengkap ASC");
     $users = [];
     if ($rq) {
         while ($row = $rq->fetch_assoc()) {
             // Resolve jabatan if empty
             if (trim($row['jabatan']) === '') {
-                $jq = $kon->query("SELECT Jabatan_Level FROM users WHERE id=" . (int)$row['user_id'] . " LIMIT 1");
-                $row['jabatan'] = ($jq && ($jr = $jq->fetch_assoc())) ? (string)$jr['Jabatan_Level'] : '';
+                $row['jabatan'] = (string)$row['u_jab_level'];
             }
             $users[] = [
-                'user_id'  => (int)$row['user_id'],
-                'nama'     => htmlspecialchars($row['nama_lengkap'] ?: $row['username']),
-                'role'     => $row['role'],
-                'jabatan'  => htmlspecialchars($row['jabatan']),
-                'is_me'    => ((int)$row['user_id'] === $user_id),
-                'is_admin' => in_array($row['role'], ['super_admin', 'admin']),
+                'user_id'         => (int)$row['user_id'],
+                'nama'            => htmlspecialchars($row['nama_lengkap'] ?: $row['username']),
+                'role'            => $row['role'],
+                'jabatan'         => htmlspecialchars($row['jabatan']),
+                'profile_picture' => (string)$row['profile_picture'],
+                'is_me'           => ((int)$row['user_id'] === $user_id),
+                'is_admin'        => in_array($row['role'], ['super_admin', 'admin']),
             ];
         }
     }
@@ -701,6 +714,7 @@ if ($action === 'get_all_users') {
             u.role,
             u.Jabatan_Level,
             u.Status_Akun,
+            u.profile_picture,
             p.last_seen,
             CASE WHEN p.last_seen IS NOT NULL AND TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) <= 90 THEN 1 ELSE 0 END AS is_online_mysql,
             CASE WHEN p.last_seen IS NOT NULL THEN TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) ELSE NULL END AS seconds_ago
@@ -753,6 +767,7 @@ if ($action === 'get_all_users') {
                 'is_online'      => $isOnline,
                 'last_seen_label'=> $lastSeenLabel,
                 'last_seen_ts'   => $lastSeenTs,
+                'profile_picture'=> (string)$row['profile_picture'],
             ];
         }
     }

@@ -67,7 +67,7 @@ $Jabatan_Level = trim((string) ($_SESSION['Jabatan_Level'] ?? ''));
 
 // Koneksi ke database
 $conn = new mysqli("localhost", "root", "", "crud");
-// $conn = new mysqli("localhost:3306", "cktnosa2_admin", "uGXj8#eiI=P%", "cktnosa2_crud"); 
+// $conn = new mysqli("localhost:3306", "cktnosa2_admin", "uGXj8#eiI=P%", "cktnosa2_crud");
 // Cek koneksi
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
@@ -1813,6 +1813,31 @@ $conn->close();
             attachPaginationListeners();
         }
 
+        // --- HIDE LOADING OVERLAY LOGIC ---
+        window.addEventListener('load', function () {
+            const url = new URL(window.location);
+            const hasQueryParams = url.searchParams.has('page') || url.searchParams.has('status_filter') || url.searchParams.has('category_filter');
+
+            // Jika ada query params (filter/pagination), hilangkan loading segera
+            if (hasQueryParams) {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+                return;
+            }
+
+            // Normal load: hilangkan loading dengan animasi smooth setelah 1 detik
+            setTimeout(function () {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(function () {
+                        loadingOverlay.style.display = 'none';
+                    }, 500);
+                }
+            }, 1000);
+        });
 
     </script>
 </body>

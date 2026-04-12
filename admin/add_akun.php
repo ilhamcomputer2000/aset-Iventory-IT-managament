@@ -24,8 +24,8 @@ if (!$user_role || $user_role !== 'super_admin') {
 
 // Koneksi DB dengan try-catch
 try {
-    // $conn = new mysqli("localhost", "root", "", "crud");
-       $conn = new mysqli("localhost", "cktnosa2_admin", "uGXj8#eiI=P%", "cktnosa2_crud");
+    $conn = new mysqli("localhost", "root", "", "crud");
+    //    $conn = new mysqli("localhost", "cktnosa2_admin", "uGXj8#eiI=P%", "cktnosa2_crud");
     if ($conn->connect_error) {
         throw new Exception("DB connect failed: " . $conn->connect_error);
     }

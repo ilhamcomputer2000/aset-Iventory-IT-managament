@@ -50,7 +50,56 @@ $isAssets = ($activePage === 'assets');
 $isLacak = ($activePage === 'lacak_asset');
 $isTicket = ($activePage === 'ticket');
 $isLog = ($activePage === 'log');
-$isSettingsSubPage = $isLog;
+$isProfile = ($activePage === 'profile');
+$isSettingsSubPage = ($isLog || $isProfile);
+
+// Profile picture for sidebar avatar
+$_sidebarProfilePic = '';
+if (!empty($_SESSION['profile_picture'])) {
+    $_sidebarProfilePic = app_abs_path($_SESSION['profile_picture']);
+} elseif (isset($_SESSION['user_id'])) {
+    // Query from DB if not in session yet — reuse existing connection using ping with Throwable catch
+    $_picConn = null;
+    try {
+        if (isset($kon) && $kon instanceof mysqli && @$kon->ping()) {
+            $_picConn = $kon;
+        } elseif (isset($conn) && $conn instanceof mysqli && @$conn->ping()) {
+            $_picConn = $conn;
+        }
+    } catch (\Throwable $e) {
+        $_picConn = null;
+    }
+
+    if (!$_picConn) {
+        // Fallback: include koneksi.php to get a connection safely
+        @require_once __DIR__ . '/../koneksi.php';
+        try {
+            if (isset($kon) && $kon instanceof mysqli && @$kon->ping()) {
+                $_picConn = $kon;
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    if ($_picConn) {
+        try {
+            $_stmtPic = @$_picConn->prepare("SELECT profile_picture FROM users WHERE id = ? LIMIT 1");
+            if ($_stmtPic) {
+                $_uid = (int)$_SESSION['user_id'];
+                $_stmtPic->bind_param('i', $_uid);
+                $_stmtPic->execute();
+                $_picVal = null;
+                $_stmtPic->bind_result($_picVal);
+                if ($_stmtPic->fetch() && !empty($_picVal)) {
+                    $_SESSION['profile_picture'] = (string)$_picVal;
+                    $_sidebarProfilePic = app_abs_path($_picVal);
+                }
+                $_stmtPic->close();
+            }
+        } catch (\Throwable $e) {
+            // Silently ignore
+        }
+    }
+}
 
 // Build proper base URL for links (works regardless of URL rewriting)
 $_sidebarBaseDir = dirname($_SERVER['SCRIPT_NAME']);
@@ -68,6 +117,7 @@ $_sidebarLinks = [
     'lacak' => $_sidebarBaseDir . '/lacak_asset.php',
     'ticket' => $_sidebarBaseDir . '/ticket.php',
     'log' => $_sidebarBaseDir . '/log.php',
+    'profile' => $_sidebarBaseDir . '/profile.php',
     'logout' => app_abs_path('logout.php'),
 ];
 ?>
@@ -132,10 +182,14 @@ $_sidebarLinks = [
     <!-- Profile - compact -->
     <div class="px-4 py-3 border-b border-gray-200">
         <div class="flex items-center space-x-3">
+            <?php if ($_sidebarProfilePic): ?>
+                <img src="<?php echo htmlspecialchars($_sidebarProfilePic); ?>" alt="" class="w-8 h-8 rounded-lg object-cover flex-shrink-0">
+            <?php else: ?>
             <div
                 class="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
                 <i class="fas fa-user text-white text-xs"></i>
             </div>
+            <?php endif; ?>
             <div class="min-w-0">
                 <span
                     class="text-sm font-semibold text-gray-900 block truncate"><?php echo htmlspecialchars($Nama_Lengkap ?? 'User'); ?></span>
@@ -194,6 +248,13 @@ $_sidebarLinks = [
             <!-- Submenu -->
             <ul id="settings-submenu" class="overflow-hidden transition-all duration-300 ease-in-out"
                 style="<?php echo $isSettingsSubPage ? 'max-height: 300px; opacity: 1;' : 'max-height: 0; opacity: 0;'; ?>">
+                <li>
+                    <a href="<?php echo htmlspecialchars($_sidebarLinks['profile']); ?>"
+                        class="w-full flex items-center space-x-3 py-2 px-3 pl-11 text-sm transition-all duration-200 rounded-lg <?php echo $isProfile ? 'bg-orange-50 text-orange-700 font-semibold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'; ?>">
+                        <i class="fas fa-user text-xs <?php echo $isProfile ? 'text-orange-500' : ''; ?>"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
                 <li>
                     <button id="btn-open-change-password" type="button"
                         class="w-full flex items-center space-x-3 py-2 px-3 pl-11 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 rounded-lg">

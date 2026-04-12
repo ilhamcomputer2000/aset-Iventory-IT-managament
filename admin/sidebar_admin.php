@@ -69,7 +69,7 @@ if ($Jabatan_Level === '' && isset($_SESSION['user_id'])) {
     }
 
     if ($db instanceof mysqli) {
-        $stmtMeta = $db->prepare("SELECT Jabatan_Level, Nama_Lengkap, role FROM users WHERE id = ? LIMIT 1");
+        $stmtMeta = $db->prepare("SELECT Jabatan_Level, Nama_Lengkap, role, profile_picture FROM users WHERE id = ? LIMIT 1");
         if ($stmtMeta) {
             $uid = (int) $_SESSION['user_id'];
             $stmtMeta->bind_param('i', $uid);
@@ -77,7 +77,8 @@ if ($Jabatan_Level === '' && isset($_SESSION['user_id'])) {
                 $jabDb = null;
                 $namaDb = null;
                 $roleDb = null;
-                $stmtMeta->bind_result($jabDb, $namaDb, $roleDb);
+                $picDb = null;
+                $stmtMeta->bind_result($jabDb, $namaDb, $roleDb, $picDb);
                 if ($stmtMeta->fetch()) {
                     $jab = trim((string) ($jabDb ?? ''));
                     if ($jab !== '') {
@@ -91,6 +92,9 @@ if ($Jabatan_Level === '' && isset($_SESSION['user_id'])) {
                     if (empty($_SESSION['role']) && !empty($roleDb)) {
                         $_SESSION['role'] = (string) $roleDb;
                     }
+                    if (!empty($picDb)) {
+                        $_SESSION['profile_picture'] = (string) $picDb;
+                    }
                 }
             }
             $stmtMeta->close();
@@ -99,6 +103,55 @@ if ($Jabatan_Level === '' && isset($_SESSION['user_id'])) {
 }
 
 $Jabatan_Level = $Jabatan_Level !== '' ? $Jabatan_Level : '-';
+
+// Profile picture path for sidebar avatar
+$_sidebarProfilePic = '';
+if (!empty($_SESSION['profile_picture'])) {
+    $_sidebarProfilePic = app_abs_path($_SESSION['profile_picture']);
+} elseif (isset($_SESSION['user_id'])) {
+    // Query from DB if not in session yet — reuse existing connection using ping with Throwable catch
+    $_picConn = null;
+    try {
+        if (isset($kon) && $kon instanceof mysqli && @$kon->ping()) {
+            $_picConn = $kon;
+        } elseif (isset($conn) && $conn instanceof mysqli && @$conn->ping()) {
+            $_picConn = $conn;
+        }
+    } catch (\Throwable $e) {
+        $_picConn = null;
+    }
+
+    if (!$_picConn) {
+        // Fallback: include koneksi.php to get a connection safely
+        @require_once __DIR__ . '/../koneksi.php';
+        try {
+            if (isset($kon) && $kon instanceof mysqli && @$kon->ping()) {
+                $_picConn = $kon;
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    if ($_picConn) {
+        try {
+            $_stmtPic = @$_picConn->prepare("SELECT profile_picture FROM users WHERE id = ? LIMIT 1");
+            if ($_stmtPic) {
+                $_uid = (int)$_SESSION['user_id'];
+                $_stmtPic->bind_param('i', $_uid);
+                $_stmtPic->execute();
+                $_picVal = null;
+                $_stmtPic->bind_result($_picVal);
+                if ($_stmtPic->fetch() && !empty($_picVal)) {
+                    $_SESSION['profile_picture'] = (string)$_picVal;
+                    $_sidebarProfilePic = app_abs_path($_picVal);
+                }
+                $_stmtPic->close();
+            }
+        } catch (\Throwable $e) {
+            // Silently ignore
+
+        }
+    }
+}
 
 $isDashboard = ($activePage === 'dashboard');
 $isAssets = ($activePage === 'assets');
@@ -197,10 +250,15 @@ $_adminLinks = [
     <!-- Profile - compact -->
     <div class="px-4 py-3 border-b border-gray-200">
         <div class="flex items-center space-x-3">
-            <div
-                class="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-user text-white text-xs"></i>
-            </div>
+            <?php if ($_sidebarProfilePic): ?>
+                <img src="<?php echo htmlspecialchars($_sidebarProfilePic); ?>" alt=""
+                    class="w-8 h-8 rounded-lg object-cover flex-shrink-0">
+            <?php else: ?>
+                <div
+                    class="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user text-white text-xs"></i>
+                </div>
+            <?php endif; ?>
             <div class="min-w-0">
                 <span
                     class="text-sm font-semibold text-gray-900 block truncate"><?php echo htmlspecialchars($Nama_Lengkap); ?></span>

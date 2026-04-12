@@ -3551,7 +3551,13 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             const html = `
             ${divHtml}
             <div class="cw-msg${isOwn ? ' own' : ''}" data-mid="${m.id}">
-                <div class="cw-avatar" style="background:${color}">${initial}</div>
+                ${(function () {
+                    if (m.profile_picture) {
+                        const picUrl = '<?php echo $_cw_web_base; ?>/' + m.profile_picture;
+                        return `<div class="cw-avatar" style="background-image:url('${picUrl}'); background-size:cover; background-position:center;"></div>`;
+                    }
+                    return `<div class="cw-avatar" style="background:${color}">${initial}</div>`;
+                })()}
                 <div class="cw-bubble-wrap">
                     <div class="cw-sender">${itBadge}<span>${sender}</span>${jabatanBadge}</div>
                     ${msgText}
@@ -3593,7 +3599,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
 
         // ---- Load & poll ----
         function loadInitial() {
-            fetch(`${ENDPOINT}?action=get`)
+            fetch(`${ENDPOINT}?action=get&mark_read=1`)
                 .then(r => r.json())
                 .then(data => {
                     if (data.messages && data.messages.length) {
@@ -3610,7 +3616,9 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
 
         function poll() {
             if (_sessionExpired) return;
-            fetch(`${ENDPOINT}?action=get&after_id=${lastId}`)
+            // Kirim mark_read=1 hanya jika user sedang melihat tab Umum
+            const shouldMarkRead = panelOpen && currentTab === 'chat' ? '&mark_read=1' : '';
+            fetch(`${ENDPOINT}?action=get&after_id=${lastId}${shouldMarkRead}`)
                 .then(r => r.json())
                 .then(data => {
                     // Deteksi session expired
@@ -3799,8 +3807,13 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         const initial = (r.name || '?').charAt(0).toUpperCase();
                         const color = getColor(r.user_id || 0);
                         const timeLabel = r.read_at ? `<div class="cw-seen-time"><i class="fas fa-clock" style="margin-right:3px;font-size:9px"></i>${r.read_at}</div>` : '';
+                        let avatarHtml = `<div class="cw-seen-avatar" style="background:${color}">${initial}</div>`;
+                        if (r.profile_picture) {
+                            const picUrl = '<?php echo $_cw_web_base; ?>/' + r.profile_picture;
+                            avatarHtml = `<div class="cw-seen-avatar" style="background-image:url('${picUrl}'); background-size:cover; background-position:center;"></div>`;
+                        }
                         html += `<div class="cw-seen-row">
-                            <div class="cw-seen-avatar" style="background:${color}">${initial}</div>
+                            ${avatarHtml}
                             <div class="cw-seen-info">
                                 <div class="cw-seen-name">${r.name || 'Pengguna'}</div>
                                 ${timeLabel}
@@ -4152,6 +4165,10 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 document.getElementById('cw-footer').style.display = 'block';
                 // User sekarang melihat pesan umum — reset unread badge
                 unread = 0; badge.style.display = 'none';
+                // Tandai pesan yang sudah ada sebagai dibaca di server
+                if (lastId > 0) {
+                    fetch(`${ENDPOINT}?action=get&after_id=${lastId}&mark_read=1`).catch(() => { });
+                }
             } else {
                 msgs.style.display = 'none';
                 onlineView.classList.add('active');
@@ -4229,8 +4246,14 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                         <button class="cw-online-call-btn video" onclick="event.stopPropagation();cwStartCall(${u.user_id},'${u.nama.replace(/'/g, "\\'")}\'video')" title="Video Call ${u.nama}"><i class="fas fa-video"></i></button>
                       </div>`
                     : '';
+                let avatarHtml = `<div class="cw-online-avatar" style="background:${color}">${initial}<span class="cw-online-dot-indicator${dotCls}"></span></div>`;
+                if (u.profile_picture) {
+                    const picUrl = '<?php echo $_cw_web_base; ?>/' + u.profile_picture;
+                    avatarHtml = `<div class="cw-online-avatar" style="background-image:url('${picUrl}'); background-size:cover; background-position:center;"><span class="cw-online-dot-indicator${dotCls}"></span></div>`;
+                }
+
                 return `<div class="cw-online-item${itemCls}" ${click} title="${title}">
-                    <div class="cw-online-avatar" style="background:${color}">${initial}<span class="cw-online-dot-indicator${dotCls}"></span></div>
+                    ${avatarHtml}
                     <div class="cw-online-info">
                         <div class="cw-online-name">${u.nama}${itBadge}${meLabel}</div>
                         <div class="cw-online-jab">${u.jabatan || 'Pengguna'}</div>
@@ -4267,7 +4290,7 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
         }
 
         // ---- Open DM ----
-        window.cwOpenDM = function (userId, nama, jabatan, isAdmin, isOnline) {
+        window.cwOpenDM = function (userId, nama, jabatan, isAdmin, isOnline, profilePicture) {
             dmWithUserId = userId;
             dmWithName = nama;
             dmLastId = 0;
@@ -4277,8 +4300,17 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
             cwDmClosePicker();
 
             const color = cwAvatarColor2(userId);
-            dmHeaderAvatar.textContent = nama.charAt(0).toUpperCase();
-            dmHeaderAvatar.style.background = color;
+            if (profilePicture) {
+                const picUrl = '<?php echo $_cw_web_base; ?>/' + profilePicture;
+                dmHeaderAvatar.textContent = '';
+                dmHeaderAvatar.style.backgroundImage = `url('${picUrl}')`;
+                dmHeaderAvatar.style.backgroundSize = 'cover';
+                dmHeaderAvatar.style.backgroundPosition = 'center';
+            } else {
+                dmHeaderAvatar.textContent = nama.charAt(0).toUpperCase();
+                dmHeaderAvatar.style.background = color;
+                dmHeaderAvatar.style.backgroundImage = 'none';
+            }
             dmHeaderName.textContent = nama;
             document.getElementById('cw-dm-header-sub').textContent = jabatan || 'Pesan Langsung';
 
@@ -4660,6 +4692,12 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                     // Jika DM panel sedang tidak terbuka & total unread bertambah = ada pesan baru
                     if (dmWithUserId === 0 && newTotal > _lastDmTotalUnread) {
                         cwPlayNotifDM();
+                        // Tampilkan toast per pengirim (masing-masing terpisah)
+                        const newSenders = data.users
+                            .filter(u => (u.unread_dm || 0) > 0 && !u.is_me);
+                        newSenders.forEach(sender => {
+                            cwShowDmToast(sender);
+                        });
                     }
                     _lastDmTotalUnread = newTotal;
 
@@ -4675,10 +4713,81 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 }).catch(() => { });
         }
 
-        // Poll online every 10s when panel open
+        // Toast notifikasi DM — satu per pengirim, stack ke atas, TIDAK auto-close
+        let _dmToastStack = []; // array of toast elements
+
+        function _repositionDmToasts() {
+            let bottom = 90;
+            _dmToastStack.forEach(t => {
+                t.style.bottom = bottom + 'px';
+                bottom += t.offsetHeight + 8;
+            });
+        }
+
+        function _removeDmToast(t) {
+            t.style.opacity = '0'; t.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                if (t.parentNode) t.remove();
+                _dmToastStack = _dmToastStack.filter(x => x !== t);
+                _repositionDmToasts();
+            }, 300);
+        }
+
+        function cwShowDmToast(sender) {
+            // Jangan duplikat toast untuk pengirim yang sama
+            const existingId = 'cw-dm-toast-' + sender.user_id;
+            if (document.getElementById(existingId)) return;
+
+            const initial = (sender.nama || '?').charAt(0).toUpperCase();
+            const avatarColors = ['#f97316', '#8b5cf6', '#06b6d4', '#10b981', '#f43f5e', '#3b82f6', '#ec4899', '#84cc16'];
+            const avatarBg = avatarColors[Math.abs(sender.user_id) % avatarColors.length];
+
+            const t = document.createElement('div');
+            t.id = existingId;
+            t.style.cssText = 'position:fixed;right:24px;bottom:90px;background:linear-gradient(135deg,#1f2937,#374151);color:white;padding:0;border-radius:12px;font-size:13px;font-weight:500;z-index:100003;box-shadow:0 8px 24px rgba(0,0,0,.35);opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:auto;max-width:320px;border-left:3px solid #f97316;overflow:hidden';
+
+            t.innerHTML = `
+                <div style="display:flex;align-items:stretch">
+                    <div class="cw-dm-toast-body" style="flex:1;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;min-width:0">
+                        <div style="width:34px;height:34px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;font-weight:700;color:white">${initial}</div>
+                        <div style="min-width:0">
+                            <div style="font-size:10px;opacity:.6;margin-bottom:1px">Pesan baru dari</div>
+                            <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sender.nama}</div>
+                            <div style="font-size:10px;opacity:.5;margin-top:1px">${sender.unread_dm || 1} pesan belum dibaca</div>
+                        </div>
+                    </div>
+                    <button class="cw-dm-toast-close" style="background:none;border:none;color:rgba(255,255,255,.4);padding:0 12px;cursor:pointer;font-size:14px;display:flex;align-items:center;border-left:1px solid rgba(255,255,255,.08)" title="Tutup">✕</button>
+                </div>
+            `;
+            document.body.appendChild(t);
+            _dmToastStack.push(t);
+
+            // Klik body → buka DM pengirim langsung
+            t.querySelector('.cw-dm-toast-body').addEventListener('click', function () {
+                _removeDmToast(t);
+                if (!panelOpen) cwToggle();
+                cwOpenDM(sender.user_id, sender.nama, sender.jabatan || '', sender.is_admin, sender.is_online);
+            });
+
+            // Klik X → tutup toast ini saja
+            t.querySelector('.cw-dm-toast-close').addEventListener('click', function (e) {
+                e.stopPropagation();
+                _removeDmToast(t);
+            });
+
+            // Tampilkan dengan animasi + reposition stack
+            requestAnimationFrame(() => {
+                _repositionDmToasts();
+                requestAnimationFrame(() => {
+                    t.style.opacity = '1'; t.style.transform = 'translateY(0)';
+                });
+            });
+        }
+
+        // Poll online setiap 4 detik (panel buka ATAU tutup) agar notifikasi DM muncul langsung
         onlinePollTimer = setInterval(() => {
-            if (!_sessionExpired && panelOpen) cwLoadOnlineBackground();
-        }, 10000);
+            if (!_sessionExpired) cwLoadOnlineBackground();
+        }, 4000);
 
         dmInput.addEventListener('input', function () {
             cwDmUpdateSendBtn();
@@ -5607,11 +5716,19 @@ $_cw_offline_token = hash_hmac('sha256', $_cw_user_id . '|' . floor(time() / 600
                 const typeIcon = log.call_type === 'video' ? 'fa-video' : 'fa-phone';
                 const durHtml = log.duration_label ? `<span class="cw-clog-dur">· ${log.duration_label}</span>` : '';
 
+                let innerAvatarHtml = `${init}`;
+                let avatarStyle = `background:${color}`;
+                if (log.profile_picture) {
+                    const picUrl = '<?php echo $_cw_web_base; ?>/' + log.profile_picture;
+                    innerAvatarHtml = '';
+                    avatarStyle = `background-image:url('${picUrl}'); background-size:cover; background-position:center;`;
+                }
+
                 const row = document.createElement('div');
                 row.className = 'cw-clog-row';
                 row.innerHTML = `
-                    <div class="cw-clog-avatar" style="background:${color}">
-                        ${init}
+                    <div class="cw-clog-avatar" style="${avatarStyle}">
+                        ${innerAvatarHtml}
                         <div class="cw-clog-type-badge ${log.call_type}"><i class="fas ${typeIcon}"></i></div>
                     </div>
                     <div class="cw-clog-info">
