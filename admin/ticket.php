@@ -1135,7 +1135,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_admin_tickets') {
                 $assignedTd = '';
             }
 
-            $tableHtml .= '<tr class="hover:bg-orange-50/40 transition-colors">'
+            $tableHtml .= '<tr class="hover:bg-orange-50/40 transition-colors" data-ticket-code="' . htmlspecialchars((string) $codeInt, ENT_QUOTES) . '">'
                 . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">' . htmlspecialchars((string) $rowNo) . '</td>'
                 . $assignedTd
                 . '<td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">'
@@ -2318,7 +2318,8 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                                     $isMine = $assignedTo !== '' && $assignedTo === $adminDisplayName;
                                     $isOthers = $assignedTo !== '' && !$isMine;
                                     ?>
-                                    <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <tr class="hover:bg-orange-50/40 transition-colors"
+                                        data-ticket-code="<?php echo htmlspecialchars((string) $codeInt, ENT_QUOTES); ?>">
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <?php echo htmlspecialchars((string) $rowNo); ?>
                                         </td>
@@ -2888,16 +2889,17 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
 
             // Expose fungsi refresh tabel utama ke scope global
             // agar bisa dipanggil dari SSE handler maupun polling
+            // silent=true → tidak ada loading overlay / scroll (tidak terasa seperti refresh)
             window._refreshMainTicketTable = function () {
-                if (typeof loadPage === 'function') {
+                if (typeof window.loadPage === 'function') {
                     var url = new URL(window.location.href);
                     var currentPage = parseInt(url.searchParams.get('page') || '1', 10);
                     var currentStatus = url.searchParams.get('status') || '';
-                    loadPage(currentPage, currentStatus);
+                    window.loadPage(currentPage, currentStatus, true /* silent */);
                 }
             };
 
-            // Polling fallback setiap 15 detik untuk tabel utama
+            // Polling fallback setiap 15 detik untuk tabel utama (silent background refresh)
             setInterval(function () {
                 if (!document.hidden) {
                     window._refreshMainTicketTable();
@@ -3002,7 +3004,8 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 if (spinner) spinner.style.display = 'none';
             }
 
-            function loadPage(pageNum, statusValue) {
+            // silent=true → auto-refresh background, tidak ada loading overlay / scroll
+            function loadPage(pageNum, statusValue, silent) {
                 const url = new URL(window.location.href);
 
                 // Apply current search query
@@ -3028,7 +3031,8 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                 fetchParams.set('action', 'ajax_get_admin_tickets');
                 const fetchUrl = `${window.location.pathname}?${fetchParams.toString()}`;
 
-                showTableLoading();
+                // Hanya tampilkan loading overlay jika bukan silent (auto-refresh)
+                if (!silent) showTableLoading();
 
                 fetch(fetchUrl)
                     .then((response) => {
@@ -3038,9 +3042,9 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                         return response.json();
                     })
                     .then((data) => {
-                        hideTableLoading();
+                        if (!silent) hideTableLoading();
                         if (data.error) {
-                            alert('Error: ' + data.error);
+                            if (!silent) alert('Error: ' + data.error);
                             return;
                         }
 
@@ -3049,26 +3053,122 @@ foreach (['Low', 'Medium', 'High', 'Urgent'] as $p) {
                         if (!tableContainer || !paginationContainer) return;
 
                         const tableClass = 'min-w-full border border-gray-200 rounded-lg overflow-hidden';
-                        tableContainer.innerHTML = '<table class="' + tableClass + '">' + (data.table_html || '') + '</table>';
-                        paginationContainer.innerHTML = data.pagination_html || '';
 
-                        // Update URL (without ajax action)
+                        if (silent) {
+                            // ── SMART SILENT REFRESH ──────────────────────────────────────────────
+                            // Sebelum replace DOM, simpan state semua input per Ticket_code
+                            // sehingga ketikan / file yang sudah dipilih admin tidak hilang.
+
+                            // 1) Kumpulkan state dari baris yang sedang aktif
+                            const savedStates = {}; // key: ticket_code (string)
+                            const activeEl = document.activeElement;
+
+                            tableContainer.querySelectorAll('tr[data-ticket-code]').forEach(tr => {
+                                const code = tr.dataset.ticketCode;
+                                if (!code) return;
+
+                                const jawabanTa = tr.querySelector('textarea[name="Jawaban_IT"]');
+                                const statusSel = tr.querySelector('select[name="Status_Request"]');
+                                const typeSel = tr.querySelector('select[name="Type_Pekerjaan"]');
+                                const fileInput = tr.querySelector('input[type="file"][name="Photo_IT"]');
+
+                                // Apakah baris ini sedang "aktif" (ada fokus / teks yang diubah / file staged)?
+                                const isFocused = activeEl && tr.contains(activeEl);
+                                const hasJawaban = jawabanTa && jawabanTa.value.trim() !== '';
+                                const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+
+                                const isDirty = isFocused || hasJawaban || hasFile;
+
+                                savedStates[code] = {
+                                    isDirty,
+                                    jawaban: jawabanTa ? jawabanTa.value : null,
+                                    status: statusSel ? statusSel.value : null,
+                                    type: typeSel ? typeSel.value : null,
+                                    // File tidak bisa diklon, cukup catat nama agar tahu sudah dipilih
+                                    hasFile,
+                                    fileName: (fileInput && fileInput.files && fileInput.files[0]) ? fileInput.files[0].name : null,
+                                };
+                            });
+
+                            // 2) Cek apakah ADA baris yang sedang dirty (admin sedang mengetik/upload)
+                            const anyDirty = Object.values(savedStates).some(s => s.isDirty);
+
+                            // 3) Parse HTML baru ke DOM sementara
+                            const tempWrap = document.createElement('div');
+                            tempWrap.innerHTML = '<table class="' + tableClass + '">' + (data.table_html || '') + '</table>';
+                            const newTable = tempWrap.querySelector('table');
+
+                            if (anyDirty) {
+                                // Ada baris dirty: update baris secara selektif (row-by-row diffing)
+                                const newRows = newTable
+                                    ? Array.from(newTable.querySelectorAll('tr[data-ticket-code]'))
+                                    : [];
+
+                                newRows.forEach(newTr => {
+                                    const code = newTr.dataset.ticketCode;
+                                    const state = savedStates[code];
+
+                                    if (state && state.isDirty) {
+                                        // Jangan sentuh baris ini — admin sedang menggunakannya
+                                        return;
+                                    }
+
+                                    // Update atau tambahkan baris ini ke tabel yang sudah ada
+                                    const existingTr = tableContainer.querySelector('tr[data-ticket-code="' + code + '"]');
+                                    if (existingTr) {
+                                        // Restore state baris yang tidak dirty (select value mungkin berubah di server)
+                                        if (state && state.status !== null) {
+                                            const newStatusSel = newTr.querySelector('select[name="Status_Request"]');
+                                            if (newStatusSel && state.status) newStatusSel.value = state.status;
+                                        }
+                                        existingTr.replaceWith(newTr);
+                                    }
+                                });
+
+                                // Update header (thead) kalau ada perubahan
+                                const existingThead = tableContainer.querySelector('thead');
+                                const newThead = newTable ? newTable.querySelector('thead') : null;
+                                if (existingThead && newThead) existingThead.replaceWith(newThead);
+
+                            } else {
+                                // Tidak ada yang dirty: aman untuk replace penuh dengan efek fade
+                                tableContainer.style.transition = 'opacity 0.2s ease';
+                                tableContainer.style.opacity = '0.7';
+                                setTimeout(() => {
+                                    tableContainer.innerHTML = '<table class="' + tableClass + '">' + (data.table_html || '') + '</table>';
+                                    paginationContainer.innerHTML = data.pagination_html || '';
+                                    tableContainer.style.opacity = '1';
+                                    attachPaginationListeners();
+                                }, 150);
+                                return; // keluar dari blok .then, sudah di-handle
+                            }
+
+                            // Jika dirty-mode: update pagination tetap boleh
+                            paginationContainer.innerHTML = data.pagination_html || '';
+                            tableContainer.style.opacity = '1';
+                            attachPaginationListeners();
+                        } else {
+                            tableContainer.innerHTML = '<table class="' + tableClass + '">' + (data.table_html || '') + '</table>';
+                            paginationContainer.innerHTML = data.pagination_html || '';
+                            // Scroll ke tabel hanya jika user memicu (bukan auto-refresh)
+                            tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            attachPaginationListeners();
+                        }
+
+                        // Update URL, tab, dan download link
                         history.pushState({}, '', url.toString());
-
                         setActiveTab(url.searchParams.get('status') || '');
-
                         updateDownloadLinkFromUrl(url);
 
                         if (data.status_counts && typeof data.total_all_records !== 'undefined') {
                             updateTabCounts(data.status_counts, data.total_all_records);
                         }
-
-                        attachPaginationListeners();
-                        tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     })
                     .catch((err) => {
-                        hideTableLoading();
-                        console.error('Fetch error:', err);
+                        if (!silent) {
+                            hideTableLoading();
+                            console.error('Fetch error:', err);
+                        }
                     });
             }
 

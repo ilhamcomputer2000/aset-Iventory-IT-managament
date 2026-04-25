@@ -1087,7 +1087,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'ajax_get_tickets') {
                 $typeClass = ticket_badge_type_pekerjaan_class($typePekerjaanText);
 
                 $assignedToUser = trim((string) ($t['assigned_to'] ?? ''));
-                $assignedBadge  = $assignedToUser !== '' ? (
+                $assignedBadge = $assignedToUser !== '' ? (
                     '<div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 w-full">'
                     . '<span class="relative flex h-2 w-2 flex-shrink-0"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>'
                     . '<span class="leading-tight">Sedang ditangani<br><span class="font-semibold">' . htmlspecialchars($assignedToUser) . '</span></span>'
@@ -1798,7 +1798,12 @@ $dashPriorityData = [
         src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
     <style>
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         /* Modal animation helpers (no extra dependencies) */
         .modal-overlay {
             opacity: 0;
@@ -1833,28 +1838,47 @@ $dashPriorityData = [
 
         /* Main content padding lebih kecil di mobile */
         @media (max-width: 767px) {
-            main.p-6 { padding: 0.75rem !important; }
+            main.p-6 {
+                padding: 0.75rem !important;
+            }
 
             /* Page title lebih compact */
-            h1.text-3xl { font-size: 1.5rem !important; margin-top: 3.5rem !important; }
+            h1.text-3xl {
+                font-size: 1.5rem !important;
+                margin-top: 3.5rem !important;
+            }
 
             /* Buat ticket card: compact di mobile */
-            .bg-white.rounded-xl.shadow-lg.p-6.mb-6 { padding: 0.875rem !important; }
-            .bg-white.rounded-xl.shadow-lg.p-6.mb-6 .flex.items-start.gap-4 { gap: 0.75rem !important; }
+            .bg-white.rounded-xl.shadow-lg.p-6.mb-6 {
+                padding: 0.875rem !important;
+            }
+
+            .bg-white.rounded-xl.shadow-lg.p-6.mb-6 .flex.items-start.gap-4 {
+                gap: 0.75rem !important;
+            }
 
             /* Buat Ticket button: full width di mobile */
-            [data-action="openCreateTicket"] { width: 100%; justify-content: center; }
+            [data-action="openCreateTicket"] {
+                width: 100%;
+                justify-content: center;
+            }
 
             /* Modal form: padding compact */
-            #createTicketModal .modal-panel { max-height: calc(100vh - 1rem) !important; }
-            #createTicketModal .p-6 { padding: 1rem !important; }
+            #createTicketModal .modal-panel {
+                max-height: calc(100vh - 1rem) !important;
+            }
+
+            #createTicketModal .p-6 {
+                padding: 1rem !important;
+            }
+
             #createTicketModal .grid.grid-cols-1.md\:grid-cols-2 {
                 grid-template-columns: 1fr !important;
             }
 
             /* Dashboard header: stack vertikal */
             .bg-white.rounded-xl.shadow-lg .flex.items-center.justify-between.gap-4.mb-5,
-            #it-status-banner + .bg-white.rounded-xl.shadow-lg .flex.items-center.justify-between.gap-4.mb-5 {
+            #it-status-banner+.bg-white.rounded-xl.shadow-lg .flex.items-center.justify-between.gap-4.mb-5 {
                 flex-direction: column !important;
                 align-items: flex-start !important;
             }
@@ -1864,25 +1888,36 @@ $dashPriorityData = [
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: 0.75rem !important;
             }
-            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 > div {
+
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4>div {
                 padding: 0.875rem !important;
             }
+
             .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 .text-3xl {
                 font-size: 1.5rem !important;
             }
 
             /* Dashboard section: padding lebih kecil */
-            .bg-white.rounded-xl.shadow-lg.p-6 { padding: 0.75rem !important; }
+            .bg-white.rounded-xl.shadow-lg.p-6 {
+                padding: 0.75rem !important;
+            }
 
             /* IT Status Banner: compact di mobile */
             #it-status-banner .flex.items-center.gap-4.px-5.py-3\.5 {
                 padding: 0.625rem 0.875rem !important;
                 gap: 0.625rem !important;
             }
-            #it-status-icon { width: 2rem !important; height: 2rem !important; font-size: 1rem !important; }
+
+            #it-status-icon {
+                width: 2rem !important;
+                height: 2rem !important;
+                font-size: 1rem !important;
+            }
 
             /* Recent tickets table */
-            .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+            .overflow-x-auto {
+                -webkit-overflow-scrolling: touch;
+            }
 
             /* Main ticket table */
             #tickets-table-container {
@@ -1890,6 +1925,7 @@ $dashPriorityData = [
                 -webkit-overflow-scrolling: touch;
                 border-radius: 0.5rem;
             }
+
             #tickets-table-container::after {
                 content: '\2190 Geser untuk melihat lebih \2192';
                 display: block;
@@ -1911,15 +1947,29 @@ $dashPriorityData = [
             }
 
             /* Status tabs: ukuran lebih kecil */
-            .status-tab { padding: 0.375rem 0.625rem !important; font-size: 0.7rem !important; }
+            .status-tab {
+                padding: 0.375rem 0.625rem !important;
+                font-size: 0.7rem !important;
+            }
 
             /* Search + action buttons: full width */
-            #ticketSearchForm > div { flex-direction: column !important; }
-            #ticketSearchForm .flex.flex-col.sm\:flex-row { flex-direction: column !important; }
-            #ticketApprovalCloseBtn, #ticketDownloadReportBtn { width: 100% !important; }
+            #ticketSearchForm>div {
+                flex-direction: column !important;
+            }
+
+            #ticketSearchForm .flex.flex-col.sm\:flex-row {
+                flex-direction: column !important;
+            }
+
+            #ticketApprovalCloseBtn,
+            #ticketDownloadReportBtn {
+                width: 100% !important;
+            }
 
             /* Charts height lebih kecil */
-            [style*="height: 300px"] { height: 200px !important; }
+            [style*="height: 300px"] {
+                height: 200px !important;
+            }
         }
 
         /* Small mobile (< 480px) */
@@ -1927,17 +1977,28 @@ $dashPriorityData = [
             .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
                 grid-template-columns: 1fr 1fr !important;
             }
+
             .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 .text-3xl {
                 font-size: 1.25rem !important;
             }
-            h1.text-3xl { font-size: 1.25rem !important; }
+
+            h1.text-3xl {
+                font-size: 1.25rem !important;
+            }
+
             /* Status tab: sangat compact */
-            .status-tab { padding: 0.3rem 0.5rem !important; font-size: 0.65rem !important; }
+            .status-tab {
+                padding: 0.3rem 0.5rem !important;
+                font-size: 0.65rem !important;
+            }
         }
 
         /* Tablet (768px - 1023px) */
         @media (min-width: 768px) and (max-width: 1023px) {
-            main.p-6 { padding: 1.25rem !important; }
+            main.p-6 {
+                padding: 1.25rem !important;
+            }
+
             .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
                 grid-template-columns: repeat(2, 1fr) !important;
             }
@@ -2204,7 +2265,8 @@ $dashPriorityData = [
                                     <p class="text-sm text-gray-600 mb-1">Total Tickets</p>
                                     <div id="urt-total" class="text-3xl font-semibold text-gray-900"
                                         style="transition:color 0.3s;">
-                                        <?php echo htmlspecialchars((string) $dashTotalTickets); ?></div>
+                                        <?php echo htmlspecialchars((string) $dashTotalTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">All time</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-blue-100 text-blue-600">
@@ -2220,7 +2282,8 @@ $dashPriorityData = [
                                     <p class="text-sm text-gray-600 mb-1">Open Tickets</p>
                                     <div id="urt-open" class="text-3xl font-semibold text-gray-900"
                                         style="transition:color 0.3s;">
-                                        <?php echo htmlspecialchars((string) $dashOpenTickets); ?></div>
+                                        <?php echo htmlspecialchars((string) $dashOpenTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Need action</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-orange-100 text-orange-600">
@@ -2236,7 +2299,8 @@ $dashPriorityData = [
                                     <p class="text-sm text-gray-600 mb-1">In Progress</p>
                                     <div id="urt-inprogress" class="text-3xl font-semibold text-gray-900"
                                         style="transition:color 0.3s;">
-                                        <?php echo htmlspecialchars((string) $dashInProgressTickets); ?></div>
+                                        <?php echo htmlspecialchars((string) $dashInProgressTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Being processed</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-yellow-100 text-yellow-700">
@@ -2252,7 +2316,8 @@ $dashPriorityData = [
                                     <p class="text-sm text-gray-600 mb-1">Completed (Done)</p>
                                     <div id="urt-done" class="text-3xl font-semibold text-gray-900"
                                         style="transition:color 0.3s;">
-                                        <?php echo htmlspecialchars((string) $dashDoneTickets); ?></div>
+                                        <?php echo htmlspecialchars((string) $dashDoneTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Resolved</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-green-100 text-green-600">
@@ -2271,7 +2336,8 @@ $dashPriorityData = [
                                     <p class="text-sm text-gray-600 mb-1">Review</p>
                                     <div id="urt-review" class="text-3xl font-semibold text-gray-900"
                                         style="transition:color 0.3s;">
-                                        <?php echo htmlspecialchars((string) $dashReviewTickets); ?></div>
+                                        <?php echo htmlspecialchars((string) $dashReviewTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Waiting validation</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-yellow-100 text-yellow-700">
@@ -2287,7 +2353,8 @@ $dashPriorityData = [
                                     <p class="text-sm text-gray-600 mb-1">Closed</p>
                                     <div id="urt-closed" class="text-3xl font-semibold text-gray-900"
                                         style="transition:color 0.3s;">
-                                        <?php echo htmlspecialchars((string) $dashClosedTickets); ?></div>
+                                        <?php echo htmlspecialchars((string) $dashClosedTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Finalized by user</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-gray-200 text-gray-600">
@@ -2303,7 +2370,8 @@ $dashPriorityData = [
                                     <p class="text-sm text-gray-600 mb-1">Rejected</p>
                                     <div id="urt-rejected" class="text-3xl font-semibold text-gray-900"
                                         style="transition:color 0.3s;">
-                                        <?php echo htmlspecialchars((string) $dashRejectedTickets); ?></div>
+                                        <?php echo htmlspecialchars((string) $dashRejectedTickets); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Need review</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-red-100 text-red-600">
@@ -2319,7 +2387,8 @@ $dashPriorityData = [
                                     <p class="text-sm text-gray-600 mb-1">Average Response Time</p>
                                     <div id="urt-avgtime" class="text-3xl font-semibold text-gray-900"
                                         style="transition:color 0.3s;">
-                                        <?php echo htmlspecialchars((string) $dashAvgResponseTime); ?></div>
+                                        <?php echo htmlspecialchars((string) $dashAvgResponseTime); ?>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">Based on first status change</p>
                                 </div>
                                 <div class="p-3 rounded-lg bg-gray-200 text-gray-600">
@@ -2401,7 +2470,8 @@ $dashPriorityData = [
                                             <tr class="hover:bg-orange-50/40 transition-colors">
                                                 <td class="px-5 py-4 whitespace-nowrap">
                                                     <div class="text-sm font-semibold text-gray-900">
-                                                        <?php echo htmlspecialchars($rtCodeDisplay); ?></div>
+                                                        <?php echo htmlspecialchars($rtCodeDisplay); ?>
+                                                    </div>
                                                     <div class="text-xs text-gray-500">
                                                         #<?php echo htmlspecialchars((string) $rtCodeInt); ?></div>
                                                 </td>
@@ -2409,9 +2479,11 @@ $dashPriorityData = [
                                                     <?php echo htmlspecialchars((string) ($rt['Nama_User'] ?? $Nama_Lengkap)); ?>
                                                 </td>
                                                 <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    <?php echo htmlspecialchars((string) ($rt['Divisi_User'] ?? '')); ?></td>
+                                                    <?php echo htmlspecialchars((string) ($rt['Divisi_User'] ?? '')); ?>
+                                                </td>
                                                 <td class="px-5 py-4 text-sm text-gray-900">
-                                                    <?php echo htmlspecialchars((string) ($rt['Subject'] ?? '')); ?></td>
+                                                    <?php echo htmlspecialchars((string) ($rt['Subject'] ?? '')); ?>
+                                                </td>
                                                 <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     <?php echo htmlspecialchars((string) ($rt['Kategori_Masalah'] ?? '')); ?>
                                                 </td>
@@ -2424,7 +2496,8 @@ $dashPriorityData = [
                                                         class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border <?php echo htmlspecialchars($rtStatusClass); ?>"><?php echo htmlspecialchars($rtStatus); ?></span>
                                                 </td>
                                                 <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    <?php echo htmlspecialchars((string) ($rt['Create_User'] ?? '')); ?></td>
+                                                    <?php echo htmlspecialchars((string) ($rt['Create_User'] ?? '')); ?>
+                                                </td>
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -2440,7 +2513,8 @@ $dashPriorityData = [
                 style="display:none; overflow:hidden;">
                 <div class="flex items-center gap-4 px-5 py-3.5">
                     <!-- Pulsing icon -->
-                    <div id="it-status-icon" class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg">
+                    <div id="it-status-icon"
+                        class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg">
                         <span id="it-status-emoji">⚙️</span>
                     </div>
                     <!-- Text content -->
@@ -2453,7 +2527,8 @@ $dashPriorityData = [
                     <!-- Live dot -->
                     <div class="flex-shrink-0 flex items-center gap-1.5">
                         <span class="relative flex h-2 w-2">
-                            <span id="it-live-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                            <span id="it-live-ping"
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
                             <span id="it-live-dot" class="relative inline-flex rounded-full h-2 w-2"></span>
                         </span>
                         <span class="text-[10px] font-medium opacity-60">LIVE</span>
@@ -2640,17 +2715,21 @@ $dashPriorityData = [
                                     ?>
                                     <tr class="hover:bg-orange-50/40 transition-colors">
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
-                                            <?php echo htmlspecialchars((string) $rowNo); ?></td>
+                                            <?php echo htmlspecialchars((string) $rowNo); ?>
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <div class="font-semibold text-gray-900">
-                                                <?php echo htmlspecialchars($codeDisplay); ?></div>
+                                                <?php echo htmlspecialchars($codeDisplay); ?>
+                                            </div>
                                             <div class="text-xs text-gray-500">
                                                 #<?php echo htmlspecialchars((string) $codeInt); ?></div>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800">
-                                            <?php echo htmlspecialchars((string) $t['Subject']); ?></td>
+                                            <?php echo htmlspecialchars((string) $t['Subject']); ?>
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-800">
-                                            <?php echo htmlspecialchars((string) $t['Kategori_Masalah']); ?></td>
+                                            <?php echo htmlspecialchars((string) $t['Kategori_Masalah']); ?>
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <?php $priorityText = (string) ($t['Priority'] ?? ''); ?>
                                             <span
@@ -2677,7 +2756,8 @@ $dashPriorityData = [
                                             <?php endif; ?>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
-                                            <?php echo htmlspecialchars((string) ($t['Create_User'] ?? '')); ?></td>
+                                            <?php echo htmlspecialchars((string) ($t['Create_User'] ?? '')); ?>
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
                                             <?php
                                             // (sudah dihitung di atas)
@@ -3084,6 +3164,67 @@ $dashPriorityData = [
                     </div>
                 </div>
             </div>
+
+            <!-- ===== MODAL KONFIRMASI APPROVAL CLOSE ===== -->
+            <div id="approveCloseModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" id="approveCloseOverlay"></div>
+                <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+                    style="animation:acModalIn 0.25s cubic-bezier(.22,1,.36,1) both">
+                    <!-- Top accent bar -->
+                    <div class="h-1.5 bg-gradient-to-r from-green-500 to-emerald-400"></div>
+
+                    <!-- Header -->
+                    <div class="flex items-start gap-4 px-6 pt-6 pb-4">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                            <i class="fas fa-circle-check text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">Konfirmasi Tutup Ticket</h3>
+                            <p class="text-sm text-gray-500 mt-0.5" id="acModalTicketCode">Ticket #-</p>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="px-6 pb-4">
+                        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+                            <i class="fas fa-triangle-exclamation text-amber-500 mt-0.5 flex-shrink-0"></i>
+                            <div class="text-sm text-amber-800">
+                                <p class="font-semibold mb-1">Perhatian sebelum melanjutkan</p>
+                                <p>Setelah ticket ditutup (<strong>Closed</strong>), status tidak dapat diubah kembali.
+                                    Pastikan masalah Anda sudah benar-benar terselesaikan oleh Tim IT.</p>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-sm text-gray-700">Apakah Anda yakin ingin menyetujui penutupan ticket ini?
+                        </p>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t bg-gray-50">
+                        <button type="button" id="acModalCancelBtn"
+                            class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-100 transition-colors">
+                            Batal
+                        </button>
+                        <button type="button" id="acModalConfirmBtn"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 active:scale-95 transition-all shadow-sm">
+                            <i class="fas fa-circle-check" id="acModalBtnIcon"></i>
+                            <span id="acModalBtnText">Ya, Tutup Ticket</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <style>
+                @keyframes acModalIn {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.92) translateY(16px);
+                    }
+
+                    to {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+            </style>
         </main>
     </div>
 
@@ -3726,17 +3867,80 @@ $dashPriorityData = [
                     });
                 });
 
-                // Konfirmasi approval close
-                document.querySelectorAll('form[data-action="approveClose"]').forEach((form) => {
-                    if (form.dataset.boundApproveClose === '1') return;
-                    form.dataset.boundApproveClose = '1';
+                // Konfirmasi approval close — pakai modal premium, bukan confirm()
+                (function attachApproveCloseModal() {
+                    const modal = document.getElementById('approveCloseModal');
+                    const overlay = document.getElementById('approveCloseOverlay');
+                    const cancelBtn = document.getElementById('acModalCancelBtn');
+                    const confirmBtn = document.getElementById('acModalConfirmBtn');
+                    const codeLabel = document.getElementById('acModalTicketCode');
+                    const btnIcon = document.getElementById('acModalBtnIcon');
+                    const btnText = document.getElementById('acModalBtnText');
+                    if (!modal) return;
 
-                    form.addEventListener('submit', (e) => {
-                        if (!confirm('Setujui penutupan ticket ini? Status akan menjadi Closed..')) {
+                    let _pendingForm = null;
+
+                    function openAcModal(form) {
+                        _pendingForm = form;
+                        // Ambil ticket code dari hidden input dalam form
+                        const codeInput = form.querySelector('input[name="Ticket_code"]');
+                        const code = codeInput ? codeInput.value : '';
+                        if (codeLabel) codeLabel.textContent = code ? ('Ticket #' + code) : 'Ticket';
+                        // Reset tombol
+                        if (btnIcon) { btnIcon.className = 'fas fa-circle-check'; }
+                        if (btnText) { btnText.textContent = 'Ya, Tutup Ticket'; }
+                        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.style.opacity = ''; }
+                        modal.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden';
+                        // Focus ke tombol konfirmasi untuk aksesibilitas
+                        setTimeout(() => { if (confirmBtn) confirmBtn.focus(); }, 80);
+                    }
+
+                    function closeAcModal() {
+                        modal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                        _pendingForm = null;
+                    }
+
+                    // Expose openAcModal ke global agar tombol header bisa trigger
+                    window._openApproveCloseModal = openAcModal;
+
+                    // Intercept submit pada setiap form approveClose
+                    document.querySelectorAll('form[data-action="approveClose"]').forEach((form) => {
+                        if (form.dataset.boundApproveClose === '1') return;
+                        form.dataset.boundApproveClose = '1';
+
+                        form.addEventListener('submit', (e) => {
                             e.preventDefault();
+                            openAcModal(form);
+                        });
+                    });
+
+                    // Batal
+                    if (cancelBtn) cancelBtn.addEventListener('click', closeAcModal);
+                    if (overlay) overlay.addEventListener('click', closeAcModal);
+
+                    // Escape key
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                            closeAcModal();
                         }
                     });
-                });
+
+                    // Konfirmasi → submit form aslinya
+                    if (confirmBtn) {
+                        confirmBtn.addEventListener('click', () => {
+                            if (!_pendingForm) return;
+                            // Loading state
+                            confirmBtn.disabled = true;
+                            confirmBtn.style.opacity = '0.75';
+                            if (btnIcon) btnIcon.className = 'fas fa-spinner fa-spin';
+                            if (btnText) btnText.textContent = 'Memproses...';
+                            // Submit form
+                            _pendingForm.submit();
+                        });
+                    }
+                })();
             }
 
             // Create ticket: prevent double click + close modal on submit
@@ -3859,7 +4063,8 @@ $dashPriorityData = [
                 if (spinner) spinner.style.display = 'none';
             }
 
-            function loadPage(pageNum, statusValue) {
+            // silent=true → auto-refresh background, tidak ada loading overlay / scroll
+            function loadPage(pageNum, statusValue, silent) {
                 const url = new URL(window.location.href);
 
                 // Apply current search query
@@ -3885,7 +4090,8 @@ $dashPriorityData = [
                 fetchParams.set('action', 'ajax_get_tickets');
                 const fetchUrl = `${window.location.pathname}?${fetchParams.toString()}`;
 
-                showTableLoading();
+                // Hanya tampilkan loading overlay jika bukan silent (auto-refresh)
+                if (!silent) showTableLoading();
 
                 fetch(fetchUrl)
                     .then((response) => {
@@ -3895,9 +4101,9 @@ $dashPriorityData = [
                         return response.json();
                     })
                     .then((data) => {
-                        hideTableLoading();
+                        if (!silent) hideTableLoading();
                         if (data.error) {
-                            alert('Error: ' + data.error);
+                            if (!silent) alert('Error: ' + data.error);
                             return;
                         }
 
@@ -3906,30 +4112,53 @@ $dashPriorityData = [
                         if (!tableContainer || !paginationContainer) return;
 
                         const tableClass = 'min-w-full border border-gray-200 rounded-lg overflow-hidden';
-                        tableContainer.innerHTML = '<table class="' + tableClass + '">' + (data.table_html || '') + '</table>';
-                        paginationContainer.innerHTML = data.pagination_html || '';
 
-                        // Update URL (without ajax action)
+                        if (silent) {
+                            // Silent: fade sebentar lalu update tanpa ganggu posisi scroll
+                            tableContainer.style.transition = 'opacity 0.2s ease';
+                            tableContainer.style.opacity = '0.7';
+                            setTimeout(() => {
+                                tableContainer.innerHTML = '<table class="' + tableClass + '">' + (data.table_html || '') + '</table>';
+                                paginationContainer.innerHTML = data.pagination_html || '';
+                                tableContainer.style.opacity = '1';
+                                attachPaginationListeners();
+                                attachTicketActionListeners();
+                            }, 150);
+                        } else {
+                            tableContainer.innerHTML = '<table class="' + tableClass + '">' + (data.table_html || '') + '</table>';
+                            paginationContainer.innerHTML = data.pagination_html || '';
+                            // Scroll ke tabel hanya jika user memicu (bukan auto-refresh)
+                            tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            attachPaginationListeners();
+                            attachTicketActionListeners();
+
+                            // Auto-open approve close modal jika diminta via flag
+                            if (window._acAutoOpen) {
+                                window._acAutoOpen = false;
+                                setTimeout(() => {
+                                    const firstForm = document.querySelector('form[data-action="approveClose"]');
+                                    if (firstForm && typeof window._openApproveCloseModal === 'function') {
+                                        window._openApproveCloseModal(firstForm);
+                                    }
+                                }, 120);
+                            }
+                        }
+
+                        // Update URL, tab, download link, dan tombol approval
                         history.pushState({}, '', url.toString());
-
                         setActiveTab(url.searchParams.get('status') || '');
-
                         updateDownloadLinkFromUrl(url);
 
                         if (data.status_counts && typeof data.total_all_records !== 'undefined') {
                             updateTabCounts(data.status_counts, data.total_all_records);
                             updateApprovalCloseButton(data.status_counts);
                         }
-
-                        attachPaginationListeners();
-                        attachTicketActionListeners();
-
-                        tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     })
                     .catch((err) => {
-                        hideTableLoading();
-                        console.error('Fetch error:', err);
-                        // fallback: allow normal navigation if needed
+                        if (!silent) {
+                            hideTableLoading();
+                            console.error('Fetch error:', err);
+                        }
                     });
             }
 
@@ -3987,6 +4216,16 @@ $dashPriorityData = [
 
                 btn.addEventListener('click', () => {
                     if (btn.disabled) return;
+
+                    // Coba langsung buka modal untuk form approve close yang sudah ada di DOM
+                    const firstForm = document.querySelector('form[data-action="approveClose"]');
+                    if (firstForm && typeof window._openApproveCloseModal === 'function') {
+                        window._openApproveCloseModal(firstForm);
+                        return;
+                    }
+
+                    // Belum ada form di DOM (tab bukan Done) → navigate, lalu auto-open modal
+                    window._acAutoOpen = true;
                     setActiveTab('Done');
                     loadPage(1, 'Done');
                 });
@@ -4000,55 +4239,55 @@ $dashPriorityData = [
             // ===== IT TEAM STATUS BANNER (v2 — contextual personalized) =====
             (function itStatusBanner() {
                 const banner = document.getElementById('it-status-banner');
-                const icon   = document.getElementById('it-status-icon');
-                const emoji  = document.getElementById('it-status-emoji');
-                const title  = document.getElementById('it-status-title');
-                const sub    = document.getElementById('it-status-sub');
-                const pills  = document.getElementById('it-status-pills');
-                const ping   = document.getElementById('it-live-ping');
-                const dot    = document.getElementById('it-live-dot');
+                const icon = document.getElementById('it-status-icon');
+                const emoji = document.getElementById('it-status-emoji');
+                const title = document.getElementById('it-status-title');
+                const sub = document.getElementById('it-status-sub');
+                const pills = document.getElementById('it-status-pills');
+                const ping = document.getElementById('it-live-ping');
+                const dot = document.getElementById('it-live-dot');
                 if (!banner) return;
 
                 const THEMES = {
                     mine: {
                         banner: 'bg-emerald-50 border-emerald-300',
-                        icon:   'bg-emerald-100 text-emerald-700',
-                        title:  'text-emerald-900',
-                        sub:    'text-emerald-700',
-                        dot:    'bg-emerald-500',
-                        ping:   'bg-emerald-400',
-                        pill:   'bg-emerald-100 text-emerald-800',
-                        emoji:  '🛠️',
+                        icon: 'bg-emerald-100 text-emerald-700',
+                        title: 'text-emerald-900',
+                        sub: 'text-emerald-700',
+                        dot: 'bg-emerald-500',
+                        ping: 'bg-emerald-400',
+                        pill: 'bg-emerald-100 text-emerald-800',
+                        emoji: '🛠️',
                     },
                     active: {
                         banner: 'bg-emerald-50 border-emerald-200',
-                        icon:   'bg-emerald-100 text-emerald-700',
-                        title:  'text-emerald-900',
-                        sub:    'text-emerald-700',
-                        dot:    'bg-emerald-500',
-                        ping:   'bg-emerald-400',
-                        pill:   'bg-emerald-100 text-emerald-800',
-                        emoji:  '⚙️',
+                        icon: 'bg-emerald-100 text-emerald-700',
+                        title: 'text-emerald-900',
+                        sub: 'text-emerald-700',
+                        dot: 'bg-emerald-500',
+                        ping: 'bg-emerald-400',
+                        pill: 'bg-emerald-100 text-emerald-800',
+                        emoji: '⚙️',
                     },
                     queued: {
                         banner: 'bg-amber-50 border-amber-200',
-                        icon:   'bg-amber-100 text-amber-700',
-                        title:  'text-amber-900',
-                        sub:    'text-amber-700',
-                        dot:    'bg-amber-500',
-                        ping:   'bg-amber-400',
-                        pill:   'bg-amber-100 text-amber-800',
-                        emoji:  '📋',
+                        icon: 'bg-amber-100 text-amber-700',
+                        title: 'text-amber-900',
+                        sub: 'text-amber-700',
+                        dot: 'bg-amber-500',
+                        ping: 'bg-amber-400',
+                        pill: 'bg-amber-100 text-amber-800',
+                        emoji: '📋',
                     },
                     idle: {
                         banner: 'bg-blue-50 border-blue-200',
-                        icon:   'bg-blue-100 text-blue-700',
-                        title:  'text-blue-900',
-                        sub:    'text-blue-700',
-                        dot:    'bg-blue-400',
-                        ping:   'bg-blue-300',
-                        pill:   'bg-blue-100 text-blue-800',
-                        emoji:  '✅',
+                        icon: 'bg-blue-100 text-blue-700',
+                        title: 'text-blue-900',
+                        sub: 'text-blue-700',
+                        dot: 'bg-blue-400',
+                        ping: 'bg-blue-300',
+                        pill: 'bg-blue-100 text-blue-800',
+                        emoji: '✅',
                     },
                 };
 
@@ -4065,7 +4304,7 @@ $dashPriorityData = [
                     icon.classList.add(...t.icon.split(' '));
                     title.classList.add(...t.title.split(' '));
                     sub.classList.add(...t.sub.split(' '));
-                    dot.className  = 'relative inline-flex rounded-full h-2 w-2 ' + t.dot;
+                    dot.className = 'relative inline-flex rounded-full h-2 w-2 ' + t.dot;
                     ping.className = 'animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ' + t.ping;
                     emoji.textContent = t.emoji;
                     return t;
@@ -4095,18 +4334,18 @@ $dashPriorityData = [
                         title.textContent = `Tim IT sedang aktif mengerjakan ${data.active_count} tiket`;
                         const parts = [];
                         if (data.open_count > 0) parts.push(`${data.open_count} tiket menunggu`);
-                        if (data.avg_response)   parts.push(`Rata-rata respons: ${data.avg_response}`);
+                        if (data.avg_response) parts.push(`Rata-rata respons: ${data.avg_response}`);
                         sub.textContent = parts.join(' · ') || 'Tim IT siap membantu Anda';
                         let p = '';
                         if (data.active_count > 0) p += pill(`🔧 ${data.active_count} dikerjakan`, t.pill);
-                        if (data.open_count > 0)   p += pill(`📋 ${data.open_count} antrian`, t.pill);
-                        if (data.avg_response)     p += pill(`⏱ ${data.avg_response}`, t.pill);
+                        if (data.open_count > 0) p += pill(`📋 ${data.open_count} antrian`, t.pill);
+                        if (data.avg_response) p += pill(`⏱ ${data.avg_response}`, t.pill);
                         pills.innerHTML = p;
 
                     } else if (level === 'queued') {
                         // ── Ada antrian tapi belum ada yang diambil admin ──
                         title.textContent = `${data.open_count} tiket sedang menunggu diproses`;
-                        sub.textContent   = data.avg_response
+                        sub.textContent = data.avg_response
                             ? `Rata-rata respons: ${data.avg_response} · Tim IT akan segera merespons`
                             : 'Tim IT akan segera merespons tiket Anda';
                         let p = pill(`📋 ${data.open_count} antrian`, t.pill);
@@ -4116,10 +4355,10 @@ $dashPriorityData = [
                     } else {
                         // ── IDLE: tidak ada tiket aktif ──
                         title.textContent = 'Tim IT siap melayani';
-                        sub.textContent   = data.avg_response
+                        sub.textContent = data.avg_response
                             ? `Rata-rata respons: ${data.avg_response} · Tidak ada antrian`
                             : 'Tidak ada antrian saat ini';
-                        pills.innerHTML   = data.avg_response
+                        pills.innerHTML = data.avg_response
                             ? pill(`⏱ ${data.avg_response}`, t.pill) : '';
                     }
 
@@ -4132,7 +4371,7 @@ $dashPriorityData = [
                     fetch('api_it_status.php?_=' + Date.now(), { credentials: 'same-origin' })
                         .then(r => r.ok ? r.json() : null)
                         .then(data => { if (data) updateBanner(data); })
-                        .catch(() => {});
+                        .catch(() => { });
                 }
 
                 fetchStatus();
@@ -4736,7 +4975,7 @@ $dashPriorityData = [
                 }
             }
 
-            // --- Debounced ticket list reload ---
+            // --- Debounced ticket list reload (silent = tanpa loading overlay / scroll) ---
             var _listReloadTimer = null;
             function scheduleListReload() {
                 if (_listReloadTimer) clearTimeout(_listReloadTimer);
@@ -4746,7 +4985,7 @@ $dashPriorityData = [
                         // Reload current page (preserve active tab & search)
                         var url = new URL(window.location.href);
                         var pageNum = parseInt(url.searchParams.get('page') || '1', 10) || 1;
-                        window.urtLoadPage(pageNum);
+                        window.urtLoadPage(pageNum, undefined, true /* silent */);
                     }
                 }, 600);
             }

@@ -162,6 +162,7 @@ $isRequestPinjaman = ($activePage === 'request_pinjaman');
 $isProfile = ($activePage === 'profile');
 $isAddAkun = ($activePage === 'add_akun');
 $isLog = ($activePage === 'log');
+$isEventDashboard = ($activePage === 'event_dashboard');
 $isSettingsSubPage = ($isProfile || $isAddAkun || $isLog);
 
 // Build sidebar links
@@ -179,6 +180,7 @@ $_adminLinks = [
     'serah_terima' => $_sidebarBaseDir . '/serah_terima.php',
     'ticket' => $_sidebarBaseDir . '/ticket.php',
     'request_pinjaman' => $_sidebarBaseDir . '/request_pinjaman.php',
+    'event_dashboard' => $_sidebarBaseDir . '/dashboard_event.php',
     'profile' => $_sidebarBaseDir . '/profile.php',
     'add_akun' => $_sidebarBaseDir . '/add_akun.php',
     'log' => $_sidebarBaseDir . '/log.php',
@@ -314,6 +316,13 @@ $_adminLinks = [
                 class="fas fa-hand-holding text-base w-5 text-center <?php echo $isRequestPinjaman ? 'text-orange-500' : 'text-gray-400'; ?>"></i>
             <span class="text-sm <?php echo $isRequestPinjaman ? 'font-semibold' : 'font-medium'; ?>">Request
                 Pinjaman</span>
+        </a>
+
+        <a href="<?php echo htmlspecialchars($_adminLinks['event_dashboard']); ?>"
+            class="flex items-center space-x-3 py-2.5 px-3 rounded-lg mb-1 transition-all duration-200 <?php echo $isEventDashboard ? 'bg-orange-50 text-orange-700 border-l-[3px] border-orange-500' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'; ?>">
+            <i
+                class="fas fa-calendar-alt text-base w-5 text-center <?php echo $isEventDashboard ? 'text-orange-500' : 'text-gray-400'; ?>"></i>
+            <span class="text-sm <?php echo $isEventDashboard ? 'font-semibold' : 'font-medium'; ?>">Event Dashboard</span>
         </a>
 
         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mt-4 mb-2">SETTINGS</p>
